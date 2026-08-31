@@ -1,22 +1,22 @@
 # Microprocesador 8-bit TTL
 
-Microprocesador de 8 bits construido con lógica TTL discreta (ALU SN74LS181, registros 74LS273, multiplexores 74LS157), controlado por un Arduino Mega que actúa **únicamente** como unidad de control, RAM y reloj — toda operación aritmética y lógica ocurre en el hardware TTL, nunca en el microcontrolador.
+Microprocesador de 8 bits construido con lógica TTL discreta (ALU SN74LS181, registros 74LS273, multiplexores 74LS157), controlado por un Arduino Mega que actúa **únicamente** como unidad de control, RAM y reloj. Toda operación aritmética y lógica ocurre en el hardware TTL, nunca en el microcontrolador.
 
 Este repositorio contiene las tres implementaciones del mismo ISA (juego de instrucciones), mantenidas sincronizadas por una suite de pruebas compartida:
 
-- **`sim/`** — simulador de referencia en Python (CPU, ALU, memoria, ciclo fetch-decode-execute).
-- **`asm/`** — ensamblador de dos pasadas que traduce programas fuente `.asm` al binario de 256 bytes que carga la máquina.
-- **`firmware/`** — firmware en C++ para el Arduino Mega, con una capa HAL que separa el núcleo de control (probado en PC) de las implementaciones reales/simuladas de hardware.
-- **`depurador/`** — herramienta gráfica para inspeccionar y depurar la ejecución en el hardware real o contra un servidor serie simulado.
-- **`programas/`** — programas de ejemplo en ensamblador, incluido el programa de referencia (multiplicación por sumas repetidas).
-- **`tests/`** — suite de pruebas que valida que las tres implementaciones (simulador, firmware, hardware) produzcan resultados idénticos.
+- **`sim/`**: simulador de referencia en Python (CPU, ALU, memoria, ciclo fetch-decode-execute).
+- **`asm/`**: ensamblador de dos pasadas que traduce programas fuente `.asm` al binario de 256 bytes que carga la máquina.
+- **`firmware/`**: firmware en C++ para el Arduino Mega, con una capa HAL que separa el núcleo de control (probado en PC) de las implementaciones reales/simuladas de hardware.
+- **`depurador/`**: herramienta gráfica para inspeccionar y depurar la ejecución en el hardware real o contra un servidor serie simulado.
+- **`programas/`**: programas de ejemplo en ensamblador, incluido el programa de referencia (multiplicación por sumas repetidas).
+- **`tests/`**: suite de pruebas que valida que las tres implementaciones (simulador, firmware, hardware) produzcan resultados idénticos.
 
 ## Arquitectura
 
 - **ISA fijo de 16 instrucciones**, opcode de 4 bits en el nibble alto del primer byte, instrucciones de 1 o 2 bytes.
 - **Memoria von Neumann de 256 bytes**: `0x00`–`0xBF` programa, `0xC0`–`0xFF` datos (convención respetada por el ensamblador, no impuesta por el hardware).
 - **ALU SN74LS181**: suma, resta, AND, OR, XOR; solo estas cinco operaciones actualizan las banderas Z (cero) y C (acarreo).
-- **Frontera HAL en el firmware**: el núcleo de control (`nucleo.cpp`) no toca pines ni hace I/O directamente — corre igual sobre hardware real (`hal_arduino.cpp`) o sobre un emulador de los chips TTL (`hal_falso.cpp`) usado en las pruebas de PC.
+- **Frontera HAL en el firmware**: el núcleo de control (`nucleo.cpp`) no toca pines ni hace I/O directamente. Corre igual sobre hardware real (`hal_arduino.cpp`) o sobre un emulador de los chips TTL (`hal_falso.cpp`) usado en las pruebas de PC.
 
 ## Requisitos
 
@@ -29,8 +29,8 @@ Este repositorio contiene las tres implementaciones del mismo ISA (juego de inst
 ## Instalación
 
 ```bash
-git clone <url-del-repositorio>
-cd <carpeta-del-repositorio>
+git clone https://github.com/smonrou/microprocesador-8bit-ttl.git
+cd microprocesador-8bit-ttl
 python -m pip install -r requirements.txt   # opcional: solo necesario para conectar por serie a un Arduino real
 ```
 
@@ -82,4 +82,4 @@ El diseño lógico, el simulador, el ensamblador y el firmware están completos 
 
 ## Licencia
 
-MIT — ver [LICENSE](LICENSE).
+MIT, ver [LICENSE](LICENSE).
