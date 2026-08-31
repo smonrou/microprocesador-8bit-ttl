@@ -1,0 +1,60 @@
+DIR  BYTES        LÍN  FUENTE
+---  -----------  ---  --------------------------------------------
+                    1  ; ─────────────────────────────────────────────────────────────────────────
+                    2  ; demo_alu.asm — las 6 funciones aprobadas por el ingeniero
+                    3  ;
+                    4  ; Ejercita ADD, SUB, AND, OR, XOR y OUT en una sola corrida. Cada operación
+                    5  ; imprime su resultado, así que la secuencia de salida es verificable de un
+                    6  ; vistazo contra la tabla de la ALU (A.3).
+                    7  ;
+                    8  ; Salida esperada:  [8, 2, 136, 238, 102, 240]
+                    9  ;                    │  │   │    │    │    └─ 0xF0  NOT vía XOR
+                   10  ;                    │  │   │    │    └────── 0x66  XOR
+                   11  ;                    │  │   │    └─────────── 0xEE  OR
+                   12  ;                    │  │   └──────────────── 0x88  AND
+                   13  ;                    │  └──────────────────── 5-3   SUB
+                   14  ;                    └─────────────────────── 5+3   ADD
+                   15  ; ─────────────────────────────────────────────────────────────────────────
+                   16
+                   17  ; ── ADD: 5 + 3 = 8 ───────────────────────────────────────────────────────
+00   30 05         18        LDI A,#5
+02   40 03         19        LDI B,#3
+04   60            20        ADD
+05   B0            21        OUT
+                   22
+                   23  ; ── SUB: 5 - 3 = 2 (complemento a 2 nativo del 74LS181) ──────────────────
+06   30 05         24        LDI A,#5
+08   40 03         25        LDI B,#3
+0A   70            26        SUB
+0B   B0            27        OUT
+                   28
+                   29  ; ── AND: 0xCC & 0xAA = 0x88 (enmascarar bits) ────────────────────────────
+0C   30 CC         30        LDI A,#0xCC
+0E   40 AA         31        LDI B,#0xAA
+10   80            32        AND
+11   B0            33        OUT
+                   34
+                   35  ; ── OR: 0xCC | 0xAA = 0xEE (encender bits) ───────────────────────────────
+12   30 CC         36        LDI A,#0xCC
+14   40 AA         37        LDI B,#0xAA
+16   90            38        OR
+17   B0            39        OUT
+                   40
+                   41  ; ── XOR: 0xCC ^ 0xAA = 0x66 (detectar diferencias) ───────────────────────
+18   30 CC         42        LDI A,#0xCC
+1A   40 AA         43        LDI B,#0xAA
+1C   A0            44        XOR
+1D   B0            45        OUT
+                   46
+                   47  ; ── NOT vía XOR: 0x0F ^ 0xFF = 0xF0 ──────────────────────────────────────
+                   48  ; El set no tiene instrucción NOT. Se suple con XOR contra 0xFF, igual que
+                   49  ; hacen arquitecturas RISC reales que tampoco la tienen.
+1E   30 0F         50        LDI A,#0x0F
+20   40 FF         51        LDI B,#0xFF
+22   A0            52        XOR
+23   B0            53        OUT
+                   54
+24   C0            55        HLT
+
+TABLA DE SÍMBOLOS
+(ninguno)

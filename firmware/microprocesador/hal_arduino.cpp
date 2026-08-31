@@ -1,0 +1,109 @@
+// ---------------------------------------------------------------------------
+// hal_arduino.cpp — implementación real de hal.h sobre el Arduino Mega 2560.
+//
+// Solo se compila dentro del IDE de Arduino: el guard #ifdef ARDUINO lo deja
+// fuera del build nativo de las pruebas, donde se enlaza hal_falso.cpp.
+//
+// Escritura y lectura del bus por puerto completo, no con digitalWrite bit a
+// bit: los 8 bits cambian en una sola instrucción, así que el 74LS273 nunca
+// puede enganchar un estado intermedio.
+// ---------------------------------------------------------------------------
+
+#ifdef ARDUINO
+
+#include <Arduino.h>
+
+#include "display.h"
+#include "hal.h"
+#include "isa.h"
+#include "pines.h"
+
+namespace hal {
+
+void iniciar() {
+  DDRA = 0xFF;   // PORTA salida: bus de datos hacia los registros
+  PORTA = 0x00;
+
+  DDRC = 0x00;   // PORTC entrada: lectura del bus F de la ALU
+  PORTC = 0x00;  // sin pull-ups: las salidas del 181 son totem-pole
+
+  DDRL |= 0x3F;  // PORTL bits 0-5 salida: S0-S3, M, C̄n
+
+  pinMode(PIN_CLOCK_A, OUTPUT);
+  pinMode(PIN_CLOCK_B, OUTPUT);
+  pinMode(PIN_MUX, OUTPUT);
+  pinMode(PIN_CLEAR, OUTPUT);
+  pinMode(PIN_CARRY, INPUT);
+
+  digitalWrite(PIN_CLOCK_A, LOW);
+  digitalWrite(PIN_CLOCK_B, LOW);
+  digitalWrite(PIN_MUX, LOW);
+  digitalWrite(PIN_CLEAR, HIGH);   // CLEAR es activo en BAJO: reposo en alto
+
+  display::iniciar();
+  limpiarRegistros();
+}
+
+void ponerBus(uint8_t valor) {
+  PORTA = valor;
+}
+
+void seleccionarMux(uint8_t fuente) {
+  digitalWrite(PIN_MUX, (fuente == MUX_ALU) ? HIGH : LOW);
+}
+
+void configurarALU(uint8_t m, uint8_t s, uint8_t cn) {
+  uint8_t control = static_cast<uint8_t>(s & 0x0F);
+  if (m)  control |= (1 << BIT_M);
+  if (cn) control |= (1 << BIT_CN);
+
+  // Una sola escritura: las seis líneas cambian simultáneamente.
+  PORTL = static_cast<uint8_t>((PORTL & MASCARA_NO_ALU) | control);
+}
+
+void esperarPropagacion() {
+  delayMicroseconds(MICROS_PROPAGACION);
+}
+
+uint8_t leerF() {
+  return PINC;
+}
+
+bool huboAcarreo() {
+  // El pin 16 (C̄n+4) está INVERTIDO: va a BAJO cuando hay acarreo. La
+  // inversión vive aquí y en ningún otro sitio, así que el núcleo no tiene
+  // que acordarse de ella.
+  return digitalRead(PIN_CARRY) == LOW;
+}
+
+void pulsoClockA() {
+  // El 74LS273 engancha en el flanco de SUBIDA.
+  digitalWrite(PIN_CLOCK_A, LOW);
+  delayMicroseconds(MICROS_PULSO);
+  digitalWrite(PIN_CLOCK_A, HIGH);
+  delayMicroseconds(MICROS_PULSO);
+  digitalWrite(PIN_CLOCK_A, LOW);
+}
+
+void pulsoClockB() {
+  digitalWrite(PIN_CLOCK_B, LOW);
+  delayMicroseconds(MICROS_PULSO);
+  digitalWrite(PIN_CLOCK_B, HIGH);
+  delayMicroseconds(MICROS_PULSO);
+  digitalWrite(PIN_CLOCK_B, LOW);
+}
+
+void limpiarRegistros() {
+  // CLEAR asíncrono, activo en BAJO. No necesita reloj.
+  digitalWrite(PIN_CLEAR, LOW);
+  delayMicroseconds(MICROS_PULSO);
+  digitalWrite(PIN_CLEAR, HIGH);
+}
+
+void mostrarByte(uint8_t valor) {
+  display::mostrar(valor);
+}
+
+}  // namespace hal
+
+#endif  // ARDUINO

@@ -1,0 +1,50 @@
+DIR  BYTES        LÍN  FUENTE
+---  -----------  ---  --------------------------------------------
+                    1  ; ─────────────────────────────────────────────────────────────────────────
+                    2  ; demo_multiplicacion.asm — multiplicación genérica por sumas repetidas
+                    3  ;
+                    4  ; Mismo algoritmo que el programa canónico de A.7, pero con los dos
+                    5  ; operandos aislados y marcados, para cambiarlos en vivo durante la defensa.
+                    6  ;
+                    7  ; PARA CAMBIAR LOS OPERANDOS: edita las dos líneas marcadas con  <<<<
+                    8  ;
+                    9  ; Restricción: el producto debe caber en 8 bits (máximo 255). 12×20=240 sí;
+                   10  ; 16×16=256 desborda y da 0 con la bandera C encendida.
+                   11  ;
+                   12  ; Con los valores actuales (4 × 3) la salida esperada es 12.
+                   13  ; ─────────────────────────────────────────────────────────────────────────
+                   14
+00   30 00         15        LDI A,#0
+02   50 C8         16        STA RESULTADO         ; resultado = 0
+                   17
+04   30 03         18        LDI A,#3              ; <<<< MULTIPLICADOR: cuántas veces sumar
+06   50 C9         19        STA CONTADOR
+                   20
+08   10 C8         21  LOOP: LDA RESULTADO
+0A   20 CC         22        LDB MULTIPLICANDO
+0C   60            23        ADD
+0D   50 C8         24        STA RESULTADO         ; resultado += multiplicando
+                   25
+0F   10 C9         26        LDA CONTADOR
+11   40 01         27        LDI B,#1
+13   70            28        SUB
+14   50 C9         29        STA CONTADOR          ; contador -= 1
+16   F0 08         30        JNZ LOOP              ; repetir mientras no llegue a cero
+                   31
+18   10 C8         32        LDA RESULTADO
+1A   B0            33        OUT                   ; muestra el producto
+1B   C0            34        HLT
+                   35
+                   36  ; ── Zona de datos (0xC0-0xFF según A.6) ──────────────────────────────────
+                   37  .ORG 200
+C8   00            38  RESULTADO:     .DB 0        ; 0xC8 — acumulador
+C9   00            39  CONTADOR:      .DB 0        ; 0xC9 — se inicializa desde el programa
+                   40
+                   41  .ORG 204
+CC   04            42  MULTIPLICANDO: .DB 4        ; <<<< MULTIPLICANDO: qué número sumar (0xCC)
+
+TABLA DE SÍMBOLOS
+LOOP          = 0x08 (8)
+RESULTADO     = 0xC8 (200)
+CONTADOR      = 0xC9 (201)
+MULTIPLICANDO = 0xCC (204)
