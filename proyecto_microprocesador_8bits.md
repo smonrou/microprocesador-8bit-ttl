@@ -410,40 +410,67 @@ Con menos espacio el cableado se vuelve una maraña imposible de depurar.
 
 **Decisión: doble salida con roles separados** (ver sección 17 para el detalle de la interfaz).
 
-- **2 displays de 7 segmentos** (definir ánodo o cátodo común) — es la salida **del procesador**, lo que ejecuta la instrucción OUT
-- **7 resistencias de 220–330 Ω**, una por línea de segmento
+- **2 displays de 7 segmentos cuádruples** = 8 dígitos, uno por bit (definir ánodo o cátodo común) — es la salida **del procesador**, lo que ejecuta la instrucción OUT
+- **7 resistencias de 220–330 Ω**, una por línea de segmento (las líneas se comparten entre los ocho dígitos)
 
 ⚠️ **El 74LS47/48 decodifica BCD, no hexadecimal.** Solo muestra correctamente 0–9; con valores 10–15 muestra patrones sin sentido.
 
-→ **Decisión: el Arduino decodifica los segmentos directamente.** Da hexadecimal completo (0–F), ahorra dos integrados, y es coherente con que el Arduino ya lee el bus F.
+**Decisión original (revertida):** que el Arduino decodificara los segmentos por software, para dar hexadecimal completo 0–F sin integrados extra.
 
-### Multiplexado: 9 pines en vez de 14
+→ **Decisión vigente (2026-09-04, §20): salida en BINARIO, decodificada en hardware.** El ingeniero rechazó la decodificación por software: el Arduino es la unidad de control, no puede ser además quien convierte el dato para mostrarlo. Hexadecimal exigiría un decodificador físico 4→7 segmentos; binario no exige ninguno, porque **el bit ya es la magnitud**. Cada dígito muestra "0" o "1".
 
-Los dos dígitos comparten las 7 líneas de segmento y se alternan rápido; la persistencia de la visión hace que se vean ambos encendidos. Son **7 líneas de segmento + 2 de selección = 9 pines**, contra los 14 de dos displays independientes.
+### Cómo se dibuja "0" o "1" sin tabla ni decodificador
 
-Por eso las resistencias son **7 y no 14**: van en las líneas de segmento, que son compartidas.
+    "0" = segmentos a b c d e f          "1" = segmentos b c
 
-Mismo criterio que llevó a elegir el 74LS273 sobre el 74LS173 (sección 12): menos pines, menos soldaduras al pasar a la placa definitiva.
+Comparando los dos patrones sale la lógica completa:
 
-### ⚠️ Los comunes NO se conectan directo al Arduino
-
-Al multiplexar, el pin común de un dígito conduce **la corriente de los 7 segmentos a la vez** (el caso del "8").
-
-| Resistencia por segmento | Por segmento | 7 segmentos encendidos |
+| Segmentos | Cuándo encienden | De dónde salen |
 |---|---|---|
-| 220 Ω | ~13,6 mA | **~95 mA** |
-| 330 Ω | ~9 mA | **~63 mA** |
+| b, c | siempre (están en los dos patrones) | nivel fijo |
+| a, d, e, f | si el bit vale 0 | complemento del bit |
+| g | si el bit vale 1 | el bit tal cual |
 
-El máximo **absoluto** de un pin del Arduino son **40 mA** (20 mA es el valor recomendado). Conectar el común directo al pin lo quema — o peor, lo degrada de forma intermitente, y entonces el síntoma parece un fallo de lógica y se persigue durante horas en el sitio equivocado.
+El **74LS151** (mux 8:1) entrega en `Y` el bit seleccionado y en `W` su complemento: las dos señales que hacen falta, ya invertidas, sin gastar un solo inversor. La "conversión" es un cable a `Y` y otro a `W`.
 
-→ **Decisión: un transistor por dígito.** El transistor conmuta la corriente desde la alimentación y el pin del Arduino solo maneja la base (~5 mA, holgadamente dentro de rango).
+### Integrados que agrega el bloque de salida
 
-| Si el display es | Transistor | Resistencia de base |
+| Cant. | Chip | Papel |
 |---|---|---|
-| Ánodo común | 2N3906 (PNP) | 1 kΩ |
-| Cátodo común | 2N2222 (NPN) | 1 kΩ |
+| 1 | 74LS273 | Registro de salida: engancha el bus F cuando se ejecuta OUT. Su CLEAR comparte línea con A y B |
+| 1 | 74LS151 | Mux 8:1: elige qué bit se muestra; `Y`/`W` dibujan el símbolo |
+| 1 | 74LS138 | Decodificador 3:8: elige qué dígito se enciende |
+| 1 | 74LS240 (ánodo común) o 74LS244 (cátodo común) | Buffer de las 7 líneas de segmento: da la corriente que el 151 no puede dar |
 
-**Consecuencia en el firmware:** el transistor **invierte** la señal de selección del dígito. Está contemplado en `firmware/microprocesador/display.h` tras `#define DISPLAY_DIGITO_INVERTIDO`. Sin esa inversión el display quedaría siempre apagado o siempre encendido.
+Los tres primeros comparten las **mismas** tres líneas de selección (pines 3, 4, 5), así que el bit mostrado y el dígito encendido no pueden desincronizarse: es el mismo número.
+
+**El dato nunca pasa por el Arduino.** Va del bus F al 74LS273 por cable. El Arduino solo pulsa el reloj (pin 7) y cuenta 0..7 en las líneas de selección. Ese es el argumento para la defensa: *"la conversión ocurre en el 74LS151, aquí, en la placa; el Arduino no la hace ni podría"*.
+
+### Multiplexado: obligatorio, no una optimización
+
+Los cuatro dígitos de un display cuádruple **comparten físicamente las 7 líneas de segmento** — no es posible mostrar símbolos distintos en dos dígitos a la vez sin alternarlos. Son **7 líneas de segmento + 3 de selección + 1 de apagado + 1 de reloj = 5 pines del Arduino** (las 7 de segmento salen del buffer, no del Mega), contra 9 en el diseño anterior.
+
+Con 8 dígitos cada uno está encendido **1/8 del tiempo** (antes 1/2): si se ve tenue, bajar las resistencias de segmento a 220 Ω antes que acelerar el refresco.
+
+### ⚠️ Los comunes NO se conectan directo al Arduino ni al 74LS138
+
+Al multiplexar, el común de un dígito conduce la corriente de todos sus segmentos encendidos a la vez (hasta 6, el patrón "0").
+
+| Resistencia por segmento | Por segmento | 6 segmentos encendidos |
+|---|---|---|
+| 220 Ω | ~13,6 mA | **~82 mA** |
+| 330 Ω | ~9 mA | **~54 mA** |
+
+El máximo **absoluto** de un pin del Arduino son **40 mA** (20 mA es el recomendado), y una salida del 74LS138 hunde 8 mA. Conectar el común directo quema el pin — o peor, lo degrada de forma intermitente, y entonces el síntoma parece un fallo de lógica y se persigue durante horas en el sitio equivocado.
+
+→ **Decisión: un transistor por dígito, ocho en total.** La salida del 74LS138 maneja la base (~5 mA) y el transistor conmuta la corriente del común.
+
+| Si el display es | Transistor | Resistencia de base | Buffer de segmento |
+|---|---|---|---|
+| Ánodo común | 2N3906 (PNP) | 1 kΩ | 74LS240 (inversor) |
+| Cátodo común | 2N2222 (NPN) | 1 kΩ | 74LS244 (directo) |
+
+**Consecuencia en el firmware: ninguna.** La polaridad la resuelven el buffer y el transistor; el firmware cuenta 0..7 y pulsa un reloj, idéntico en los dos casos. Por eso `display.h` ya no tiene los `#define DISPLAY_ANODO_COMUN` / `DISPLAY_DIGITO_INVERTIDO`: el pendiente C.4 dejó de tocar código.
 
 ### 13.5 Componentes pasivos y de prueba
 
@@ -452,8 +479,8 @@ El máximo **absoluto** de un pin del Arduino son **40 mA** (20 mA es el valor r
 | 20+ | LEDs (varios colores) | Depuración: ver estado de buses y registros |
 | 30+ | Resistencias 220–330 Ω | Limitar corriente en LEDs y en las 7 líneas de segmento |
 | 5 | Resistencias 1 kΩ | Pull-ups |
-| **2** | **Resistencias 1 kΩ** | **Base de los transistores del display** (ver 13.4) |
-| **2** | **Transistores 2N3906 (PNP) o 2N2222 (NPN)** | **Driver de dígito del display** — según ánodo o cátodo común |
+| **8** | **Resistencias 1 kΩ** | **Base de los transistores de dígito** (ver 13.4) |
+| **8** | **Transistores 2N3906 (PNP) o 2N2222 (NPN)** | **Driver de dígito** — uno por dígito, según ánodo o cátodo común |
 | 8 | Interruptores DIP (o dip switch de 8) | Pruebas manuales de la ALU |
 | 1 | Pulsador (push button) | Reset manual / clock manual |
 
@@ -531,7 +558,11 @@ Con el firmware terminado (sección 19) las cantidades ya no son estimaciones: l
 | 2 | SN74LS181 — ALU en cascada | ✅ Comprados |
 | 1 | **Arduino Mega 2560** — unidad de control | ⬜ Pendiente ← **bloquea todo** |
 | 2 | 74LS273 — registros A y B | ⬜ Pendiente |
+| 1 | 74LS273 — registro de salida (§20, decodificación en hardware) | ⬜ Pendiente |
 | 2 | 74LS157 — mux de entrada a A | ⬜ Pendiente |
+| 1 | 74LS151 — mux 8:1 de la salida (§20) | ⬜ Pendiente |
+| 1 | 74LS138 — decodificador de dígito de la salida (§20) | ⬜ Pendiente |
+| 1 | 74LS240 (ánodo común) o 74LS244 (cátodo común) — buffer de segmento (§20) | ⬜ Pendiente, depende del display |
 | 1–2 | **Repuestos de cada tipo** | ⬜ Pendiente |
 
 **Los repuestos no son opcionales.** Los TTL se dañan con inversión de polaridad o estática, y descubrirlo sin repuesto días antes de la entrega es el escenario clásico.
@@ -540,10 +571,10 @@ Con el firmware terminado (sección 19) las cantidades ya no son estimaciones: l
 
 | Cant. | Componente | Notas |
 |---|---|---|
-| 2 | Displays de 7 segmentos | ⬜ **Definir ánodo o cátodo común al comprar** (pendiente C.4) |
-| 7 | Resistencias 220–330 Ω | Una por línea de segmento. Son 7, no 14: las líneas se comparten |
-| 2 | Transistores 2N3906 (PNP) **o** 2N2222 (NPN) | Según el tipo de display. **Obligatorios** — ver 13.4 |
-| 2 | Resistencias 1 kΩ | Base de los transistores |
+| 2 | Displays de 7 segmentos **cuádruples** (`7SEG-MPX4-CA`/`-CC`, 8 dígitos) | ⬜ **Definir ánodo o cátodo común al comprar** (pendiente C.4) — ya no afecta al firmware, solo decide el buffer y el transistor (§20) |
+| 7 | Resistencias 220–330 Ω | Una por línea de segmento. Siguen siendo 7, no 14 ni 56: las líneas se comparten entre los 8 dígitos |
+| 8 | Transistores 2N3906 (PNP) **o** 2N2222 (NPN) | Uno por dígito, según el tipo de display. **Obligatorios** — ver 13.4 |
+| 8 | Resistencias 1 kΩ | Base de los transistores |
 
 El tipo de transistor depende del display: **PNP si es ánodo común, NPN si es cátodo común**. Conviene decidir el display primero y comprar ambos en el mismo viaje.
 
@@ -804,9 +835,9 @@ En el Mega, **PORTA asciende** con el número de pin pero **PORTC y PORTL DESCIE
 | PORTC (**desc.**) | 37→30 | Lectura de F0–F7 |
 | PORTL bits 0–5 (**desc.**) | 49→44 | S0, S1, S2, S3, M, C̄n |
 | Sueltos | 41, 40, 39, 38, 2 | CLK A, CLK B, MUX, CLEAR, C̄n+4 |
-| Display | 3–9, 10, 11 | Segmentos a–g, dos comunes |
+| Salida | 3, 4, 5, 6, 7 | SEL0–SEL2 (74LS151 + 74LS138), BLANK (E3 del 138), CLK del registro de salida |
 
-Tabla completa y comentada en `firmware/microprocesador/pines.h`. Total: 36 pines de 54.
+Tabla completa y comentada en `firmware/microprocesador/pines.h`. Total: 32 pines de 54.
 
 Los seis bits de control de la ALU caben en un puerto, así que **configurarla entera es una sola escritura**: las seis líneas cambian a la vez, sin estados intermedios que el 181 pudiera llegar a ver.
 
@@ -814,10 +845,10 @@ Los seis bits de control de la ALU caben en un puerto, así que **configurarla e
 
 | Pendiente | Dónde | Cómo se resuelve |
 |---|---|---|
-| Display ánodo o cátodo común (C.4) | `display.h` | `#define DISPLAY_ANODO_COMUN 1` → cambiar a `0` |
+| Display ánodo o cátodo común (C.4) | **Hardware, ya no firmware** | Buffer 74LS240 (ánodo) o 74LS244 (cátodo) + transistor PNP o NPN. El firmware no cambia |
 | Semántica del carry en SUB (C.5) | `isa.h` | `#define CARRY_SUB_INVERTIDO 0` → cambiar a `1` |
 
-Un cambio de una línea en cada caso. Ninguno de los dos se da por resuelto.
+Ninguno de los dos se da por resuelto. C.4 dejó de tocar código al pasar la decodificación a hardware (§20).
 
 ### Protocolo serial
 
@@ -829,10 +860,57 @@ Toda la salida sale por duplicado: el bloque legible de A.9 —idéntico byte a 
 
 ### 7 segmentos
 
-Tabla de 16 patrones en software, hexadecimal completo. **No** se usa un 74LS47/48: decodifica BCD y con valores de 10 a 15 muestra patrones sin sentido. Hacerlo por software ahorra dos integrados y es coherente con que el Arduino ya lee el bus F.
+Ocho dígitos en binario, **sin ninguna tabla en el firmware**: el 74LS151 entrega `Y` (el bit) y `W` (su complemento), y con eso quedan dibujados el "0" y el "1" (detalle en 13.4). El Arduino solo pulsa el reloj del registro de salida y cuenta 0..7 para multiplexar; el refresco vive en `loop()`, independiente del ciclo de instrucción.
 
-Los dos dígitos se multiplexan sobre las mismas 7 líneas de segmento (9 pines en vez de 14, la mitad de soldaduras al pasar a placa definitiva). El refresco vive en `loop()`, independiente del ciclo de instrucción.
+Se descartó el 74LS47/48: decodifica BCD y con valores de 10 a 15 muestra patrones sin sentido — irrelevante ya, porque no se muestra hexadecimal.
 
 ### Memoria en el Mega
 
 ~620 bytes de los 8192 de SRAM (≈8 %), de los cuales 256 son la matriz de memoria. Holgado. La matriz va en SRAM y no en PROGMEM porque tiene que ser escribible: es una máquina von Neumann.
+
+---
+
+## 20. Salida física en binario — la decodificación baja a hardware (2026-09-04)
+
+### Qué pasó
+
+Al mostrarle al ingeniero el display doble de 7 segmentos, señaló: *"ahí lo estarías mostrando en hexa, y no veo que tengas hardware en donde estés realizando la conversión"*. Su criterio, ya aplicado a la ALU, se extiende a la visualización: **la salida física puede verse en binario o en hexadecimal, pero si es hexadecimal la conversión tiene que ocurrir en el circuito**, no en el Arduino, porque el Arduino es el controlador y no realiza operaciones. La visualización en el depurador queda libre — eso es una herramienta de depuración, no la salida del procesador.
+
+Esto invalidó la decisión de 13.4 (tabla de 16 patrones en `display.cpp`).
+
+### Qué se evaluó
+
+| Alternativa | Veredicto |
+|---|---|
+| 8 LEDs sobre el bus F | Viable, cero conversión. Se mantiene como opción de respaldo |
+| **8 dígitos de 7 segmentos mostrando "0"/"1"** | **Elegida.** Binario, conversión trivial y física |
+| Decodificador hex 4→7 con compuertas / matriz de diodos / ROM | Viable pero caro en tiempo: hay que diseñarlo y depurarlo. Queda como mejora opcional |
+| LCD 16×2 I2C | Descartado: el protocolo I2C y el HD44780 obligan a que el Arduino formatee texto — es exactamente la conversión por software que se rechazó |
+| Displays cuádruples en decimal | Descartado: exigiría un conversor binario→BCD en hardware, desproporcionado |
+
+### Por qué el binario no necesita decodificador
+
+`"0"` son los segmentos a,b,c,d,e,f y `"1"` son b,c. Los segmentos b y c están en los dos símbolos (nivel fijo); a,d,e,f encienden con el bit en 0 (complemento del bit); g enciende con el bit en 1 (el bit tal cual). El **74LS151** ya publica `Y` y `W` (el bit y su complemento), así que la conversión es cablear esas dos señales. No hay tabla, ni ROM, ni compuertas de decodificación.
+
+### Camino del dato
+
+    bus F ─→ 74LS273 (registro de salida) ─→ 74LS151 (mux 8:1) ─→ buffer ─→ segmentos
+                    ↑ CLK (pin 7)                ↑ A,B,C (pines 3,4,5)
+                    ↑ CLEAR compartido           74LS138 ─→ 8 transistores ─→ comunes
+                      con A y B                     ↑ A,B,C (los mismos) + E3 (pin 6)
+
+El byte **nunca entra al Arduino** para mostrarse: viaja del bus F al registro de salida por cable. El Arduino pulsa el reloj cuando ejecuta `OUT` (la ALU sigue en F=A, que es como la dejó `leerRegistroA()`) y cuenta 0..7 en las tres líneas de selección, que van a la vez al 151 y al 138 — mismo número, imposible que el bit mostrado y el dígito encendido se desincronicen.
+
+### Efecto en el firmware
+
+- `display.cpp` perdió la tabla `PATRONES[16]` y las 7 líneas de segmento. Quedó en contar 0..7 y pulsar un reloj.
+- `hal::mostrarByte(valor)` **ignora** `valor` en la placa real (`(void)valor;`): el parámetro sobrevive porque el HAL falso lo registra y las pruebas verifican qué sacó cada `OUT`.
+- Desaparecieron `#define DISPLAY_ANODO_COMUN` y `#define DISPLAY_DIGITO_INVERTIDO`: la polaridad la resuelven el buffer (74LS240 vs 74LS244) y el transistor (PNP vs NPN). El pendiente C.4 sigue abierto pero ya no toca código.
+- Pines del display: de 9 (3–11) a 5 (3–7). Total del proyecto: 32 de 54.
+- Pruebas nuevas en `tests/test_firmware_sketch.py`: `display.cpp` no puede volver a mencionar `PATRONES` ni `PIN_SEGMENTO`, y `mostrarByte()` tiene que descartar el valor.
+
+### Argumento para la defensa
+
+*"El resultado sale del 74LS181, se engancha en un 74LS273 y lo dibuja un 74LS151. El Arduino no toca ese dato: solo dice cuándo capturarlo y qué dígito iluminar."*
+
+Demostración concreta si la piden: parar el Arduino después de un `OUT` y fijar a mano las tres líneas de selección. El byte sigue en el registro de salida y cada dígito muestra su bit correcto conforme se cambian esas líneas — sin el controlador funcionando. (Con el Arduino detenido se pierde el barrido, así que se ve un dígito a la vez, no los ocho.)

@@ -98,31 +98,47 @@ def test_la_inversion_del_acarreo_vive_solo_en_el_hal():
 
 # ── Los pendientes de Parte C siguen aislados ────────────────────────────
 
-def test_el_display_aisla_anodo_o_catodo():
-    # Parte C punto 4: los displays no se han comprado.
+def test_el_display_documenta_anodo_o_catodo_como_asunto_de_hardware():
+    # Parte C punto 4 sigue abierto (los displays no se han comprado), pero ya
+    # no es un pendiente de firmware: con la decodificación en hardware, el
+    # tipo de display solo cambia el buffer (74LS240/74LS244) y el transistor.
     fuente = (SKETCH / "display.h").read_text(encoding="utf-8")
-    assert "#define DISPLAY_ANODO_COMUN" in fuente
     assert "Parte C" in fuente
+    assert "74LS240" in fuente and "74LS244" in fuente
 
 
 def test_el_display_contempla_el_transistor_de_digito():
-    # Al multiplexar, el común conduce la corriente de 7 segmentos a la vez:
-    # ~95 mA con resistencias de 220 Ω, contra los 40 mA máximos de un pin.
-    # Hace falta un transistor, y el transistor invierte la selección.
+    # El común de un dígito conduce la corriente de hasta 6 segmentos a la vez
+    # (el patrón "0"), muy por encima de los 40 mA de un pin. Los ocho comunes
+    # los maneja el 74LS138 a través de un transistor cada uno.
     cabecera = (SKETCH / "display.h").read_text(encoding="utf-8")
-    assert "#define DISPLAY_DIGITO_INVERTIDO" in cabecera
     assert "transistor" in cabecera
+    assert "74LS138" in cabecera
 
+
+def test_el_display_no_decodifica_en_software():
+    """La regla del ingeniero: el Arduino no convierte el dato para mostrarlo.
+
+    La decodificación la hace el 74LS151 (Y = bit, W = complemento). Si vuelve
+    a aparecer una tabla de patrones o un pin de segmento en el firmware, la
+    conversión regresó al software y el requisito se rompió.
+    """
     fuente = (SKETCH / "display.cpp").read_text(encoding="utf-8")
-    assert "DISPLAY_DIGITO_INVERTIDO" in fuente
+    for prohibido in ("PATRONES", "PIN_SEGMENTO", "0b0111111"):
+        assert prohibido not in fuente, (
+            f"display.cpp menciona '{prohibido}': la conversión a segmentos "
+            f"debe ocurrir en el circuito, no en el Arduino"
+        )
 
 
-def test_el_display_decodifica_hexadecimal_completo():
-    # El 74LS47/48 solo decodifica BCD: con 10-15 muestra basura. Por eso la
-    # tabla está en software y tiene 16 entradas.
-    fuente = (SKETCH / "display.cpp").read_text(encoding="utf-8")
-    patrones = fuente.split("PATRONES[16] = {")[1].split("};")[0]
-    assert patrones.count("0b") == 16
+def test_el_dato_de_salida_no_pasa_por_el_arduino():
+    # mostrarByte() recibe el valor solo para el HAL falso; en la placa el
+    # byte viaja del bus F al registro de salida por cable, y el Arduino se
+    # limita a pulsar el reloj que lo engancha.
+    fuente = (SKETCH / "hal_arduino.cpp").read_text(encoding="utf-8")
+    cuerpo = fuente.split("void mostrarByte(")[1].split("\n}")[0]
+    assert "display::enganchar()" in cuerpo
+    assert "(void)valor;" in cuerpo
 
 
 # ── Protocolo serial ─────────────────────────────────────────────────────

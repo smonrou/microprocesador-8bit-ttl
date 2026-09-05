@@ -9,6 +9,11 @@
 // Arduino. La unica operacion en software es Z = (F == 0), que es leer el
 // bus de resultado, no calcularlo.
 //
+// La salida fisica tampoco pasa por el Arduino: el byte va del bus F a un
+// tercer 74LS273 y de ahi al 74LS151 que dibuja cada bit como "0" o "1" en
+// los ocho digitos. El Arduino solo pulsa el reloj y cuenta 0..7 para
+// multiplexar (ver display.h).
+//
 // Este sketch es deliberadamente delgado: toda la logica vive en nucleo.cpp,
 // que no toca ni un pin. Asi el mismo codigo se compila en la PC contra un
 // emulador del circuito y se contrasta instruccion por instruccion con el
@@ -45,7 +50,8 @@ void setup() {
 void loop() {
   consola::atender();
 
-  // Los dos digitos comparten las lineas de segmento: sin refresco continuo
-  // solo se veria uno.
+  // Los cuatro digitos de cada display comparten las lineas de segmento: sin
+  // refresco continuo solo se veria uno de los ocho. Aqui no se decodifica
+  // nada, solo se avanza el selector; el patron lo dibuja el hardware.
   display::refrescar();
 }

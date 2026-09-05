@@ -64,7 +64,15 @@ void pulsoClockB();
 // CLEAR asíncrono de ambos 74LS273: los dos registros a 0x00.
 void limpiarRegistros();
 
-// Envía un byte al display de 7 segmentos. En el HAL falso no hace nada.
+// Engancha el resultado en la salida física (los 8 dígitos binarios).
+//
+// En la placa real el byte llega al registro de salida DESDE EL BUS F, no
+// desde el Arduino: esta función solo pulsa el reloj que lo captura, y por
+// eso ignora `valor`. Hay que llamarla mientras la ALU siga configurada en
+// F=A, que es como la deja leerRegistroA().
+//
+// El parámetro se mantiene porque el HAL falso lo registra: las pruebas
+// comprueban qué valor sacó cada OUT sin depender de pines.
 void mostrarByte(uint8_t valor);
 
 }  // namespace hal

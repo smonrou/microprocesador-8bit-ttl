@@ -31,7 +31,8 @@ Proyecto individual del curso **Arquitectura de Computadoras y Ensambladores 1**
 | Registro B | 1× **74LS273** (8 bits) | Decidido |
 | Mux de entrada a A | 2× **74LS157** | Decidido |
 | Unidad de control / memoria / reloj | **Arduino Mega** | Por comprar |
-| Salida del procesador | Display de 7 segmentos, decodificado por el Arduino | Decidido |
+| Registro de salida | 1× **74LS273** (engancha el bus F al ejecutar OUT) | Decidido (2026-09-04) |
+| Salida del procesador | 8 dígitos de 7 segmentos en **binario**, un bit por dígito. Decodificación **en hardware**: 74LS151 (mux 8:1, `Y`=bit, `W`=complemento) + 74LS138 (selección de dígito) + buffer. El Arduino no convierte nada | Decidido (2026-09-04, revierte la decodificación por software) |
 | Interfaz de observación | Processing vía serial | Decidido |
 
 **Camino de datos:** las salidas F de la ALU regresan a las entradas del registro A **a través del mux 74LS157**. El resultado nunca pasa por el Arduino. El mux selecciona entre "bus del Arduino" y "salida de la ALU".
@@ -360,7 +361,7 @@ LOOP:  LDA 200          ; etiqueta + instrucción
 ```
 
 - Modos RUN y STEP (A.9).
-- Decodificación de 7 segmentos en software, hexadecimal completo (0–F).
+- **Nunca** decodificar segmentos en software. La salida física es binaria y la dibuja el hardware (74LS151); el firmware solo pulsa el reloj del registro de salida y cuenta 0..7 para multiplexar. El depurador sí puede mostrar el valor en el formato que sea: es herramienta de observación, no la salida del procesador.
 - **Nunca** calcular una operación de ALU en software: siempre configurar el 181 y leer F. La única excepción permitida es `Z = (F == 0)`, que es una lectura del resultado, no un cálculo.
 
 **Protocolo serial a definir** (comandos mínimos):
@@ -421,7 +422,7 @@ Ninguna tarea debe asumir una respuesta a los puntos **abiertos**. Si una tarea 
 
 3. ~~**Mecanismo de carga de constantes iniciales**~~ ✅ **RESUELTO (2026-08-08, B.0).** Ambos mecanismos, no excluyentes: directiva `.DB` en el ensamblador para lo reproducible, y comando serial `LOAD`/`LOADB` para los datos que el ingeniero elija en vivo. Ver A.6.
 
-4. **Display de 7 segmentos: ánodo o cátodo común** 🔴 **ABIERTO.** Pendiente de compra. Aislado en `firmware/microprocesador/display.h` tras `#define DISPLAY_ANODO_COMUN`: resolverlo es cambiar un 1 por un 0.
+4. **Display de 7 segmentos: ánodo o cátodo común** 🔴 **ABIERTO.** Pendiente de compra. **Desde 2026-09-04 ya no afecta al firmware:** con la decodificación en hardware, el tipo de display solo decide dos piezas — buffer de segmento 74LS240 (ánodo común, enciende en bajo) o 74LS244 (cátodo común), y transistor de dígito 2N3906 (PNP) o 2N2222 (NPN). El código es idéntico en los dos casos; ya no hay `#define` que ajustar.
 
 5. **Semántica exacta del carry en SUB** 🔴 **ABIERTO.** El diseño asume que C̄n+4 en bajo indica que no hubo préstamo (A≥B). **Debe verificarse experimentalmente** con el 181 en protoboard antes de darlo por cierto. Aislado tras `#define CARRY_SUB_INVERTIDO` en `firmware/microprocesador/isa.h`.
 

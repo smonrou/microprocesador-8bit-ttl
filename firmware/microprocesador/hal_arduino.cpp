@@ -101,7 +101,12 @@ void limpiarRegistros() {
 }
 
 void mostrarByte(uint8_t valor) {
-  display::mostrar(valor);
+  // El valor NO se usa, y eso es el punto: en la placa real el dato viaja del
+  // bus F al registro de salida por cable, sin pasar por el Arduino. Aquí
+  // solo se pulsa el reloj que lo engancha. El parámetro existe porque el HAL
+  // falso sí lo necesita (las pruebas verifican qué sacó OUT).
+  (void)valor;
+  display::enganchar();
 }
 
 }  // namespace hal

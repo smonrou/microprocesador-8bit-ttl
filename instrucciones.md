@@ -715,7 +715,7 @@ La secuencia de arriba es íntegramente software. Con el circuito montado, el gu
 3. Pega esas líneas en el monitor serial
 4. Escribe RUN
 
-5. El display de 7 segmentos debe mostrar EL MISMO número
+5. Los 8 dígitos deben mostrar EL MISMO número, en binario
 ```
 
 Y para los datos en vivo, sin reensamblar:
@@ -725,7 +725,7 @@ Y para los datos en vivo, sin reensamblar:
 7. LOAD 0xCC 0x09      ← multiplicando
 8. LOAD 0x05 0x07      ← multiplicador
 9. RUN
-10. El display muestra 63
+10. El display muestra 63 en binario: 0 0 1 1 1 1 1 1
 ```
 
 **Si el hardware y el simulador discrepan, el hardware está mal.** Ese es el propósito de haber construido B.1 primero.
@@ -749,7 +749,7 @@ firmware/
     nucleo.h / nucleo.cpp   fetch-decode-execute. No toca ni un pin
     formato.h / formato.cpp bloque A.9 + líneas clave=valor
     consola.h / consola.cpp protocolo serial
-    display.h / display.cpp 7 segmentos multiplexado
+    display.h / display.cpp salida binaria: cuenta 0..7 y pulsa el reloj
   pruebas/                  ← NO sube al Arduino, solo verifica
     hal_falso.*             emula el 74LS181, los 74LS273 y el 74LS157
     arnes.cpp               ejecuta el núcleo en la PC
@@ -805,32 +805,42 @@ La tabla completa está en `firmware/microprocesador/pines.h`, comentada señal 
 | PORTC (**desc.**) | 37 → 30 | Lectura de F0 → F7 |
 | PORTL bits 0–5 (**desc.**) | 49 → 44 | S0, S1, S2, S3, M, C̄n |
 | Sueltos | 41, 40, 39, 38, 2 | CLK A, CLK B, MUX, CLEAR, C̄n+4 |
-| Display | 3–9, 10, 11 | Segmentos a–g, dos comunes |
+| Salida | 3, 4, 5, 6, 7 | SEL0, SEL1, SEL2 (74LS151 + 74LS138), BLANK (E3 del 138), CLK del registro de salida |
 
-Total: 36 pines de los 54 del Mega.
+Total: 32 pines de los 54 del Mega.
+
+## La salida es binaria y la dibuja el hardware
+
+El Arduino **no decodifica** el resultado. El byte va del bus F a un tercer 74LS273 (registro de salida) y de ahí al 74LS151, que entrega el bit seleccionado (`Y`) y su complemento (`W`). Con esas dos señales se dibuja "0" o "1" en cada dígito:
+
+| Segmentos | Encienden | Se conectan a |
+|---|---|---|
+| b, c | siempre | nivel fijo de "encendido" |
+| a, d, e, f | si el bit es 0 | `W` del 74LS151 (a través del buffer) |
+| g | si el bit es 1 | `Y` del 74LS151 (a través del buffer) |
+
+El 74LS138 recibe **las mismas** tres líneas de selección y enciende el dígito correspondiente. El Arduino solo cuenta 0..7 y pulsa el reloj del registro de salida cuando ejecuta `OUT`.
 
 ## ⚠️ El display necesita transistores
 
-**No conectes los comunes del display directo a los pines del Arduino.**
+**No conectes los comunes del display directo a los pines del Arduino ni a las salidas del 74LS138.**
 
-Al multiplexar, el pin común de un dígito conduce la corriente de los 7 segmentos a la vez: unos **95 mA** con resistencias de 220 Ω. El máximo **absoluto** de un pin del Arduino son **40 mA**. Conectarlo directo lo quema, o lo degrada de forma intermitente — que es peor, porque entonces el síntoma parece un fallo de lógica.
+Al multiplexar, el común de un dígito conduce la corriente de todos sus segmentos encendidos (hasta 6, el patrón "0"): unos **82 mA** con resistencias de 220 Ω. El máximo **absoluto** de un pin del Arduino son 40 mA y una salida del 74LS138 hunde 8 mA. Conectarlo directo lo quema, o lo degrada de forma intermitente — que es peor, porque entonces el síntoma parece un fallo de lógica.
 
-| Si el display es | Transistor | Base |
-|---|---|---|
-| Ánodo común | 2N3906 (PNP) | 1 kΩ al pin del Arduino |
-| Cátodo común | 2N2222 (NPN) | 1 kΩ al pin del Arduino |
+Son **ocho** transistores, uno por dígito, con la base al 74LS138:
 
-Las 7 resistencias de segmento (220–330 Ω) van en las líneas compartidas, **una por segmento, no una por dígito**.
+| Si el display es | Transistor | Base | Buffer de segmento |
+|---|---|---|---|
+| Ánodo común | 2N3906 (PNP) | 1 kΩ a la salida del 74LS138 | 74LS240 (inversor) |
+| Cátodo común | 2N2222 (NPN) | 1 kΩ a la salida del 74LS138 | 74LS244 (directo) |
 
-El firmware ya cuenta con que el transistor invierte la señal de selección (`#define DISPLAY_DIGITO_INVERTIDO` en `display.h`). Si por lo que sea conectaras sin transistor, hay que ponerlo a `0`.
+Las 7 resistencias de segmento (220–330 Ω) van en las líneas compartidas, **una por segmento, no una por dígito**. Con 8 dígitos cada uno enciende 1/8 del tiempo: si se ve tenue, usa 220 Ω.
 
 ## Antes de subirlo a la placa
 
-Dos cosas están pendientes de resolver y cada una es **un cambio de una línea**:
-
-| Pendiente | Archivo | Qué cambiar |
+| Pendiente | Dónde | Qué cambiar |
 |---|---|---|
-| ¿Display de ánodo o cátodo común? | `display.h` | `#define DISPLAY_ANODO_COMUN 1` → `0` si es cátodo |
+| ¿Display de ánodo o cátodo común? | **Hardware, no firmware** | 74LS240 + PNP si es ánodo común; 74LS244 + NPN si es cátodo. El código no cambia |
 | ¿Carry en SUB? | `isa.h` | `#define CARRY_SUB_INVERTIDO 0` → `1` si la prueba lo contradice |
 
 El segundo depende de **ejecutar primero la caracterización de la ALU** (sección 7 de la bitácora) con un 181 aislado en protoboard. No subas el firmware antes de haberla hecho.
@@ -875,7 +885,7 @@ Por eso el archivo `.load` usa `LOADB` con 8 bytes por línea: 5 líneas de 50 c
 6. RUN
 ```
 
-El display debe mostrar `0C` (12 en hexadecimal).
+El display debe mostrar `0 0 0 0 1 1 0 0` — 12 en binario, bit 7 a la izquierda.
 
 ## Salida por duplicado
 
@@ -900,7 +910,7 @@ La línea `#clave=valor` es **ASCII puro** y es la que parseará Processing. El 
 
 El Arduino **no puede leer los registros A y B**: las salidas de los 74LS273 van al 181, no al Arduino. Para `STA`, `OUT` y el volcado de estado, el firmware hace pasar el registro por la ALU sin alterarlo (`F=A` con M=1, S=1111) y lee el bus F.
 
-Es decir: **el display muestra lo que de verdad hay en el registro físico**, no una copia que el Arduino guarde aparte. Si una soldadura fría corrompe el registro, se ve al instante.
+Es decir: **el display muestra lo que de verdad hay en el registro físico**, no una copia que el Arduino guarde aparte. Si una soldadura fría corrompe el registro, se ve al instante. Y el byte llega al display por el mismo camino físico: del bus F al registro de salida, sin entrar nunca al Arduino.
 
 ---
 
