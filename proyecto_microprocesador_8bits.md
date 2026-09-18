@@ -33,7 +33,7 @@
 | Memoria (matriz) | Arduino — celdas de 1 byte, 256 direcciones |
 | Banderas (Z, C) | Calculadas/leídas por el Arduino, mostradas en consola (sin LEDs) |
 | Entrada de datos | **Monitor serial** ✅ confirmado |
-| Salida del procesador | **7 segmentos** (es lo que ejecuta la instrucción OUT) |
+| Salida del procesador | **8 LEDs en binario** (es lo que ejecuta la instrucción OUT) — §21 |
 | Interfaz de observación | **Processing** vía serial — estado interno, no es la salida oficial |
 | Microcontrolador | **Arduino Mega** (pendiente de compra) |
 
@@ -118,7 +118,7 @@ Longitud variable es característica **CISC**, contrastable con RISC (longitud f
 | `1000` | `AND` | 1 | Implícito | A & B → A | Compara bit por bit: el resultado tiene 1 solo donde ambos tenían 1. Se usa para **enmascarar** (apagar bits selectivamente). |
 | `1001` | `OR` | 1 | Implícito | A \| B → A | Compara bit por bit: el resultado tiene 1 donde cualquiera de los dos tenía 1. Se usa para **encender** bits específicos. |
 | `1010` | `XOR` | 1 | Implícito | A ⊕ B → A | Da 1 solo donde los bits difieren. Detecta diferencias entre operandos. Con `B=0xFF` produce el **complemento a 1** de A, supliendo la ausencia de una instrucción NOT. |
-| `1011` | `OUT` | 1 | Implícito | Muestra A | Envía el contenido de A al display de 7 segmentos o a la consola serial. Es la única forma de ver un resultado. |
+| `1011` | `OUT` | 1 | Implícito | Muestra A | Envía el contenido de A a los 8 LEDs de salida (y a la consola serial). Es la única forma de ver un resultado. |
 | `1100` | `HLT` | 1 | — | Detiene | Le indica a la unidad de control que termine el ciclo de ejecución. Sin esto el PC seguiría avanzando por memoria vacía interpretando ceros como instrucciones. |
 | `1101` | `JMP dir` | 2 | Directo | dir → PC | Cambia el contador de programa a la dirección indicada: la ejecución continúa desde ahí en vez de la siguiente instrucción. Salto **incondicional**. |
 | `1110` | `JZ dir` | 2 | Directo | Si Z=1: dir → PC | Salta solo si la última operación dio cero. Si no, continúa normal. Permite tomar **decisiones** según el resultado de un cálculo. |
@@ -192,9 +192,11 @@ Se eligió la convención **active-high**: un `1` lógico son 5V en las entradas
 | 7 | **C̄n** | 19 | A3 |
 | 8 | M | 20 | B2 |
 | 9 | F0 | 21 | A2 |
-| 10 | F1 | 22 | A1 |
-| 11 | F2 | 23 | B1 |
+| 10 | F1 | 22 | **B1** |
+| 11 | F2 | 23 | **A1** |
 | 12 | GND | 24 | VCC (5V) |
+
+> ⚠️ **Corregido 2026-09-17:** esta tabla tenía los pines 22 y 23 cruzados (decía 22 = A1, 23 = B1). El datasheet de TI (SDLS136, vista superior del encapsulado N) dice **23 = A1 y 22 = B1**. El cableado de Proteus ya usaba lo correcto, por eso la simulación funcionó. El montaje físico (`montaje/pinouts.py`) sigue el datasheet.
 
 Los pines 15 y 17 (X, Y) son para look-ahead con el 74LS182 — no se usan.
 
@@ -389,11 +391,13 @@ Usa 11 de las 16 instrucciones, memoria de datos real y un bucle condicional.
 
 ### 13.2 Protoboards
 
+> **Actualizado 2026-09-17:** son **4 protoboards** (MUX · registros A/B · ALU · salida), pegadas en una base con el Mega a la izquierda. Plano exacto, fila por fila, en `montaje/` y en las guías de montaje. Lo que sigue es la versión anterior.
+
 **3 protoboards de 830 puntos**, unidas por sus rieles de alimentación:
 
 - **Protoboard 1:** los dos 74LS181 + cascada de carry
 - **Protoboard 2:** registros A y B + mux
-- **Protoboard 3:** salida (7 segmentos) y espacio de pruebas
+- **Protoboard 3:** salida (registro de salida + 74LS244 + 8 LEDs) y espacio de pruebas
 
 Con menos espacio el cableado se vuelve una maraña imposible de depurar.
 
@@ -401,90 +405,64 @@ Con menos espacio el cableado se vuelve una maraña imposible de depurar.
 
 - **Fuente de 5V regulada, mínimo 1A.** No alimentar todo desde el Arduino: el pin de 5V del Mega da ~500 mA, y solo los dos 181 consumen hasta 74 mA típicos según el datasheet, más registros, mux y LEDs. Una fuente externa evita reinicios aleatorios.
 - **GND común obligatorio** entre la fuente y el Arduino. Sin esto nada funciona y el síntoma es errático.
-- **Capacitores de desacople: 0.1 µF cerámico junto al VCC de cada integrado** (~6 unidades). Los TTL generan picos de corriente al conmutar; sin desacople aparecen fallos intermitentes que parecen errores de lógica.
+- **Capacitores de desacople: 0.1 µF cerámico junto al VCC de cada integrado** (8 unidades, una por TTL; ver §21). Los TTL generan picos de corriente al conmutar; sin desacople aparecen fallos intermitentes que parecen errores de lógica.
 - 1 capacitor electrolítico de 10–100 µF en la entrada de alimentación general.
 
 ### 13.4 Visualización
 
 **Respuesta del ingeniero:** la forma de visualizar es libre.
 
-**Decisión: doble salida con roles separados** (ver sección 17 para el detalle de la interfaz).
+**Decisión: doble salida con roles separados** (ver sección 16 para el detalle de la interfaz).
 
-- **2 displays de 7 segmentos cuádruples** = 8 dígitos, uno por bit (definir ánodo o cátodo común) — es la salida **del procesador**, lo que ejecuta la instrucción OUT
-- **7 resistencias de 220–330 Ω**, una por línea de segmento (las líneas se comparten entre los ocho dígitos)
+→ **Decisión vigente (2026-09-17, §21): 8 LEDs, uno por bit.** Es la salida **del procesador**, lo que ejecuta la instrucción OUT. LED encendido = bit en 1, bit 7 a la izquierda.
 
-⚠️ **El 74LS47/48 decodifica BCD, no hexadecimal.** Solo muestra correctamente 0–9; con valores 10–15 muestra patrones sin sentido.
+Historia de esta sección, para la defensa: primero el Arduino decodificaba hexadecimal por software (rechazado por el ingeniero, §20); luego 8 dígitos de 7 segmentos en binario con 74LS151 + 74LS138 + buffer + 8 transistores (§20); finalmente 8 LEDs (§21), que muestran lo mismo con 3 integrados, 2 displays y 8 transistores menos.
 
-**Decisión original (revertida):** que el Arduino decodificara los segmentos por software, para dar hexadecimal completo 0–F sin integrados extra.
+### Camino del dato
 
-→ **Decisión vigente (2026-09-04, §20): salida en BINARIO, decodificada en hardware.** El ingeniero rechazó la decodificación por software: el Arduino es la unidad de control, no puede ser además quien convierte el dato para mostrarlo. Hexadecimal exigiría un decodificador físico 4→7 segmentos; binario no exige ninguno, porque **el bit ya es la magnitud**. Cada dígito muestra "0" o "1".
+    bus F ─→ 74LS273 (registro de salida) ─→ 74LS244 (buffer) ─→ 220 Ω ─→ LED ─→ GND
+                    ↑ CLK (pin 7)                 ↑ 1G, 2G (pines 1 y 19) a GND
+                    ↑ CLEAR compartido con A y B
 
-### Cómo se dibuja "0" o "1" sin tabla ni decodificador
+Sin decodificación de ningún tipo: en binario **el bit ya es la magnitud**, y cada LED es un bit. El dato nunca pasa por el Arduino.
 
-    "0" = segmentos a b c d e f          "1" = segmentos b c
+### Por qué hacen falta los dos integrados
 
-Comparando los dos patrones sale la lógica completa:
-
-| Segmentos | Cuándo encienden | De dónde salen |
+| Chip | Trabajo | Qué pasa sin él |
 |---|---|---|
-| b, c | siempre (están en los dos patrones) | nivel fijo |
-| a, d, e, f | si el bit vale 0 | complemento del bit |
-| g | si el bit vale 1 | el bit tal cual |
+| 74LS273 | **Memoria.** Engancha el bus F al ejecutar `OUT` y lo retiene hasta el siguiente `OUT` | El bus F cambia en cada ADD/SUB y cuando el firmware pone la ALU en `F=A` para leer registros: los LEDs mostrarían resultados intermedios, no la salida |
+| 74LS244 | **Corriente.** Entrega hasta 15 mA por salida en alto (IOH máx, datasheet TI SDLS144D) | El 273 solo entrega 0.4 mA en alto (SDLS090): el LED no enciende. Proteus ya lo mostró con los segmentos |
 
-El **74LS151** (mux 8:1) entrega en `Y` el bit seleccionado y en `W` su complemento: las dos señales que hacen falta, ya invertidas, sin gastar un solo inversor. La "conversión" es un cable a `Y` y otro a `W`.
+Descartado: colgar los LEDs de Q0..Q7 del registro A. `OUT` dejaría de tener efecto (A cambia durante todo el bucle) y esas líneas alimentan las entradas de la ALU: cargarlas con LEDs puede bajar el nivel alto hasta leerse mal.
 
-### Integrados que agrega el bloque de salida
+### ⚠️ Color de los LEDs: rojo, verde o amarillo
 
-| Cant. | Chip | Papel |
-|---|---|---|
-| 1 | 74LS273 | Registro de salida: engancha el bus F cuando se ejecuta OUT. Su CLEAR comparte línea con A y B |
-| 1 | 74LS151 | Mux 8:1: elige qué bit se muestra; `Y`/`W` dibujan el símbolo |
-| 1 | 74LS138 | Decodificador 3:8: elige qué dígito se enciende |
-| 1 | 74LS240 (ánodo común) o 74LS244 (cátodo común) | Buffer de las 7 líneas de segmento: da la corriente que el 151 no puede dar |
+En alto el 244 no llega a 5 V: VOH mín 2.4 V a −3 mA, típico ~3.4 V sin carga. Lo que queda después de la caída del LED es lo que ve la resistencia:
 
-Los tres primeros comparten las **mismas** tres líneas de selección (pines 3, 4, 5), así que el bit mostrado y el dígito encendido no pueden desincronizarse: es el mismo número.
-
-**El dato nunca pasa por el Arduino.** Va del bus F al 74LS273 por cable. El Arduino solo pulsa el reloj (pin 7) y cuenta 0..7 en las líneas de selección. Ese es el argumento para la defensa: *"la conversión ocurre en el 74LS151, aquí, en la placa; el Arduino no la hace ni podría"*.
-
-### Multiplexado: obligatorio, no una optimización
-
-Los cuatro dígitos de un display cuádruple **comparten físicamente las 7 líneas de segmento** — no es posible mostrar símbolos distintos en dos dígitos a la vez sin alternarlos. Son **7 líneas de segmento + 3 de selección + 1 de apagado + 1 de reloj = 5 pines del Arduino** (las 7 de segmento salen del buffer, no del Mega), contra 9 en el diseño anterior.
-
-Con 8 dígitos cada uno está encendido **1/8 del tiempo** (antes 1/2): si se ve tenue, bajar las resistencias de segmento a 220 Ω antes que acelerar el refresco.
-
-### ⚠️ Los comunes NO se conectan directo al Arduino ni al 74LS138
-
-Al multiplexar, el común de un dígito conduce la corriente de todos sus segmentos encendidos a la vez (hasta 6, el patrón "0").
-
-| Resistencia por segmento | Por segmento | 6 segmentos encendidos |
-|---|---|---|
-| 220 Ω | ~13,6 mA | **~82 mA** |
-| 330 Ω | ~9 mA | **~54 mA** |
-
-El máximo **absoluto** de un pin del Arduino son **40 mA** (20 mA es el recomendado), y una salida del 74LS138 hunde 8 mA. Conectar el común directo quema el pin — o peor, lo degrada de forma intermitente, y entonces el síntoma parece un fallo de lógica y se persigue durante horas en el sitio equivocado.
-
-→ **Decisión: un transistor por dígito, ocho en total.** La salida del 74LS138 maneja la base (~5 mA) y el transistor conmuta la corriente del común.
-
-| Si el display es | Transistor | Resistencia de base | Buffer de segmento |
+| LED | Caída | Con 220 Ω | Veredicto |
 |---|---|---|---|
-| Ánodo común | 2N3906 (PNP) | 1 kΩ | 74LS240 (inversor) |
-| Cátodo común | 2N2222 (NPN) | 1 kΩ | 74LS244 (directo) |
+| Rojo / verde / amarillo | ~2.0 V | ~5–6 mA típico | ✅ Encienden bien |
+| Azul / blanco | ~3.0 V | casi nada | ❌ No comprar |
 
-**Consecuencia en el firmware: ninguna.** La polaridad la resuelven el buffer y el transistor; el firmware cuenta 0..7 y pulsa un reloj, idéntico en los dos casos. Por eso `display.h` ya no tiene los `#define DISPLAY_ANODO_COMUN` / `DISPLAY_DIGITO_INVERTIDO`: el pendiente C.4 dejó de tocar código.
+Si se ven tenues, bajar a 150 Ω: aun en el peor caso (VOH 3.4 V) son ~9 mA, dentro de los 15 mA del chip.
+
+### Alternativa equivalente: 74LS240
+
+Mismo pinout, mismo datasheet, pero invierte. Se cablea al revés (5V → 330 Ω → LED → salida Y): el chip **hunde** la corriente (24 mA a 0.5 V), el LED enciende igual con bit = 1, y funciona con LEDs de cualquier color. Si en la tienda hay 240 y no 244, sirve; solo cambia la orientación de los LEDs.
+
+### Consumo
+
+El 244 consume como máximo 46–54 mA más ~50 mA de los 8 LEDs. La fuente de 1 A de 13.3 sobra.
 
 ### 13.5 Componentes pasivos y de prueba
 
 | Cant. | Componente | Uso |
 |---|---|---|
 | 20+ | LEDs (varios colores) | Depuración: ver estado de buses y registros |
-| 30+ | Resistencias 220–330 Ω | Limitar corriente en LEDs y en las 7 líneas de segmento |
-| 5 | Resistencias 1 kΩ | Pull-ups |
-| **8** | **Resistencias 1 kΩ** | **Base de los transistores de dígito** (ver 13.4) |
-| **8** | **Transistores 2N3906 (PNP) o 2N2222 (NPN)** | **Driver de dígito** — uno por dígito, según ánodo o cátodo común |
+| 30+ | Resistencias 220–330 Ω | Limitar corriente en los LEDs de depuración |
+| 9 | Resistencias 1 kΩ | Pull-ups del dip switch (8) y del pulsador (1) del banco de pruebas |
 | 8 | Interruptores DIP (o dip switch de 8) | Pruebas manuales de la ALU |
 | 1 | Pulsador (push button) | Reset manual / clock manual |
-
-⚠️ **Los transistores no son opcionales.** Sin ellos, el pin que selecciona un dígito conduciría ~95 mA contra un máximo absoluto de 40 mA. Ver el cálculo en 13.4.
 
 ### 13.6 Cableado
 
@@ -516,6 +494,8 @@ El máximo **absoluto** de un pin del Arduino son **40 mA** (20 mA es el recomen
 ---
 
 ## 14. Montaje definitivo — el protoboard NO es elegible para exoneración
+
+> ✅ **Actualización 2026-09-17 (C.1 resuelto):** el ingeniero acepta la entrega **en protoboards**. No hace falta traslado a placa perforada ni PCB, y las semanas 9–11 del cronograma quedan libres. ⚠️ **Falta confirmar** si la entrega en protoboard conserva la elegibilidad para exonerar, que es lo que esta sección daba por perdido. Lo que sigue se conserva como historia.
 
 ⚠️ **Restricción crítica del ingeniero:** un proyecto entregado en protoboard **no puede optar a la exoneración del examen final.** El entregable debe ser un circuito soldado.
 
@@ -558,11 +538,9 @@ Con el firmware terminado (sección 19) las cantidades ya no son estimaciones: l
 | 2 | SN74LS181 — ALU en cascada | ✅ Comprados |
 | 1 | **Arduino Mega 2560** — unidad de control | ⬜ Pendiente ← **bloquea todo** |
 | 2 | 74LS273 — registros A y B | ⬜ Pendiente |
-| 1 | 74LS273 — registro de salida (§20, decodificación en hardware) | ⬜ Pendiente |
+| 1 | 74LS273 — registro de salida (engancha el bus F al ejecutar OUT) | ⬜ Pendiente |
 | 2 | 74LS157 — mux de entrada a A | ⬜ Pendiente |
-| 1 | 74LS151 — mux 8:1 de la salida (§20) | ⬜ Pendiente |
-| 1 | 74LS138 — decodificador de dígito de la salida (§20) | ⬜ Pendiente |
-| 1 | 74LS240 (ánodo común) o 74LS244 (cátodo común) — buffer de segmento (§20) | ⬜ Pendiente, depende del display |
+| 1 | 74LS244 — buffer de corriente de los LEDs de salida (§21). Vale también un 74LS240 cableando los LEDs al revés (13.4) | ⬜ Pendiente |
 | 1–2 | **Repuestos de cada tipo** | ⬜ Pendiente |
 
 **Los repuestos no son opcionales.** Los TTL se dañan con inversión de polaridad o estática, y descubrirlo sin repuesto días antes de la entrega es el escenario clásico.
@@ -571,41 +549,35 @@ Con el firmware terminado (sección 19) las cantidades ya no son estimaciones: l
 
 | Cant. | Componente | Notas |
 |---|---|---|
-| 2 | Displays de 7 segmentos **cuádruples** (`7SEG-MPX4-CA`/`-CC`, 8 dígitos) | ⬜ **Definir ánodo o cátodo común al comprar** (pendiente C.4) — ya no afecta al firmware, solo decide el buffer y el transistor (§20) |
-| 7 | Resistencias 220–330 Ω | Una por línea de segmento. Siguen siendo 7, no 14 ni 56: las líneas se comparten entre los 8 dígitos |
-| 8 | Transistores 2N3906 (PNP) **o** 2N2222 (NPN) | Uno por dígito, según el tipo de display. **Obligatorios** — ver 13.4 |
-| 8 | Resistencias 1 kΩ | Base de los transistores |
+| 8 | LEDs de 3 o 5 mm **rojos, verdes o amarillos** | ⬜ La salida del procesador (§21). **No azules ni blancos**: el 244 en alto no da voltaje suficiente (13.4) |
+| 8 | Resistencias 220 Ω | Una por LED. 150 Ω si se ven tenues |
 
-El tipo de transistor depende del display: **PNP si es ánodo común, NPN si es cátodo común**. Conviene decidir el display primero y comprar ambos en el mismo viaje.
+Ya no hacen falta displays de 7 segmentos, transistores de dígito ni resistencias de base (eran del diseño de §20).
 
 ### Alimentación
 
 | Cant. | Componente | Notas |
 |---|---|---|
 | 1 | Fuente 5V regulada, mínimo 1A | No alimentar todo desde el Arduino |
-| ~8 | Capacitores 0,1 µF cerámicos | Desacople, uno junto al VCC de cada integrado |
+| 8 | Capacitores 0,1 µF cerámicos | Desacople, uno junto al VCC de cada integrado TTL |
 | 1 | Capacitor electrolítico 10–100 µF | Entrada de alimentación general |
 
 ### Banco de pruebas y montaje
 
 | Cant. | Componente | Notas |
 |---|---|---|
-| 3 | Protoboards de 830 puntos | Banco de pruebas, no el entregable |
-| — | Placa perforada o PCB | ⬜ **Bloqueado** por la respuesta del ingeniero (pendiente C.1) |
+| 4 | Protoboards de 830 puntos | **Son el entregable** (C.1 resuelto, 2026-09-17); distribución en `montaje/` |
+| 1 | Base de MDF o acrílico ~35 × 25 cm + 4 separadores M3 de 10 mm | Fija las protoboards y el Mega |
 | 20+ | LEDs y 30+ resistencias 220–330 Ω | Depuración de buses y registros |
 | 1 | Dip switch de 8 | Caracterización de la ALU (sección 7) |
 | 1 | Pulsador | Reset / clock manual |
-| — | Kit de jumpers rígidos precortados | Muy superiores a los flexibles con esta densidad |
-| — | Jumpers macho-macho flexibles | Arduino ↔ protoboard |
+| — | Dupont macho-macho | **Solo** cables de prueba de las fases 1–4; el cableado final (incluido el del Mega) es 22 AWG sólido |
 | 1 | Multímetro | Indispensable |
-| — | Cautín, estaño, extractor de estaño | Para el traslado a placa definitiva |
 
 ### Orden de compra sugerido
 
 1. **Para caracterizar la ALU ya** (sección 7, no depende de nada más): dip switch, LEDs, resistencias, protoboard, fuente. Los 181 ya están.
-2. **Para el montaje completo:** Arduino Mega, 74LS273, 74LS157, capacitores, jumpers, repuestos.
-3. **Cuando se sepa el tipo de display:** displays + transistores a juego.
-4. **Cuando el ingeniero responda sobre PCB:** placa perforada o envío del diseño.
+2. **Para el montaje completo:** Arduino Mega, 74LS273 (×3), 74LS157 (×2), 74LS244, 8 LEDs + 8 resistencias de 220 Ω, capacitores, jumpers, repuestos.
 
 Detalle completo en la sección 13.
 
@@ -621,10 +593,10 @@ Detalle completo en la sección 13.
 
 | Elemento | Rol |
 |---|---|
-| **Display de 7 segmentos** | La salida del procesador. Es lo que ejecuta la instrucción OUT. Física, demostrable, cumple el requisito literal. |
+| **8 LEDs de salida** | La salida del procesador. Es lo que ejecuta la instrucción OUT. Física, demostrable, cumple el requisito literal. |
 | **Interfaz en Processing** | Herramienta de observación del estado interno. No es la salida oficial. |
 
-**Argumento para la defensa:** *"el display es la salida del procesador; la interfaz es mi herramienta de depuración, equivalente a un debugger."*
+**Argumento para la defensa:** *"los LEDs son la salida del procesador; la interfaz es mi herramienta de depuración, equivalente a un debugger."*
 
 ### Qué debe mostrar
 
@@ -658,11 +630,11 @@ Alternativas si se prefiere otro stack:
 
 **Todo el software está terminado.** Lo que queda es hardware, más la documentación que avanza en paralelo.
 
-### 🔴 Bloqueado por respuesta del ingeniero
+### 🔴 Pregunta al ingeniero
 
 | # | Pendiente | Impacto |
 |---|---|---|
-| 1 | **¿PCB fabricado o basta placa perforada soldada?** | Define las semanas 9–11 enteras. **Consultar antes de la semana 6.** Si es PCB, la semana 9 es la fecha límite para enviar el diseño (2–4 semanas de fabricación y envío) y hay que aprender KiCad desde ya |
+| 1 | **¿La entrega en protoboard conserva la elegibilidad para exoneración?** | Ya aceptó la protoboard como entrega (C.1 resuelto, 2026-09-17), pero antes había dicho que la protoboard no exonera (§14). Si no exonera y se busca la exoneración, vuelve el traslado a placa soldada |
 
 ### 🟡 Acciones propias, en orden
 
@@ -670,11 +642,11 @@ Alternativas si se prefiere otro stack:
 |---|---|---|---|
 | 2 | **Caracterizar la ALU en protoboard** (sección 7) | Nada — se puede hacer **hoy**, los 181 ya están comprados | Resuelve el pendiente C.5 del carry en SUB |
 | 3 | Comprar componentes (sección 15) | Nada | Todo lo demás |
-| 4 | Decidir tipo de display al comprarlo | Compra | Resuelve C.4; determina qué transistores comprar |
-| 5 | Montaje por etapas en protoboard | Compras | Primera prueba real del firmware |
-| 6 | Aprender KiCad en ratos muertos | Nada | Seguro por si la respuesta al punto 1 es PCB |
-| 7 | Traslado a placa definitiva (semanas 9–11) | Puntos 1 y 5 | Elegibilidad para exoneración |
-| 8 | Interfaz Processing (semanas 12–13) | Punto 7 | — |
+| 4 | Pasar la salida de Proteus a LEDs (273 → 244 → LEDs, §21) | Nada | Que la simulación siga siendo idéntica al montaje |
+| 5 | Montaje por etapas en protoboard (es el entregable) | Compras | Primera prueba real del firmware |
+| 6 | ~~Aprender KiCad~~ | — | Ya no hace falta salvo que el punto 1 lo exija |
+| 7 | ~~Traslado a placa definitiva~~ | — | Solo si el punto 1 lo exige |
+| 8 | Interfaz Processing (semanas 12–13) | Punto 5 | — |
 | 9 | Documentación y ensayo de la defensa | Continuo | — |
 
 ⚠️ **El punto 2 es el cuello de botella real.** No debe subirse el firmware a la placa antes de haber caracterizado la ALU: la semántica del carry en `SUB` que el firmware asume está sin verificar.
@@ -686,13 +658,15 @@ Alternativas si se prefiere otro stack:
 | Pendiente | Resolución |
 |---|---|
 | ~~74LS173 vs 74LS273~~ | Libre elección → **74LS273** (sección 12) |
-| ~~Forma de visualizar~~ | Libre → **7 segmentos + Processing**, con roles separados (sección 16) |
+| ~~Forma de visualizar~~ | Libre → **8 LEDs + Processing**, con roles separados (secciones 16 y 21) |
 | ~~¿Paso a paso?~~ | No es requisito, pero suma para exoneración → **implementado** |
 | ~~B.0: mapa de memoria~~ | Congelado 2026-08-08. Split 192/64, sin zona reservada, constantes vía `.DB` + `LOAD` serial, binario único de 256 bytes. Ver A.6 de `contexto_proyecto.md` |
 | ~~B.1: simulador~~ | 2026-08-08, en `sim/`. **54 pruebas.** Referencia de verdad para depurar el hardware |
 | ~~B.2: ensamblador~~ | 2026-08-08, en `asm/`. **211 pruebas.** Sección 18 |
 | ~~B.3: firmware~~ | 2026-08-08, en `firmware/`. **193 pruebas.** Sección 19. **Sin probar en hardware** |
-| ~~Driver del display~~ | Hallazgo: los comunes necesitan transistor. Añadido a la lista de compras y contemplado en el firmware. Ver 13.4 |
+| ~~Driver del display~~ | Obsoleto: ya no hay display (§21). El driver de los LEDs es el 74LS244 |
+| ~~C.1: PCB o placa perforada~~ | 2026-09-17: el ingeniero acepta la entrega en protoboards |
+| ~~C.4: ánodo o cátodo común~~ | 2026-09-17: resuelto por eliminación, la salida son LEDs (§21) |
 
 **Total: 458 pruebas en verde.** Cómo ejecutarlo todo: `instrucciones.md`.
 
@@ -811,7 +785,7 @@ En vez de llevar copias en software, el núcleo usa las funciones del 181 que la
 | `F = A` | 1 | `1111` |
 | `F = B` | 1 | `1010` |
 
-**Argumento de defensa:** el display muestra lo que de verdad hay en el registro físico, no una copia que el Arduino guarde aparte. Si una soldadura fría o un pulso perdido corrompen el registro, se ve al instante en lugar de quedar oculto tras una variable.
+**Argumento de defensa:** la salida muestra lo que de verdad hay en el registro físico, no una copia que el Arduino guarde aparte. Si una soldadura fría o un pulso perdido corrompen el registro, se ve al instante en lugar de quedar oculto tras una variable.
 
 ### El orden de la fase de escritura
 
@@ -835,7 +809,7 @@ En el Mega, **PORTA asciende** con el número de pin pero **PORTC y PORTL DESCIE
 | PORTC (**desc.**) | 37→30 | Lectura de F0–F7 |
 | PORTL bits 0–5 (**desc.**) | 49→44 | S0, S1, S2, S3, M, C̄n |
 | Sueltos | 41, 40, 39, 38, 2 | CLK A, CLK B, MUX, CLEAR, C̄n+4 |
-| Salida | 3, 4, 5, 6, 7 | SEL0–SEL2 (74LS151 + 74LS138), BLANK (E3 del 138), CLK del registro de salida |
+| Salida | 7 (3–6 sin conectar) | CLK del registro de salida. Desde §21 los pines 3–6 (SEL0–SEL2, BLANK) no van a ningún lado: el firmware los sigue manejando, sin efecto |
 
 Tabla completa y comentada en `firmware/microprocesador/pines.h`. Total: 32 pines de 54.
 
@@ -845,10 +819,10 @@ Los seis bits de control de la ALU caben en un puerto, así que **configurarla e
 
 | Pendiente | Dónde | Cómo se resuelve |
 |---|---|---|
-| Display ánodo o cátodo común (C.4) | **Hardware, ya no firmware** | Buffer 74LS240 (ánodo) o 74LS244 (cátodo) + transistor PNP o NPN. El firmware no cambia |
+| ~~Display ánodo o cátodo común (C.4)~~ | — | Resuelto por eliminación (§21): la salida son LEDs |
 | Semántica del carry en SUB (C.5) | `isa.h` | `#define CARRY_SUB_INVERTIDO 0` → cambiar a `1` |
 
-Ninguno de los dos se da por resuelto. C.4 dejó de tocar código al pasar la decodificación a hardware (§20).
+C.5 sigue abierto. C.4 dejó de tocar código al pasar la decodificación a hardware (§20) y desapareció con los LEDs (§21).
 
 ### Protocolo serial
 
@@ -858,7 +832,7 @@ Cada `LOAD` responde `OK dir=0xCC val=0x04`. El buffer de recepción del Arduino
 
 Toda la salida sale por duplicado: el bloque legible de A.9 —idéntico byte a byte al del simulador, hay un test que lo comprueba— y una línea `#clave=valor` en **ASCII puro** que es la que parseará Processing. El prefijo `#` deja que la interfaz filtre esas líneas sin confundirlas con el texto bonito.
 
-### 7 segmentos
+### 7 segmentos (reemplazado por LEDs, §21)
 
 Ocho dígitos en binario, **sin ninguna tabla en el firmware**: el 74LS151 entrega `Y` (el bit) y `W` (su complemento), y con eso quedan dibujados el "0" y el "1" (detalle en 13.4). El Arduino solo pulsa el reloj del registro de salida y cuenta 0..7 para multiplexar; el refresco vive en `loop()`, independiente del ciclo de instrucción.
 
@@ -871,6 +845,8 @@ Se descartó el 74LS47/48: decodifica BCD y con valores de 10 a 15 muestra patro
 ---
 
 ## 20. Salida física en binario — la decodificación baja a hardware (2026-09-04)
+
+> ⚠️ **Reemplazado por §21 (2026-09-17).** El criterio de esta sección sigue vigente (la conversión, si existe, ocurre en hardware); lo que cambió es el medio: 8 LEDs en lugar de 8 dígitos de 7 segmentos.
 
 ### Qué pasó
 
@@ -914,3 +890,69 @@ El byte **nunca entra al Arduino** para mostrarse: viaja del bus F al registro d
 *"El resultado sale del 74LS181, se engancha en un 74LS273 y lo dibuja un 74LS151. El Arduino no toca ese dato: solo dice cuándo capturarlo y qué dígito iluminar."*
 
 Demostración concreta si la piden: parar el Arduino después de un `OUT` y fijar a mano las tres líneas de selección. El byte sigue en el registro de salida y cada dígito muestra su bit correcto conforme se cambian esas líneas — sin el controlador funcionando. (Con el Arduino detenido se pierde el barrido, así que se ve un dígito a la vez, no los ocho.)
+
+---
+
+## 21. Salida en 8 LEDs (2026-09-17)
+
+### Qué pasó
+
+El ingeniero aceptó la entrega en protoboards (C.1). Con eso se revisó la salida de §20 pensando en el montaje real: 2 displays cuádruples, 74LS151, 74LS138, buffer, 8 transistores con sus resistencias de base y multiplexado a ~480 Hz, todo para dibujar "0" o "1" en cada dígito. Muestra la misma información que 8 LEDs.
+
+### Qué se evaluó
+
+| Alternativa | Veredicto |
+|---|---|
+| **273 + 74LS244 + 8 LEDs** | **Elegida.** Partes comunes en Guatemala, LED encendido = 1 |
+| 273 + 74LS240 + 8 LEDs a 5V | Equivalente (mismo pinout, invierte, el chip hunde corriente). Aceptada como sustituto si no hay 244 |
+| 74LS534 / 74LS564 solo (registro con salidas invertidas que hunden 24 mA) | Un chip menos, pero muy difícil de conseguir en Guatemala. Descartado |
+| 273 solo, LEDs a 5V (hunde 8 mA) | Dentro de especificación pero LED encendido = 0: 12 se vería `11110011`. Descartado para la defensa |
+| LEDs directo sobre el bus F | Muestran resultados intermedios, no lo que ejecuta `OUT`. Descartado |
+| LEDs sobre Q del registro A | `OUT` dejaría de tener efecto y cargaría las entradas de la ALU. Descartado |
+
+### Verificación contra datasheet (TI)
+
+| Parámetro | 74LS273 (SDLS090) | 74LS244 (SDLS144D) |
+|---|---|---|
+| IOH máx (entrega en alto) | −0.4 mA | −15 mA |
+| IOL máx (hunde en bajo) | 8 mA | 24 mA |
+| VOH mín | 2.7 V a −0.4 mA | 2.4 V a −3 mA; 2.0 V a −15 mA |
+| Entradas | — | IIL −0.2 mA, IIH 20 µA, histéresis 0.2 V típ |
+| Habilitación | — | 1G (pin 1) y 2G (pin 19) activas en bajo: *"When G is low, the device passes data from the A inputs to the Y outputs"* |
+
+El 273 alimenta al 244 sin problema (una carga LS por salida). **1G y 2G van a GND**: sueltas se leen como alto y las salidas quedan en alta impedancia, con los LEDs apagados aunque todo lo demás esté bien.
+
+### Conexión
+
+| Bit | Q del 273 → entrada del 244 | Salida del 244 → 220 Ω → LED → GND |
+|---|---|---|
+| 0 | 1A1 (pin 2) | 1Y1 (pin 18) |
+| 1 | 1A2 (pin 4) | 1Y2 (pin 16) |
+| 2 | 1A3 (pin 6) | 1Y3 (pin 14) |
+| 3 | 1A4 (pin 8) | 1Y4 (pin 12) |
+| 4 | 2A1 (pin 11) | 2Y1 (pin 9) |
+| 5 | 2A2 (pin 13) | 2Y2 (pin 7) |
+| 6 | 2A3 (pin 15) | 2Y3 (pin 5) |
+| 7 | 2A4 (pin 17) | 2Y4 (pin 3) |
+
+VCC pin 20, GND pin 10, 0.1 µF pegado al chip. LEDs rojos, verdes o amarillos (13.4).
+
+### Balance
+
+| | §20 (7 segmentos) | §21 (LEDs) |
+|---|---|---|
+| Integrados TTL | 10 | **8** (2×181, 3×273, 2×157, 1×244) |
+| Visualización | 2 displays cuádruples, 7 resistencias, 8 transistores, 8 resistencias de base | 8 LEDs, 8 resistencias |
+| Pines del Arduino para la salida | 5 (3–7) | **1** (7) |
+| Multiplexado | Obligatorio, ~480 Hz | Ninguno: los LEDs se quedan fijos |
+| Pendiente C.4 | Abierto | Desaparece |
+
+### Efecto en el firmware
+
+**Ninguno por ahora.** `display::enganchar()` sigue pulsando el reloj del registro de salida (pin 7), que es lo único que la salida necesita. `display::refrescar()` sigue contando 0..7 en los pines 3–5 y manejando BLANK en el 6, que ya no van a ningún lado: es inofensivo. Limpiar `display.cpp`, `display.h`, `pines.h`, el sketch `diagnostico_display/` (barre dígitos que ya no existen) y las pruebas de `tests/test_firmware_sketch.py` que exigen mencionar el 74LS138 y la Parte C queda como tarea aparte.
+
+### Argumento para la defensa
+
+*"El resultado sale del 74LS181, se engancha en un 74LS273 cuando se ejecuta `OUT`, y el 74LS244 le da la corriente a los LEDs. Cada LED es un bit: no hay nada que convertir, y el Arduino nunca toca el dato; solo dice cuándo capturarlo."*
+
+Demostración concreta si la piden: detener el Arduino después de un `OUT`. Los LEDs siguen mostrando el valor, porque vive en el registro físico y no en el controlador.

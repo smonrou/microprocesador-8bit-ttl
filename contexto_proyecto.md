@@ -32,7 +32,7 @@ Proyecto individual del curso **Arquitectura de Computadoras y Ensambladores 1**
 | Mux de entrada a A | 2× **74LS157** | Decidido |
 | Unidad de control / memoria / reloj | **Arduino Mega** | Por comprar |
 | Registro de salida | 1× **74LS273** (engancha el bus F al ejecutar OUT) | Decidido (2026-09-04) |
-| Salida del procesador | 8 dígitos de 7 segmentos en **binario**, un bit por dígito. Decodificación **en hardware**: 74LS151 (mux 8:1, `Y`=bit, `W`=complemento) + 74LS138 (selección de dígito) + buffer. El Arduino no convierte nada | Decidido (2026-09-04, revierte la decodificación por software) |
+| Salida del procesador | **8 LEDs en binario**, uno por bit (bit 7 a la izquierda). Registro de salida → 1× **74LS244** (buffer de corriente) → 8 LEDs rojos/verdes/amarillos con 220 Ω a GND; LED encendido = bit en 1. Sin decodificación: el bit ya es la magnitud. El Arduino no convierte nada | Decidido (2026-09-17, reemplaza los 8 dígitos de 7 segmentos con 74LS151/74LS138) |
 | Interfaz de observación | Processing vía serial | Decidido |
 
 **Camino de datos:** las salidas F de la ALU regresan a las entradas del registro A **a través del mux 74LS157**. El resultado nunca pasa por el Arduino. El mux selecciona entre "bus del Arduino" y "salida de la ALU".
@@ -361,7 +361,7 @@ LOOP:  LDA 200          ; etiqueta + instrucción
 ```
 
 - Modos RUN y STEP (A.9).
-- **Nunca** decodificar segmentos en software. La salida física es binaria y la dibuja el hardware (74LS151); el firmware solo pulsa el reloj del registro de salida y cuenta 0..7 para multiplexar. El depurador sí puede mostrar el valor en el formato que sea: es herramienta de observación, no la salida del procesador.
+- **Nunca** manejar la salida desde el Arduino. La salida física es binaria: bus F → 74LS273 → 74LS244 → LEDs, por cable; el firmware solo pulsa el reloj del registro de salida al ejecutar `OUT`. El depurador sí puede mostrar el valor en el formato que sea: es herramienta de observación, no la salida del procesador.
 - **Nunca** calcular una operación de ALU en software: siempre configurar el 181 y leer F. La única excepción permitida es `Z = (F == 0)`, que es una lectura del resultado, no un cálculo.
 
 **Protocolo serial a definir** (comandos mínimos):
@@ -416,13 +416,13 @@ Ninguna tarea debe asumir una respuesta a los puntos **abiertos**. Si una tarea 
 
 > ⚠️ **La numeración de esta lista es estable.** Los puntos 4 y 5 se citan por número desde `firmware/microprocesador/display.h`, `isa.h`, `nucleo.cpp`, `instrucciones.md` y dos archivos de pruebas. Al resolver un punto se marca en su sitio; **nunca se renumera la lista**.
 
-1. **¿PCB fabricado o basta placa perforada soldada?** 🔴 **ABIERTO.** Pregunta al ingeniero. Define el cronograma de las semanas 9–11. Consultar antes de la semana 6.
+1. ~~**¿PCB fabricado o basta placa perforada soldada?**~~ ✅ **RESUELTO (2026-09-17).** El ingeniero acepta la entrega **en protoboards**: no hace falta PCB ni placa perforada soldada. ⚠️ **Sin confirmar:** si la entrega en protoboard conserva la elegibilidad para exonerar el examen final (antes había dicho que no; ver §14 del registro de diseño). Preguntarlo explícitamente.
 
 2. ~~**Mapa de memoria definitivo**~~ ✅ **RESUELTO (2026-08-08, B.0).** Split 192/64 confirmado, sin zona reservada. Ver A.6.
 
 3. ~~**Mecanismo de carga de constantes iniciales**~~ ✅ **RESUELTO (2026-08-08, B.0).** Ambos mecanismos, no excluyentes: directiva `.DB` en el ensamblador para lo reproducible, y comando serial `LOAD`/`LOADB` para los datos que el ingeniero elija en vivo. Ver A.6.
 
-4. **Display de 7 segmentos: ánodo o cátodo común** 🔴 **ABIERTO.** Pendiente de compra. **Desde 2026-09-04 ya no afecta al firmware:** con la decodificación en hardware, el tipo de display solo decide dos piezas — buffer de segmento 74LS240 (ánodo común, enciende en bajo) o 74LS244 (cátodo común), y transistor de dígito 2N3906 (PNP) o 2N2222 (NPN). El código es idéntico en los dos casos; ya no hay `#define` que ajustar.
+4. ~~**Display de 7 segmentos: ánodo o cátodo común**~~ ✅ **RESUELTO POR ELIMINACIÓN (2026-09-17).** La salida pasó a 8 LEDs (A.2); ya no hay display de 7 segmentos. El buffer queda fijo en **74LS244** con LEDs que encienden en alto. Único requisito heredado: LEDs rojos, verdes o amarillos (caída ~2 V), porque en alto el 244 entrega 2.4–3.4 V y no alcanza para azul o blanco (~3 V).
 
 5. **Semántica exacta del carry en SUB** 🔴 **ABIERTO.** El diseño asume que C̄n+4 en bajo indica que no hubo préstamo (A≥B). **Debe verificarse experimentalmente** con el 181 en protoboard antes de darlo por cierto. Aislado tras `#define CARRY_SUB_INVERTIDO` en `firmware/microprocesador/isa.h`.
 

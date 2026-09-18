@@ -715,7 +715,7 @@ La secuencia de arriba es íntegramente software. Con el circuito montado, el gu
 3. Pega esas líneas en el monitor serial
 4. Escribe RUN
 
-5. Los 8 dígitos deben mostrar EL MISMO número, en binario
+5. Los 8 LEDs deben mostrar EL MISMO número, en binario
 ```
 
 Y para los datos en vivo, sin reensamblar:
@@ -725,7 +725,7 @@ Y para los datos en vivo, sin reensamblar:
 7. LOAD 0xCC 0x09      ← multiplicando
 8. LOAD 0x05 0x07      ← multiplicador
 9. RUN
-10. El display muestra 63 en binario: 0 0 1 1 1 1 1 1
+10. Los LEDs muestran 63 en binario: 0 0 1 1 1 1 1 1
 ```
 
 **Si el hardware y el simulador discrepan, el hardware está mal.** Ese es el propósito de haber construido B.1 primero.
@@ -749,7 +749,7 @@ firmware/
     nucleo.h / nucleo.cpp   fetch-decode-execute. No toca ni un pin
     formato.h / formato.cpp bloque A.9 + líneas clave=valor
     consola.h / consola.cpp protocolo serial
-    display.h / display.cpp salida binaria: cuenta 0..7 y pulsa el reloj
+    display.h / display.cpp salida: pulsa el reloj del registro de salida
   pruebas/                  ← NO sube al Arduino, solo verifica
     hal_falso.*             emula el 74LS181, los 74LS273 y el 74LS157
     arnes.cpp               ejecuta el núcleo en la PC
@@ -805,45 +805,46 @@ La tabla completa está en `firmware/microprocesador/pines.h`, comentada señal 
 | PORTC (**desc.**) | 37 → 30 | Lectura de F0 → F7 |
 | PORTL bits 0–5 (**desc.**) | 49 → 44 | S0, S1, S2, S3, M, C̄n |
 | Sueltos | 41, 40, 39, 38, 2 | CLK A, CLK B, MUX, CLEAR, C̄n+4 |
-| Salida | 3, 4, 5, 6, 7 | SEL0, SEL1, SEL2 (74LS151 + 74LS138), BLANK (E3 del 138), CLK del registro de salida |
+| Salida | 7 | CLK del registro de salida (3–6 quedan sin conectar desde que la salida son LEDs) |
 
 Total: 32 pines de los 54 del Mega.
 
-## La salida es binaria y la dibuja el hardware
+## La salida son 8 LEDs, uno por bit
 
-El Arduino **no decodifica** el resultado. El byte va del bus F a un tercer 74LS273 (registro de salida) y de ahí al 74LS151, que entrega el bit seleccionado (`Y`) y su complemento (`W`). Con esas dos señales se dibuja "0" o "1" en cada dígito:
+El Arduino **no toca** el resultado. El byte va del bus F a un tercer 74LS273 (registro de salida), que lo engancha cuando se ejecuta `OUT`, y de ahí a un 74LS244 que da la corriente a los 8 LEDs:
 
-| Segmentos | Encienden | Se conectan a |
+    bus F → 74LS273 (registro de salida) → 74LS244 → 220 Ω → LED → GND
+
+LED encendido = bit en 1, bit 7 a la izquierda. No hay decodificación: en binario el bit ya es la magnitud. El Arduino solo pulsa el reloj del registro de salida (pin 7).
+
+| Bit | Q del 273 → 244 | 244 → 220 Ω → LED |
 |---|---|---|
-| b, c | siempre | nivel fijo de "encendido" |
-| a, d, e, f | si el bit es 0 | `W` del 74LS151 (a través del buffer) |
-| g | si el bit es 1 | `Y` del 74LS151 (a través del buffer) |
+| 0 | pin 2 (1A1) | pin 18 (1Y1) |
+| 1 | pin 4 (1A2) | pin 16 (1Y2) |
+| 2 | pin 6 (1A3) | pin 14 (1Y3) |
+| 3 | pin 8 (1A4) | pin 12 (1Y4) |
+| 4 | pin 11 (2A1) | pin 9 (2Y1) |
+| 5 | pin 13 (2A2) | pin 7 (2Y2) |
+| 6 | pin 15 (2A3) | pin 5 (2Y3) |
+| 7 | pin 17 (2A4) | pin 3 (2Y4) |
 
-El 74LS138 recibe **las mismas** tres líneas de selección y enciende el dígito correspondiente. El Arduino solo cuenta 0..7 y pulsa el reloj del registro de salida cuando ejecuta `OUT`.
+## ⚠️ Tres cosas que hacen que los LEDs no enciendan
 
-## ⚠️ El display necesita transistores
+1. **1G (pin 1) y 2G (pin 19) del 244 van a GND.** Son habilitaciones activas en bajo: sueltas se leen como alto y las salidas quedan desconectadas.
+2. **Sin el 244 no encienden.** El 273 solo entrega 0.4 mA en alto; el 244, hasta 15 mA.
+3. **LEDs rojos, verdes o amarillos.** En alto el 244 da 2.4–3.4 V; a un LED azul o blanco (~3 V) no le queda corriente. Si se ven tenues, 150 Ω en lugar de 220 Ω.
 
-**No conectes los comunes del display directo a los pines del Arduino ni a las salidas del 74LS138.**
+Si solo consigues **74LS240**: mismo pinout, pero invierte. Cablea cada LED al revés (5V → 330 Ω → LED → salida del 240) y enciende igual con bit = 1.
 
-Al multiplexar, el común de un dígito conduce la corriente de todos sus segmentos encendidos (hasta 6, el patrón "0"): unos **82 mA** con resistencias de 220 Ω. El máximo **absoluto** de un pin del Arduino son 40 mA y una salida del 74LS138 hunde 8 mA. Conectarlo directo lo quema, o lo degrada de forma intermitente — que es peor, porque entonces el síntoma parece un fallo de lógica.
-
-Son **ocho** transistores, uno por dígito, con la base al 74LS138:
-
-| Si el display es | Transistor | Base | Buffer de segmento |
-|---|---|---|---|
-| Ánodo común | 2N3906 (PNP) | 1 kΩ a la salida del 74LS138 | 74LS240 (inversor) |
-| Cátodo común | 2N2222 (NPN) | 1 kΩ a la salida del 74LS138 | 74LS244 (directo) |
-
-Las 7 resistencias de segmento (220–330 Ω) van en las líneas compartidas, **una por segmento, no una por dígito**. Con 8 dígitos cada uno enciende 1/8 del tiempo: si se ve tenue, usa 220 Ω.
+Los pines 3–6 del Arduino (antes SEL0–SEL2 y BLANK del display) quedan **sin conectar**. El firmware los sigue manejando; no tiene efecto.
 
 ## Antes de subirlo a la placa
 
 | Pendiente | Dónde | Qué cambiar |
 |---|---|---|
-| ¿Display de ánodo o cátodo común? | **Hardware, no firmware** | 74LS240 + PNP si es ánodo común; 74LS244 + NPN si es cátodo. El código no cambia |
 | ¿Carry en SUB? | `isa.h` | `#define CARRY_SUB_INVERTIDO 0` → `1` si la prueba lo contradice |
 
-El segundo depende de **ejecutar primero la caracterización de la ALU** (sección 7 de la bitácora) con un 181 aislado en protoboard. No subas el firmware antes de haberla hecho.
+Depende de **ejecutar primero la caracterización de la ALU** (sección 7 de la bitácora) con un 181 aislado en protoboard. No subas el firmware antes de haberla hecho.
 
 ## Subirlo
 
@@ -885,7 +886,7 @@ Por eso el archivo `.load` usa `LOADB` con 8 bytes por línea: 5 líneas de 50 c
 6. RUN
 ```
 
-El display debe mostrar `0 0 0 0 1 1 0 0` — 12 en binario, bit 7 a la izquierda.
+Los LEDs deben mostrar `0 0 0 0 1 1 0 0` — 12 en binario, bit 7 a la izquierda (encendidos solo los bits 3 y 2).
 
 ## Salida por duplicado
 
@@ -910,7 +911,7 @@ La línea `#clave=valor` es **ASCII puro** y es la que parseará Processing. El 
 
 El Arduino **no puede leer los registros A y B**: las salidas de los 74LS273 van al 181, no al Arduino. Para `STA`, `OUT` y el volcado de estado, el firmware hace pasar el registro por la ALU sin alterarlo (`F=A` con M=1, S=1111) y lee el bus F.
 
-Es decir: **el display muestra lo que de verdad hay en el registro físico**, no una copia que el Arduino guarde aparte. Si una soldadura fría corrompe el registro, se ve al instante. Y el byte llega al display por el mismo camino físico: del bus F al registro de salida, sin entrar nunca al Arduino.
+Es decir: **los LEDs muestran lo que de verdad hay en el registro físico**, no una copia que el Arduino guarde aparte. Si una soldadura fría corrompe el registro, se ve al instante. Y el byte llega a los LEDs por el mismo camino físico: del bus F al registro de salida, sin entrar nunca al Arduino.
 
 ---
 
@@ -926,7 +927,7 @@ Es decir: **el display muestra lo que de verdad hay en el registro físico**, no
 4. Abre programas/mi_programa.load
 5. Pega esas líneas en el monitor serial del Arduino  (cuando B.3 exista)
 6. Escribe RUN en el monitor serial
-7. El display de 7 segmentos debe mostrar lo mismo que el simulador
+7. Los 8 LEDs deben mostrar lo mismo que el simulador
 ```
 
 **Si el hardware y el simulador discrepan, el hardware está mal.** Ese es el propósito de B.1.
@@ -1005,11 +1006,10 @@ Todos los archivos de texto se leen y escriben con **UTF-8 explícito**, y el CL
 
 | Bloqueo | Consecuencia |
 |---|---|
-| **Comprar el Arduino Mega**, los 74LS273, los 74LS157 y los displays | Sin la placa no hay nada que probar en hardware |
+| **Comprar el Arduino Mega**, los 74LS273, los 74LS157, el 74LS244 y los LEDs | Sin la placa no hay nada que probar en hardware |
 | **Caracterizar la ALU en protoboard** (sección 7 de la bitácora) | Resuelve el pendiente C.5 del carry en `SUB` |
-| **¿Ánodo o cátodo común?** (pendiente C.4) | Depende de qué displays se compren |
-| **¿PCB fabricado o placa perforada?** | Pregunta abierta al ingeniero; define el cronograma de las semanas 9–11 |
+| **¿La entrega en protoboard conserva la exoneración?** | El ingeniero ya aceptó la protoboard como entrega (C.1); falta confirmar si exonera |
 
-Los dos primeros pendientes ya están aislados en el firmware tras un `#define` cada uno, así que resolverlos es un cambio de una línea.
+El carry en `SUB` ya está aislado en el firmware tras un `#define`, así que resolverlo es un cambio de una línea.
 
 **Siguiente tarea de software:** la interfaz de observación en Processing — pero es lo **último** que debe construirse (semanas 12–13). Llegar a la semana 12 con una interfaz preciosa y un circuito a medio soldar es el peor escenario posible.

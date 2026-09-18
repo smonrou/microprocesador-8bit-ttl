@@ -1,0 +1,3145 @@
+{
+ "fases": [
+  {
+   "n": 0,
+   "titulo": "Preparación, base y alimentación",
+   "chips": [],
+   "piezas": [
+    {
+     "ref": "FUENTE",
+     "tipo": "fuente",
+     "valor": "5 V ≥1 A",
+     "patas": [
+      "BB2 riel + inf (fila 21)",
+      "BB2 riel − inf (fila 21)"
+     ],
+     "nota": "cable rojo de la bornera al riel +, negro al riel −",
+     "temporal": false
+    },
+    {
+     "ref": "C_ENT",
+     "tipo": "electrolitico",
+     "valor": "100 µF 16 V",
+     "patas": [
+      "BB2 riel + inf (fila 24)",
+      "BB2 riel − inf (fila 24)"
+     ],
+     "nota": "pata larga (+) al riel +, franja (−) al riel −",
+     "temporal": false
+    }
+   ],
+   "cables": [
+    {
+     "n": 1,
+     "desde": "BB1 riel + sup (fila 3)",
+     "hasta": "BB1 riel + inf (fila 3)",
+     "color": "rojo",
+     "que": "BB1: une + superior con + inferior",
+     "cm": 7.0,
+     "temporal": false,
+     "desde_es": "BB1 riel + sup (fila 3)",
+     "hasta_es": "BB1 riel + inf (fila 3)"
+    },
+    {
+     "n": 2,
+     "desde": "BB1 riel − sup (fila 4)",
+     "hasta": "BB1 riel − inf (fila 4)",
+     "color": "negro",
+     "que": "BB1: une − superior con − inferior",
+     "cm": 6.5,
+     "temporal": false,
+     "desde_es": "BB1 riel − sup (fila 4)",
+     "hasta_es": "BB1 riel − inf (fila 4)"
+    },
+    {
+     "n": 3,
+     "desde": "BB1 riel + sup (fila 61)",
+     "hasta": "BB1 riel + inf (fila 61)",
+     "color": "rojo",
+     "que": "BB1: une + superior con + inferior",
+     "cm": 7.0,
+     "temporal": false,
+     "desde_es": "BB1 riel + sup (fila 61)",
+     "hasta_es": "BB1 riel + inf (fila 61)"
+    },
+    {
+     "n": 4,
+     "desde": "BB1 riel − sup (fila 61)",
+     "hasta": "BB1 riel − inf (fila 61)",
+     "color": "negro",
+     "que": "BB1: une − superior con − inferior",
+     "cm": 6.5,
+     "temporal": false,
+     "desde_es": "BB1 riel − sup (fila 61)",
+     "hasta_es": "BB1 riel − inf (fila 61)"
+    },
+    {
+     "n": 5,
+     "desde": "BB2 riel + sup (fila 3)",
+     "hasta": "BB2 riel + inf (fila 3)",
+     "color": "rojo",
+     "que": "BB2: une + superior con + inferior",
+     "cm": 7.0,
+     "temporal": false,
+     "desde_es": "BB2 riel + sup (fila 3)",
+     "hasta_es": "BB2 riel + inf (fila 3)"
+    },
+    {
+     "n": 6,
+     "desde": "BB2 riel − sup (fila 4)",
+     "hasta": "BB2 riel − inf (fila 4)",
+     "color": "negro",
+     "que": "BB2: une − superior con − inferior",
+     "cm": 6.5,
+     "temporal": false,
+     "desde_es": "BB2 riel − sup (fila 4)",
+     "hasta_es": "BB2 riel − inf (fila 4)"
+    },
+    {
+     "n": 7,
+     "desde": "BB2 riel + sup (fila 61)",
+     "hasta": "BB2 riel + inf (fila 61)",
+     "color": "rojo",
+     "que": "BB2: une + superior con + inferior",
+     "cm": 7.0,
+     "temporal": false,
+     "desde_es": "BB2 riel + sup (fila 61)",
+     "hasta_es": "BB2 riel + inf (fila 61)"
+    },
+    {
+     "n": 8,
+     "desde": "BB2 riel − sup (fila 61)",
+     "hasta": "BB2 riel − inf (fila 61)",
+     "color": "negro",
+     "que": "BB2: une − superior con − inferior",
+     "cm": 6.5,
+     "temporal": false,
+     "desde_es": "BB2 riel − sup (fila 61)",
+     "hasta_es": "BB2 riel − inf (fila 61)"
+    },
+    {
+     "n": 9,
+     "desde": "BB3 riel + sup (fila 3)",
+     "hasta": "BB3 riel + inf (fila 3)",
+     "color": "rojo",
+     "que": "BB3: une + superior con + inferior",
+     "cm": 7.0,
+     "temporal": false,
+     "desde_es": "BB3 riel + sup (fila 3)",
+     "hasta_es": "BB3 riel + inf (fila 3)"
+    },
+    {
+     "n": 10,
+     "desde": "BB3 riel − sup (fila 4)",
+     "hasta": "BB3 riel − inf (fila 4)",
+     "color": "negro",
+     "que": "BB3: une − superior con − inferior",
+     "cm": 6.5,
+     "temporal": false,
+     "desde_es": "BB3 riel − sup (fila 4)",
+     "hasta_es": "BB3 riel − inf (fila 4)"
+    },
+    {
+     "n": 11,
+     "desde": "BB3 riel + sup (fila 61)",
+     "hasta": "BB3 riel + inf (fila 61)",
+     "color": "rojo",
+     "que": "BB3: une + superior con + inferior",
+     "cm": 7.0,
+     "temporal": false,
+     "desde_es": "BB3 riel + sup (fila 61)",
+     "hasta_es": "BB3 riel + inf (fila 61)"
+    },
+    {
+     "n": 12,
+     "desde": "BB3 riel − sup (fila 61)",
+     "hasta": "BB3 riel − inf (fila 61)",
+     "color": "negro",
+     "que": "BB3: une − superior con − inferior",
+     "cm": 6.5,
+     "temporal": false,
+     "desde_es": "BB3 riel − sup (fila 61)",
+     "hasta_es": "BB3 riel − inf (fila 61)"
+    },
+    {
+     "n": 13,
+     "desde": "BB4 riel + sup (fila 3)",
+     "hasta": "BB4 riel + inf (fila 3)",
+     "color": "rojo",
+     "que": "BB4: une + superior con + inferior",
+     "cm": 7.0,
+     "temporal": false,
+     "desde_es": "BB4 riel + sup (fila 3)",
+     "hasta_es": "BB4 riel + inf (fila 3)"
+    },
+    {
+     "n": 14,
+     "desde": "BB4 riel − sup (fila 4)",
+     "hasta": "BB4 riel − inf (fila 4)",
+     "color": "negro",
+     "que": "BB4: une − superior con − inferior",
+     "cm": 6.5,
+     "temporal": false,
+     "desde_es": "BB4 riel − sup (fila 4)",
+     "hasta_es": "BB4 riel − inf (fila 4)"
+    },
+    {
+     "n": 15,
+     "desde": "BB4 riel + sup (fila 61)",
+     "hasta": "BB4 riel + inf (fila 61)",
+     "color": "rojo",
+     "que": "BB4: une + superior con + inferior",
+     "cm": 7.0,
+     "temporal": false,
+     "desde_es": "BB4 riel + sup (fila 61)",
+     "hasta_es": "BB4 riel + inf (fila 61)"
+    },
+    {
+     "n": 16,
+     "desde": "BB4 riel − sup (fila 61)",
+     "hasta": "BB4 riel − inf (fila 61)",
+     "color": "negro",
+     "que": "BB4: une − superior con − inferior",
+     "cm": 6.5,
+     "temporal": false,
+     "desde_es": "BB4 riel − sup (fila 61)",
+     "hasta_es": "BB4 riel − inf (fila 61)"
+    },
+    {
+     "n": 17,
+     "desde": "BB1 riel + inf (fila 5)",
+     "hasta": "BB2 riel + sup (fila 5)",
+     "color": "rojo",
+     "que": "+ de BB1 con + de BB2",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "BB1 riel + inf (fila 5)",
+     "hasta_es": "BB2 riel + sup (fila 5)"
+    },
+    {
+     "n": 18,
+     "desde": "BB1 riel − inf (fila 3)",
+     "hasta": "BB2 riel − sup (fila 3)",
+     "color": "negro",
+     "que": "− de BB1 con − de BB2",
+     "cm": 3.5,
+     "temporal": false,
+     "desde_es": "BB1 riel − inf (fila 3)",
+     "hasta_es": "BB2 riel − sup (fila 3)"
+    },
+    {
+     "n": 19,
+     "desde": "BB1 riel + inf (fila 60)",
+     "hasta": "BB2 riel + sup (fila 60)",
+     "color": "rojo",
+     "que": "+ de BB1 con + de BB2",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "BB1 riel + inf (fila 60)",
+     "hasta_es": "BB2 riel + sup (fila 60)"
+    },
+    {
+     "n": 20,
+     "desde": "BB1 riel − inf (fila 60)",
+     "hasta": "BB2 riel − sup (fila 60)",
+     "color": "negro",
+     "que": "− de BB1 con − de BB2",
+     "cm": 3.5,
+     "temporal": false,
+     "desde_es": "BB1 riel − inf (fila 60)",
+     "hasta_es": "BB2 riel − sup (fila 60)"
+    },
+    {
+     "n": 21,
+     "desde": "BB2 riel + inf (fila 5)",
+     "hasta": "BB3 riel + sup (fila 5)",
+     "color": "rojo",
+     "que": "+ de BB2 con + de BB3",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "BB2 riel + inf (fila 5)",
+     "hasta_es": "BB3 riel + sup (fila 5)"
+    },
+    {
+     "n": 22,
+     "desde": "BB2 riel − inf (fila 3)",
+     "hasta": "BB3 riel − sup (fila 3)",
+     "color": "negro",
+     "que": "− de BB2 con − de BB3",
+     "cm": 3.5,
+     "temporal": false,
+     "desde_es": "BB2 riel − inf (fila 3)",
+     "hasta_es": "BB3 riel − sup (fila 3)"
+    },
+    {
+     "n": 23,
+     "desde": "BB2 riel + inf (fila 60)",
+     "hasta": "BB3 riel + sup (fila 60)",
+     "color": "rojo",
+     "que": "+ de BB2 con + de BB3",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "BB2 riel + inf (fila 60)",
+     "hasta_es": "BB3 riel + sup (fila 60)"
+    },
+    {
+     "n": 24,
+     "desde": "BB2 riel − inf (fila 60)",
+     "hasta": "BB3 riel − sup (fila 60)",
+     "color": "negro",
+     "que": "− de BB2 con − de BB3",
+     "cm": 3.5,
+     "temporal": false,
+     "desde_es": "BB2 riel − inf (fila 60)",
+     "hasta_es": "BB3 riel − sup (fila 60)"
+    },
+    {
+     "n": 25,
+     "desde": "BB3 riel + inf (fila 5)",
+     "hasta": "BB4 riel + sup (fila 5)",
+     "color": "rojo",
+     "que": "+ de BB3 con + de BB4",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "BB3 riel + inf (fila 5)",
+     "hasta_es": "BB4 riel + sup (fila 5)"
+    },
+    {
+     "n": 26,
+     "desde": "BB3 riel − inf (fila 3)",
+     "hasta": "BB4 riel − sup (fila 3)",
+     "color": "negro",
+     "que": "− de BB3 con − de BB4",
+     "cm": 3.5,
+     "temporal": false,
+     "desde_es": "BB3 riel − inf (fila 3)",
+     "hasta_es": "BB4 riel − sup (fila 3)"
+    },
+    {
+     "n": 27,
+     "desde": "BB3 riel + inf (fila 60)",
+     "hasta": "BB4 riel + sup (fila 60)",
+     "color": "rojo",
+     "que": "+ de BB3 con + de BB4",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "BB3 riel + inf (fila 60)",
+     "hasta_es": "BB4 riel + sup (fila 60)"
+    },
+    {
+     "n": 28,
+     "desde": "BB3 riel − inf (fila 60)",
+     "hasta": "BB4 riel − sup (fila 60)",
+     "color": "negro",
+     "que": "− de BB3 con − de BB4",
+     "cm": 3.5,
+     "temporal": false,
+     "desde_es": "BB3 riel − inf (fila 60)",
+     "hasta_es": "BB4 riel − sup (fila 60)"
+    }
+   ],
+   "retirar_cables": [],
+   "retirar_piezas": []
+  },
+  {
+   "n": 1,
+   "titulo": "Etapa de salida: registro de salida, 74LS244 y 8 LEDs",
+   "chips": [
+    {
+     "ref": "REG_S",
+     "nombre": "REG SALIDA",
+     "parte": "74LS273",
+     "bb": "BB4",
+     "pin1": "BB4-e10",
+     "pinN": "BB4-f10",
+     "ultimo_inf": "BB4-e19",
+     "pines": 20,
+     "ancho": "300 mil",
+     "rol": "registro de salida"
+    },
+    {
+     "ref": "BUF",
+     "nombre": "74LS244",
+     "parte": "74LS244",
+     "bb": "BB4",
+     "pin1": "BB4-e25",
+     "pinN": "BB4-f25",
+     "ultimo_inf": "BB4-e34",
+     "pines": 20,
+     "ancho": "300 mil",
+     "rol": "buffer de los LEDs"
+    }
+   ],
+   "piezas": [
+    {
+     "ref": "C_REG_S",
+     "tipo": "cap",
+     "valor": "0.1 µF (104)",
+     "patas": [
+      "BB4 riel + sup (fila 11)",
+      "BB4 riel − sup (fila 11)"
+     ],
+     "nota": "desacople de REG SALIDA, pegado a su VCC",
+     "temporal": false
+    },
+    {
+     "ref": "C_BUF",
+     "tipo": "cap",
+     "valor": "0.1 µF (104)",
+     "patas": [
+      "BB4 riel + sup (fila 27)",
+      "BB4 riel − sup (fila 25)"
+     ],
+     "nota": "desacople de 74LS244, pegado a su VCC",
+     "temporal": false
+    },
+    {
+     "ref": "R_LED7",
+     "tipo": "resistencia",
+     "valor": "220 Ω",
+     "patas": [
+      "BB4-d38",
+      "BB4-g38"
+     ],
+     "nota": "bit 7: cruza el canal central",
+     "temporal": false
+    },
+    {
+     "ref": "LED7",
+     "tipo": "led",
+     "valor": "LED rojo/verde/amarillo",
+     "patas": [
+      "BB4-h38",
+      "BB4-h39"
+     ],
+     "nota": "bit 7: pata larga (ánodo) en h38, pata corta (cátodo) en h39",
+     "temporal": false
+    },
+    {
+     "ref": "R_LED6",
+     "tipo": "resistencia",
+     "valor": "220 Ω",
+     "patas": [
+      "BB4-d41",
+      "BB4-g41"
+     ],
+     "nota": "bit 6: cruza el canal central",
+     "temporal": false
+    },
+    {
+     "ref": "LED6",
+     "tipo": "led",
+     "valor": "LED rojo/verde/amarillo",
+     "patas": [
+      "BB4-h41",
+      "BB4-h42"
+     ],
+     "nota": "bit 6: pata larga (ánodo) en h41, pata corta (cátodo) en h42",
+     "temporal": false
+    },
+    {
+     "ref": "R_LED5",
+     "tipo": "resistencia",
+     "valor": "220 Ω",
+     "patas": [
+      "BB4-d44",
+      "BB4-g44"
+     ],
+     "nota": "bit 5: cruza el canal central",
+     "temporal": false
+    },
+    {
+     "ref": "LED5",
+     "tipo": "led",
+     "valor": "LED rojo/verde/amarillo",
+     "patas": [
+      "BB4-h44",
+      "BB4-h45"
+     ],
+     "nota": "bit 5: pata larga (ánodo) en h44, pata corta (cátodo) en h45",
+     "temporal": false
+    },
+    {
+     "ref": "R_LED4",
+     "tipo": "resistencia",
+     "valor": "220 Ω",
+     "patas": [
+      "BB4-d47",
+      "BB4-g47"
+     ],
+     "nota": "bit 4: cruza el canal central",
+     "temporal": false
+    },
+    {
+     "ref": "LED4",
+     "tipo": "led",
+     "valor": "LED rojo/verde/amarillo",
+     "patas": [
+      "BB4-h47",
+      "BB4-h48"
+     ],
+     "nota": "bit 4: pata larga (ánodo) en h47, pata corta (cátodo) en h48",
+     "temporal": false
+    },
+    {
+     "ref": "R_LED3",
+     "tipo": "resistencia",
+     "valor": "220 Ω",
+     "patas": [
+      "BB4-d50",
+      "BB4-g50"
+     ],
+     "nota": "bit 3: cruza el canal central",
+     "temporal": false
+    },
+    {
+     "ref": "LED3",
+     "tipo": "led",
+     "valor": "LED rojo/verde/amarillo",
+     "patas": [
+      "BB4-h50",
+      "BB4-h51"
+     ],
+     "nota": "bit 3: pata larga (ánodo) en h50, pata corta (cátodo) en h51",
+     "temporal": false
+    },
+    {
+     "ref": "R_LED2",
+     "tipo": "resistencia",
+     "valor": "220 Ω",
+     "patas": [
+      "BB4-d53",
+      "BB4-g53"
+     ],
+     "nota": "bit 2: cruza el canal central",
+     "temporal": false
+    },
+    {
+     "ref": "LED2",
+     "tipo": "led",
+     "valor": "LED rojo/verde/amarillo",
+     "patas": [
+      "BB4-h53",
+      "BB4-h54"
+     ],
+     "nota": "bit 2: pata larga (ánodo) en h53, pata corta (cátodo) en h54",
+     "temporal": false
+    },
+    {
+     "ref": "R_LED1",
+     "tipo": "resistencia",
+     "valor": "220 Ω",
+     "patas": [
+      "BB4-d56",
+      "BB4-g56"
+     ],
+     "nota": "bit 1: cruza el canal central",
+     "temporal": false
+    },
+    {
+     "ref": "LED1",
+     "tipo": "led",
+     "valor": "LED rojo/verde/amarillo",
+     "patas": [
+      "BB4-h56",
+      "BB4-h57"
+     ],
+     "nota": "bit 1: pata larga (ánodo) en h56, pata corta (cátodo) en h57",
+     "temporal": false
+    },
+    {
+     "ref": "R_LED0",
+     "tipo": "resistencia",
+     "valor": "220 Ω",
+     "patas": [
+      "BB4-d59",
+      "BB4-g59"
+     ],
+     "nota": "bit 0: cruza el canal central",
+     "temporal": false
+    },
+    {
+     "ref": "LED0",
+     "tipo": "led",
+     "valor": "LED rojo/verde/amarillo",
+     "patas": [
+      "BB4-h59",
+      "BB4-h60"
+     ],
+     "nota": "bit 0: pata larga (ánodo) en h59, pata corta (cátodo) en h60",
+     "temporal": false
+    },
+    {
+     "ref": "DIP",
+     "tipo": "dip",
+     "valor": "dip switch de 8",
+     "patas": [
+      "BB2-e44",
+      "BB2-e45",
+      "BB2-e46",
+      "BB2-e47",
+      "BB2-e48",
+      "BB2-e49",
+      "BB2-e50",
+      "BB2-e51",
+      "BB2-f44",
+      "BB2-f45",
+      "BB2-f46",
+      "BB2-f47",
+      "BB2-f48",
+      "BB2-f49",
+      "BB2-f50",
+      "BB2-f51"
+     ],
+     "nota": "interruptor 1 en la fila 44 = bit 0; ON = 0, OFF = 1",
+     "temporal": true
+    },
+    {
+     "ref": "R_PU0",
+     "tipo": "resistencia",
+     "valor": "1 kΩ",
+     "patas": [
+      "BB2-a44",
+      "BB2 riel + inf (fila 43)"
+     ],
+     "nota": "pull-up del bit 0 del dip switch",
+     "temporal": true
+    },
+    {
+     "ref": "R_PU1",
+     "tipo": "resistencia",
+     "valor": "1 kΩ",
+     "patas": [
+      "BB2-a45",
+      "BB2 riel + inf (fila 45)"
+     ],
+     "nota": "pull-up del bit 1 del dip switch",
+     "temporal": true
+    },
+    {
+     "ref": "R_PU2",
+     "tipo": "resistencia",
+     "valor": "1 kΩ",
+     "patas": [
+      "BB2-a46",
+      "BB2 riel + inf (fila 46)"
+     ],
+     "nota": "pull-up del bit 2 del dip switch",
+     "temporal": true
+    },
+    {
+     "ref": "R_PU3",
+     "tipo": "resistencia",
+     "valor": "1 kΩ",
+     "patas": [
+      "BB2-a47",
+      "BB2 riel + inf (fila 47)"
+     ],
+     "nota": "pull-up del bit 3 del dip switch",
+     "temporal": true
+    },
+    {
+     "ref": "R_PU4",
+     "tipo": "resistencia",
+     "valor": "1 kΩ",
+     "patas": [
+      "BB2-a48",
+      "BB2 riel + inf (fila 48)"
+     ],
+     "nota": "pull-up del bit 4 del dip switch",
+     "temporal": true
+    },
+    {
+     "ref": "R_PU5",
+     "tipo": "resistencia",
+     "valor": "1 kΩ",
+     "patas": [
+      "BB2-a49",
+      "BB2 riel + inf (fila 49)"
+     ],
+     "nota": "pull-up del bit 5 del dip switch",
+     "temporal": true
+    },
+    {
+     "ref": "R_PU6",
+     "tipo": "resistencia",
+     "valor": "1 kΩ",
+     "patas": [
+      "BB2-a50",
+      "BB2 riel + inf (fila 51)"
+     ],
+     "nota": "pull-up del bit 6 del dip switch",
+     "temporal": true
+    },
+    {
+     "ref": "R_PU7",
+     "tipo": "resistencia",
+     "valor": "1 kΩ",
+     "patas": [
+      "BB2-a51",
+      "BB2 riel + inf (fila 52)"
+     ],
+     "nota": "pull-up del bit 7 del dip switch",
+     "temporal": true
+    },
+    {
+     "ref": "BOTON",
+     "tipo": "pulsador",
+     "valor": "pulsador 4 patas",
+     "patas": [
+      "BB2-e55",
+      "BB2-e57",
+      "BB2-f55",
+      "BB2-f57"
+     ],
+     "nota": "cruza el canal; verifica con el multímetro que une e↔f solo al presionar",
+     "temporal": true
+    },
+    {
+     "ref": "R_BOTON",
+     "tipo": "resistencia",
+     "valor": "1 kΩ",
+     "patas": [
+      "BB2-a55",
+      "BB2 riel + inf (fila 55)"
+     ],
+     "nota": "pull-up del reloj manual: suelto = 1, presionado = 0",
+     "temporal": true
+    }
+   ],
+   "cables": [
+    {
+     "n": 41,
+     "desde": "BB4-j10",
+     "hasta": "BB4 riel + sup (fila 10)",
+     "color": "rojo",
+     "que": "REG SALIDA: VCC (pin 20) a +5 V",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "REG SALIDA VCC (pin 20)",
+     "hasta_es": "BB4 riel + sup (fila 10)"
+    },
+    {
+     "n": 42,
+     "desde": "BB4-a19",
+     "hasta": "BB4 riel − inf (fila 19)",
+     "color": "negro",
+     "que": "REG SALIDA: GND (pin 10) a tierra",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "REG SALIDA GND (pin 10)",
+     "hasta_es": "BB4 riel − inf (fila 19)"
+    },
+    {
+     "n": 43,
+     "desde": "BB4-j25",
+     "hasta": "BB4 riel + sup (fila 25)",
+     "color": "rojo",
+     "que": "74LS244: VCC (pin 20) a +5 V",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "74LS244 VCC (pin 20)",
+     "hasta_es": "BB4 riel + sup (fila 25)"
+    },
+    {
+     "n": 44,
+     "desde": "BB4-a34",
+     "hasta": "BB4 riel − inf (fila 34)",
+     "color": "negro",
+     "que": "74LS244: GND (pin 10) a tierra",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "74LS244 GND (pin 10)",
+     "hasta_es": "BB4 riel − inf (fila 34)"
+    },
+    {
+     "n": 47,
+     "desde": "BB4-a25",
+     "hasta": "BB4 riel − inf (fila 25)",
+     "color": "negro",
+     "que": "74LS244: 1G̅ (pin 1) a GND — bits 0-3 siempre habilitados",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "74LS244 1G (pin 1)",
+     "hasta_es": "BB4 riel − inf (fila 25)"
+    },
+    {
+     "n": 48,
+     "desde": "BB4-j26",
+     "hasta": "BB4 riel − sup (fila 27)",
+     "color": "negro",
+     "que": "74LS244: 2G̅ (pin 19) a GND — bits 4-7 siempre habilitados",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "74LS244 2G (pin 19)",
+     "hasta_es": "BB4 riel − sup (fila 27)"
+    },
+    {
+     "n": 49,
+     "desde": "BB4-j39",
+     "hasta": "BB4 riel − sup (fila 39)",
+     "color": "negro",
+     "que": "LED bit 7: cátodo a GND",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "BB4-j39",
+     "hasta_es": "BB4 riel − sup (fila 39)"
+    },
+    {
+     "n": 50,
+     "desde": "BB4-j11",
+     "hasta": "BB4-j28",
+     "color": "gris",
+     "que": "REG SALIDA Q7 → 74LS244 2A4",
+     "cm": 6.5,
+     "temporal": false,
+     "desde_es": "REG SALIDA Q7 (pin 19)",
+     "hasta_es": "74LS244 2A4 (pin 17)"
+    },
+    {
+     "n": 51,
+     "desde": "BB4-a27",
+     "hasta": "BB4-a38",
+     "color": "gris",
+     "que": "74LS244 2Y4 → resistencia del LED bit 7",
+     "cm": 5.0,
+     "temporal": false,
+     "desde_es": "74LS244 2Y4 (pin 3)",
+     "hasta_es": "BB4-a38"
+    },
+    {
+     "n": 52,
+     "desde": "BB4-j42",
+     "hasta": "BB4 riel − sup (fila 42)",
+     "color": "negro",
+     "que": "LED bit 6: cátodo a GND",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "BB4-j42",
+     "hasta_es": "BB4 riel − sup (fila 42)"
+    },
+    {
+     "n": 53,
+     "desde": "BB4-j14",
+     "hasta": "BB4-j30",
+     "color": "gris",
+     "que": "REG SALIDA Q6 → 74LS244 2A3",
+     "cm": 6.5,
+     "temporal": false,
+     "desde_es": "REG SALIDA Q6 (pin 16)",
+     "hasta_es": "74LS244 2A3 (pin 15)"
+    },
+    {
+     "n": 54,
+     "desde": "BB4-a29",
+     "hasta": "BB4-a41",
+     "color": "gris",
+     "que": "74LS244 2Y3 → resistencia del LED bit 6",
+     "cm": 5.5,
+     "temporal": false,
+     "desde_es": "74LS244 2Y3 (pin 5)",
+     "hasta_es": "BB4-a41"
+    },
+    {
+     "n": 55,
+     "desde": "BB4-j45",
+     "hasta": "BB4 riel − sup (fila 45)",
+     "color": "negro",
+     "que": "LED bit 5: cátodo a GND",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "BB4-j45",
+     "hasta_es": "BB4 riel − sup (fila 45)"
+    },
+    {
+     "n": 56,
+     "desde": "BB4-j15",
+     "hasta": "BB4-j32",
+     "color": "gris",
+     "que": "REG SALIDA Q5 → 74LS244 2A2",
+     "cm": 6.5,
+     "temporal": false,
+     "desde_es": "REG SALIDA Q5 (pin 15)",
+     "hasta_es": "74LS244 2A2 (pin 13)"
+    },
+    {
+     "n": 57,
+     "desde": "BB4-a31",
+     "hasta": "BB4-a44",
+     "color": "gris",
+     "que": "74LS244 2Y2 → resistencia del LED bit 5",
+     "cm": 5.5,
+     "temporal": false,
+     "desde_es": "74LS244 2Y2 (pin 7)",
+     "hasta_es": "BB4-a44"
+    },
+    {
+     "n": 58,
+     "desde": "BB4-j48",
+     "hasta": "BB4 riel − sup (fila 48)",
+     "color": "negro",
+     "que": "LED bit 4: cátodo a GND",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "BB4-j48",
+     "hasta_es": "BB4 riel − sup (fila 48)"
+    },
+    {
+     "n": 59,
+     "desde": "BB4-j18",
+     "hasta": "BB4-j34",
+     "color": "gris",
+     "que": "REG SALIDA Q4 → 74LS244 2A1",
+     "cm": 6.5,
+     "temporal": false,
+     "desde_es": "REG SALIDA Q4 (pin 12)",
+     "hasta_es": "74LS244 2A1 (pin 11)"
+    },
+    {
+     "n": 60,
+     "desde": "BB4-a33",
+     "hasta": "BB4-a47",
+     "color": "gris",
+     "que": "74LS244 2Y1 → resistencia del LED bit 4",
+     "cm": 6.0,
+     "temporal": false,
+     "desde_es": "74LS244 2Y1 (pin 9)",
+     "hasta_es": "BB4-a47"
+    },
+    {
+     "n": 61,
+     "desde": "BB4-j51",
+     "hasta": "BB4 riel − sup (fila 51)",
+     "color": "negro",
+     "que": "LED bit 3: cátodo a GND",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "BB4-j51",
+     "hasta_es": "BB4 riel − sup (fila 51)"
+    },
+    {
+     "n": 62,
+     "desde": "BB4-a18",
+     "hasta": "BB4-a32",
+     "color": "gris",
+     "que": "REG SALIDA Q3 → 74LS244 1A4",
+     "cm": 6.0,
+     "temporal": false,
+     "desde_es": "REG SALIDA Q3 (pin 9)",
+     "hasta_es": "74LS244 1A4 (pin 8)"
+    },
+    {
+     "n": 63,
+     "desde": "BB4-j33",
+     "hasta": "BB4-a50",
+     "color": "gris",
+     "que": "74LS244 1Y4 → resistencia del LED bit 3",
+     "cm": 9.5,
+     "temporal": false,
+     "desde_es": "74LS244 1Y4 (pin 12)",
+     "hasta_es": "BB4-a50"
+    },
+    {
+     "n": 64,
+     "desde": "BB4-j54",
+     "hasta": "BB4 riel − sup (fila 54)",
+     "color": "negro",
+     "que": "LED bit 2: cátodo a GND",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "BB4-j54",
+     "hasta_es": "BB4 riel − sup (fila 54)"
+    },
+    {
+     "n": 65,
+     "desde": "BB4-a15",
+     "hasta": "BB4-a30",
+     "color": "gris",
+     "que": "REG SALIDA Q2 → 74LS244 1A3",
+     "cm": 6.0,
+     "temporal": false,
+     "desde_es": "REG SALIDA Q2 (pin 6)",
+     "hasta_es": "74LS244 1A3 (pin 6)"
+    },
+    {
+     "n": 66,
+     "desde": "BB4-j31",
+     "hasta": "BB4-a53",
+     "color": "gris",
+     "que": "74LS244 1Y3 → resistencia del LED bit 2",
+     "cm": 10.5,
+     "temporal": false,
+     "desde_es": "74LS244 1Y3 (pin 14)",
+     "hasta_es": "BB4-a53"
+    },
+    {
+     "n": 67,
+     "desde": "BB4-j57",
+     "hasta": "BB4 riel − sup (fila 57)",
+     "color": "negro",
+     "que": "LED bit 1: cátodo a GND",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "BB4-j57",
+     "hasta_es": "BB4 riel − sup (fila 57)"
+    },
+    {
+     "n": 68,
+     "desde": "BB4-a14",
+     "hasta": "BB4-a28",
+     "color": "gris",
+     "que": "REG SALIDA Q1 → 74LS244 1A2",
+     "cm": 6.0,
+     "temporal": false,
+     "desde_es": "REG SALIDA Q1 (pin 5)",
+     "hasta_es": "74LS244 1A2 (pin 4)"
+    },
+    {
+     "n": 69,
+     "desde": "BB4-j29",
+     "hasta": "BB4-a56",
+     "color": "gris",
+     "que": "74LS244 1Y2 → resistencia del LED bit 1",
+     "cm": 12.0,
+     "temporal": false,
+     "desde_es": "74LS244 1Y2 (pin 16)",
+     "hasta_es": "BB4-a56"
+    },
+    {
+     "n": 70,
+     "desde": "BB4-j60",
+     "hasta": "BB4 riel − sup (fila 59)",
+     "color": "negro",
+     "que": "LED bit 0: cátodo a GND",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "BB4-j60",
+     "hasta_es": "BB4 riel − sup (fila 59)"
+    },
+    {
+     "n": 71,
+     "desde": "BB4-a11",
+     "hasta": "BB4-a26",
+     "color": "gris",
+     "que": "REG SALIDA Q0 → 74LS244 1A1",
+     "cm": 6.0,
+     "temporal": false,
+     "desde_es": "REG SALIDA Q0 (pin 2)",
+     "hasta_es": "74LS244 1A1 (pin 2)"
+    },
+    {
+     "n": 72,
+     "desde": "BB4-j27",
+     "hasta": "BB4-a59",
+     "color": "gris",
+     "que": "74LS244 1Y1 → resistencia del LED bit 0",
+     "cm": 13.0,
+     "temporal": false,
+     "desde_es": "74LS244 1Y1 (pin 18)",
+     "hasta_es": "BB4-a59"
+    },
+    {
+     "n": 73,
+     "desde": "BB2-j44",
+     "hasta": "BB2 riel − sup (fila 43)",
+     "color": "temporal",
+     "que": "dip switch bit 0: lado común a GND",
+     "cm": 3.0,
+     "temporal": true,
+     "desde_es": "BB2-j44",
+     "hasta_es": "BB2 riel − sup (fila 43)"
+    },
+    {
+     "n": 74,
+     "desde": "BB2-j45",
+     "hasta": "BB2 riel − sup (fila 45)",
+     "color": "temporal",
+     "que": "dip switch bit 1: lado común a GND",
+     "cm": 3.0,
+     "temporal": true,
+     "desde_es": "BB2-j45",
+     "hasta_es": "BB2 riel − sup (fila 45)"
+    },
+    {
+     "n": 75,
+     "desde": "BB2-j46",
+     "hasta": "BB2 riel − sup (fila 46)",
+     "color": "temporal",
+     "que": "dip switch bit 2: lado común a GND",
+     "cm": 3.0,
+     "temporal": true,
+     "desde_es": "BB2-j46",
+     "hasta_es": "BB2 riel − sup (fila 46)"
+    },
+    {
+     "n": 76,
+     "desde": "BB2-j47",
+     "hasta": "BB2 riel − sup (fila 47)",
+     "color": "temporal",
+     "que": "dip switch bit 3: lado común a GND",
+     "cm": 3.0,
+     "temporal": true,
+     "desde_es": "BB2-j47",
+     "hasta_es": "BB2 riel − sup (fila 47)"
+    },
+    {
+     "n": 77,
+     "desde": "BB2-j48",
+     "hasta": "BB2 riel − sup (fila 48)",
+     "color": "temporal",
+     "que": "dip switch bit 4: lado común a GND",
+     "cm": 3.0,
+     "temporal": true,
+     "desde_es": "BB2-j48",
+     "hasta_es": "BB2 riel − sup (fila 48)"
+    },
+    {
+     "n": 78,
+     "desde": "BB2-j49",
+     "hasta": "BB2 riel − sup (fila 49)",
+     "color": "temporal",
+     "que": "dip switch bit 5: lado común a GND",
+     "cm": 3.0,
+     "temporal": true,
+     "desde_es": "BB2-j49",
+     "hasta_es": "BB2 riel − sup (fila 49)"
+    },
+    {
+     "n": 79,
+     "desde": "BB2-j50",
+     "hasta": "BB2 riel − sup (fila 51)",
+     "color": "temporal",
+     "que": "dip switch bit 6: lado común a GND",
+     "cm": 3.0,
+     "temporal": true,
+     "desde_es": "BB2-j50",
+     "hasta_es": "BB2 riel − sup (fila 51)"
+    },
+    {
+     "n": 80,
+     "desde": "BB2-j51",
+     "hasta": "BB2 riel − sup (fila 52)",
+     "color": "temporal",
+     "que": "dip switch bit 7: lado común a GND",
+     "cm": 3.0,
+     "temporal": true,
+     "desde_es": "BB2-j51",
+     "hasta_es": "BB2 riel − sup (fila 52)"
+    },
+    {
+     "n": 81,
+     "desde": "BB2-j55",
+     "hasta": "BB2 riel − sup (fila 55)",
+     "color": "temporal",
+     "que": "pulsador: lado f a GND",
+     "cm": 3.0,
+     "temporal": true,
+     "desde_es": "BB2-j55",
+     "hasta_es": "BB2 riel − sup (fila 55)"
+    },
+    {
+     "n": 82,
+     "desde": "BB2-b44",
+     "hasta": "BB4-a12",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 0 → REG SALIDA D0",
+     "cm": 21.5,
+     "temporal": true,
+     "desde_es": "BB2-b44",
+     "hasta_es": "REG SALIDA D0 (pin 3)"
+    },
+    {
+     "n": 83,
+     "desde": "BB2-b45",
+     "hasta": "BB4-a13",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 1 → REG SALIDA D1",
+     "cm": 21.5,
+     "temporal": true,
+     "desde_es": "BB2-b45",
+     "hasta_es": "REG SALIDA D1 (pin 4)"
+    },
+    {
+     "n": 84,
+     "desde": "BB2-b46",
+     "hasta": "BB4-a16",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 2 → REG SALIDA D2",
+     "cm": 21.0,
+     "temporal": true,
+     "desde_es": "BB2-b46",
+     "hasta_es": "REG SALIDA D2 (pin 7)"
+    },
+    {
+     "n": 85,
+     "desde": "BB2-b47",
+     "hasta": "BB4-a17",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 3 → REG SALIDA D3",
+     "cm": 21.0,
+     "temporal": true,
+     "desde_es": "BB2-b47",
+     "hasta_es": "REG SALIDA D3 (pin 8)"
+    },
+    {
+     "n": 86,
+     "desde": "BB2-b48",
+     "hasta": "BB4-j17",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 4 → REG SALIDA D4",
+     "cm": 18.5,
+     "temporal": true,
+     "desde_es": "BB2-b48",
+     "hasta_es": "REG SALIDA D4 (pin 13)"
+    },
+    {
+     "n": 87,
+     "desde": "BB2-b49",
+     "hasta": "BB4-j16",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 5 → REG SALIDA D5",
+     "cm": 19.0,
+     "temporal": true,
+     "desde_es": "BB2-b49",
+     "hasta_es": "REG SALIDA D5 (pin 14)"
+    },
+    {
+     "n": 88,
+     "desde": "BB2-b50",
+     "hasta": "BB4-j13",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 6 → REG SALIDA D6",
+     "cm": 20.0,
+     "temporal": true,
+     "desde_es": "BB2-b50",
+     "hasta_es": "REG SALIDA D6 (pin 17)"
+    },
+    {
+     "n": 89,
+     "desde": "BB2-b51",
+     "hasta": "BB4-j12",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 7 → REG SALIDA D7",
+     "cm": 20.5,
+     "temporal": true,
+     "desde_es": "BB2-b51",
+     "hasta_es": "REG SALIDA D7 (pin 18)"
+    },
+    {
+     "n": 90,
+     "desde": "BB2-b55",
+     "hasta": "BB4-j19",
+     "color": "temporal",
+     "que": "PRUEBA: pulsador → reloj de REG SALIDA",
+     "cm": 20.0,
+     "temporal": true,
+     "desde_es": "BB2-b55",
+     "hasta_es": "REG SALIDA CLK (pin 11)"
+    },
+    {
+     "n": 91,
+     "desde": "BB4-a10",
+     "hasta": "BB4 riel + inf (fila 10)",
+     "color": "temporal",
+     "que": "PRUEBA: CLEAR de REG SALIDA a + (inactivo)",
+     "cm": 3.5,
+     "temporal": true,
+     "desde_es": "REG SALIDA CLR (pin 1)",
+     "hasta_es": "BB4 riel + inf (fila 10)"
+    }
+   ],
+   "retirar_cables": [
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89
+   ],
+   "retirar_piezas": []
+  },
+  {
+   "n": 2,
+   "titulo": "ALU: dos 74LS181 en cascada",
+   "chips": [
+    {
+     "ref": "ALU_BAJA",
+     "nombre": "ALU BAJA",
+     "parte": "74LS181",
+     "bb": "BB3",
+     "pin1": "BB3-d6",
+     "pinN": "BB3-h6",
+     "ultimo_inf": "BB3-d17",
+     "pines": 24,
+     "ancho": "600 mil (ancho)",
+     "rol": "ALU bits 0-3"
+    },
+    {
+     "ref": "ALU_ALTA",
+     "nombre": "ALU ALTA",
+     "parte": "74LS181",
+     "bb": "BB3",
+     "pin1": "BB3-d22",
+     "pinN": "BB3-h22",
+     "ultimo_inf": "BB3-d33",
+     "pines": 24,
+     "ancho": "600 mil (ancho)",
+     "rol": "ALU bits 4-7"
+    }
+   ],
+   "piezas": [
+    {
+     "ref": "C_ALU_BAJA",
+     "tipo": "cap",
+     "valor": "0.1 µF (104)",
+     "patas": [
+      "BB3 riel + sup (fila 7)",
+      "BB3 riel − sup (fila 7)"
+     ],
+     "nota": "desacople de ALU BAJA, pegado a su VCC",
+     "temporal": false
+    },
+    {
+     "ref": "C_ALU_ALTA",
+     "tipo": "cap",
+     "valor": "0.1 µF (104)",
+     "patas": [
+      "BB3 riel + sup (fila 23)",
+      "BB3 riel − sup (fila 23)"
+     ],
+     "nota": "desacople de ALU ALTA, pegado a su VCC",
+     "temporal": false
+    }
+   ],
+   "cables": [
+    {
+     "n": 37,
+     "desde": "BB3-j6",
+     "hasta": "BB3 riel + sup (fila 6)",
+     "color": "rojo",
+     "que": "ALU BAJA: VCC (pin 24) a +5 V",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "ALU BAJA VCC (pin 24)",
+     "hasta_es": "BB3 riel + sup (fila 6)"
+    },
+    {
+     "n": 38,
+     "desde": "BB3-a17",
+     "hasta": "BB3 riel − inf (fila 17)",
+     "color": "negro",
+     "que": "ALU BAJA: GND (pin 12) a tierra",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "ALU BAJA GND (pin 12)",
+     "hasta_es": "BB3 riel − inf (fila 17)"
+    },
+    {
+     "n": 39,
+     "desde": "BB3-j22",
+     "hasta": "BB3 riel + sup (fila 22)",
+     "color": "rojo",
+     "que": "ALU ALTA: VCC (pin 24) a +5 V",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "ALU ALTA VCC (pin 24)",
+     "hasta_es": "BB3 riel + sup (fila 22)"
+    },
+    {
+     "n": 40,
+     "desde": "BB3-a33",
+     "hasta": "BB3 riel − inf (fila 33)",
+     "color": "negro",
+     "que": "ALU ALTA: GND (pin 12) a tierra",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "ALU ALTA GND (pin 12)",
+     "hasta_es": "BB3 riel − inf (fila 33)"
+    },
+    {
+     "n": 92,
+     "desde": "BB3-a11",
+     "hasta": "BB3-a27",
+     "color": "morado",
+     "que": "S0: ALU BAJA → ALU ALTA (control en paralelo)",
+     "cm": 6.5,
+     "temporal": false,
+     "desde_es": "ALU BAJA S0 (pin 6)",
+     "hasta_es": "ALU ALTA S0 (pin 6)"
+    },
+    {
+     "n": 93,
+     "desde": "BB3-a10",
+     "hasta": "BB3-a26",
+     "color": "morado",
+     "que": "S1: ALU BAJA → ALU ALTA (control en paralelo)",
+     "cm": 6.5,
+     "temporal": false,
+     "desde_es": "ALU BAJA S1 (pin 5)",
+     "hasta_es": "ALU ALTA S1 (pin 5)"
+    },
+    {
+     "n": 94,
+     "desde": "BB3-a9",
+     "hasta": "BB3-a25",
+     "color": "morado",
+     "que": "S2: ALU BAJA → ALU ALTA (control en paralelo)",
+     "cm": 6.5,
+     "temporal": false,
+     "desde_es": "ALU BAJA S2 (pin 4)",
+     "hasta_es": "ALU ALTA S2 (pin 4)"
+    },
+    {
+     "n": 95,
+     "desde": "BB3-a8",
+     "hasta": "BB3-a24",
+     "color": "morado",
+     "que": "S3: ALU BAJA → ALU ALTA (control en paralelo)",
+     "cm": 6.5,
+     "temporal": false,
+     "desde_es": "ALU BAJA S3 (pin 3)",
+     "hasta_es": "ALU ALTA S3 (pin 3)"
+    },
+    {
+     "n": 96,
+     "desde": "BB3-a13",
+     "hasta": "BB3-a29",
+     "color": "morado",
+     "que": "M: ALU BAJA → ALU ALTA (control en paralelo)",
+     "cm": 6.5,
+     "temporal": false,
+     "desde_es": "ALU BAJA M (pin 8)",
+     "hasta_es": "ALU ALTA M (pin 8)"
+    },
+    {
+     "n": 97,
+     "desde": "BB3-j14",
+     "hasta": "BB3-a28",
+     "color": "morado",
+     "que": "Acarreo: C̄n+4 de ALU BAJA (pin 16) → C̄n de ALU ALTA (pin 7)",
+     "cm": 8.5,
+     "temporal": false,
+     "desde_es": "ALU BAJA CN4 (pin 16)",
+     "hasta_es": "ALU ALTA CN (pin 7)"
+    },
+    {
+     "n": 98,
+     "desde": "BB3-a14",
+     "hasta": "BB4-a12",
+     "color": "azul",
+     "que": "F0: ALU BAJA F0 → REG SALIDA D0",
+     "cm": 8.0,
+     "temporal": false,
+     "desde_es": "ALU BAJA F0 (pin 9)",
+     "hasta_es": "REG SALIDA D0 (pin 3)"
+    },
+    {
+     "n": 99,
+     "desde": "BB3-a15",
+     "hasta": "BB4-a13",
+     "color": "azul",
+     "que": "F1: ALU BAJA F1 → REG SALIDA D1",
+     "cm": 8.0,
+     "temporal": false,
+     "desde_es": "ALU BAJA F1 (pin 10)",
+     "hasta_es": "REG SALIDA D1 (pin 4)"
+    },
+    {
+     "n": 100,
+     "desde": "BB3-a16",
+     "hasta": "BB4-a16",
+     "color": "azul",
+     "que": "F2: ALU BAJA F2 → REG SALIDA D2",
+     "cm": 7.5,
+     "temporal": false,
+     "desde_es": "ALU BAJA F2 (pin 11)",
+     "hasta_es": "REG SALIDA D2 (pin 7)"
+    },
+    {
+     "n": 101,
+     "desde": "BB3-j17",
+     "hasta": "BB4-a17",
+     "color": "azul",
+     "que": "F3: ALU BAJA F3 → REG SALIDA D3",
+     "cm": 10.5,
+     "temporal": false,
+     "desde_es": "ALU BAJA F3 (pin 13)",
+     "hasta_es": "REG SALIDA D3 (pin 8)"
+    },
+    {
+     "n": 102,
+     "desde": "BB3-a30",
+     "hasta": "BB4-j17",
+     "color": "azul",
+     "que": "F4: ALU ALTA F0 → REG SALIDA D4",
+     "cm": 8.0,
+     "temporal": false,
+     "desde_es": "ALU ALTA F0 (pin 9)",
+     "hasta_es": "REG SALIDA D4 (pin 13)"
+    },
+    {
+     "n": 103,
+     "desde": "BB3-a31",
+     "hasta": "BB4-j16",
+     "color": "azul",
+     "que": "F5: ALU ALTA F1 → REG SALIDA D5",
+     "cm": 9.0,
+     "temporal": false,
+     "desde_es": "ALU ALTA F1 (pin 10)",
+     "hasta_es": "REG SALIDA D5 (pin 14)"
+    },
+    {
+     "n": 104,
+     "desde": "BB3-a32",
+     "hasta": "BB4-j13",
+     "color": "azul",
+     "que": "F6: ALU ALTA F2 → REG SALIDA D6",
+     "cm": 10.0,
+     "temporal": false,
+     "desde_es": "ALU ALTA F2 (pin 11)",
+     "hasta_es": "REG SALIDA D6 (pin 17)"
+    },
+    {
+     "n": 105,
+     "desde": "BB3-j33",
+     "hasta": "BB4-j12",
+     "color": "azul",
+     "que": "F7: ALU ALTA F3 → REG SALIDA D7",
+     "cm": 13.0,
+     "temporal": false,
+     "desde_es": "ALU ALTA F3 (pin 13)",
+     "hasta_es": "REG SALIDA D7 (pin 18)"
+    },
+    {
+     "n": 106,
+     "desde": "BB2-b44",
+     "hasta": "BB3-a7",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 0 → A0 (ALU BAJA A0)",
+     "cm": 17.5,
+     "temporal": true,
+     "desde_es": "BB2-b44",
+     "hasta_es": "ALU BAJA A0 (pin 2)"
+    },
+    {
+     "n": 107,
+     "desde": "BB3-a6",
+     "hasta": "BB3 riel + inf (fila 6)",
+     "color": "temporal",
+     "que": "PRUEBA: B0 a un riel (+ = 1, − = 0; se mueve en cada caso)",
+     "cm": 3.5,
+     "temporal": true,
+     "desde_es": "ALU BAJA B0 (pin 1)",
+     "hasta_es": "BB3 riel + inf (fila 6)"
+    },
+    {
+     "n": 108,
+     "desde": "BB2-b45",
+     "hasta": "BB3-j7",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 1 → A1 (ALU BAJA A1)",
+     "cm": 15.0,
+     "temporal": true,
+     "desde_es": "BB2-b45",
+     "hasta_es": "ALU BAJA A1 (pin 23)"
+    },
+    {
+     "n": 109,
+     "desde": "BB3-j8",
+     "hasta": "BB3 riel + sup (fila 9)",
+     "color": "temporal",
+     "que": "PRUEBA: B1 a un riel (+ = 1, − = 0; se mueve en cada caso)",
+     "cm": 3.5,
+     "temporal": true,
+     "desde_es": "ALU BAJA B1 (pin 22)",
+     "hasta_es": "BB3 riel + sup (fila 9)"
+    },
+    {
+     "n": 110,
+     "desde": "BB2-b46",
+     "hasta": "BB3-j9",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 2 → A2 (ALU BAJA A2)",
+     "cm": 14.5,
+     "temporal": true,
+     "desde_es": "BB2-b46",
+     "hasta_es": "ALU BAJA A2 (pin 21)"
+    },
+    {
+     "n": 111,
+     "desde": "BB3-j10",
+     "hasta": "BB3 riel + sup (fila 10)",
+     "color": "temporal",
+     "que": "PRUEBA: B2 a un riel (+ = 1, − = 0; se mueve en cada caso)",
+     "cm": 3.0,
+     "temporal": true,
+     "desde_es": "ALU BAJA B2 (pin 20)",
+     "hasta_es": "BB3 riel + sup (fila 10)"
+    },
+    {
+     "n": 112,
+     "desde": "BB2-b47",
+     "hasta": "BB3-j11",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 3 → A3 (ALU BAJA A3)",
+     "cm": 14.5,
+     "temporal": true,
+     "desde_es": "BB2-b47",
+     "hasta_es": "ALU BAJA A3 (pin 19)"
+    },
+    {
+     "n": 113,
+     "desde": "BB3-j12",
+     "hasta": "BB3 riel + sup (fila 12)",
+     "color": "temporal",
+     "que": "PRUEBA: B3 a un riel (+ = 1, − = 0; se mueve en cada caso)",
+     "cm": 3.0,
+     "temporal": true,
+     "desde_es": "ALU BAJA B3 (pin 18)",
+     "hasta_es": "BB3 riel + sup (fila 12)"
+    },
+    {
+     "n": 114,
+     "desde": "BB2-b48",
+     "hasta": "BB3-a23",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 4 → A4 (ALU ALTA A0)",
+     "cm": 14.5,
+     "temporal": true,
+     "desde_es": "BB2-b48",
+     "hasta_es": "ALU ALTA A0 (pin 2)"
+    },
+    {
+     "n": 115,
+     "desde": "BB3-a22",
+     "hasta": "BB3 riel + inf (fila 22)",
+     "color": "temporal",
+     "que": "PRUEBA: B4 a un riel (+ = 1, − = 0; se mueve en cada caso)",
+     "cm": 3.5,
+     "temporal": true,
+     "desde_es": "ALU ALTA B0 (pin 1)",
+     "hasta_es": "BB3 riel + inf (fila 22)"
+    },
+    {
+     "n": 116,
+     "desde": "BB2-b49",
+     "hasta": "BB3-j23",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 5 → A5 (ALU ALTA A1)",
+     "cm": 12.0,
+     "temporal": true,
+     "desde_es": "BB2-b49",
+     "hasta_es": "ALU ALTA A1 (pin 23)"
+    },
+    {
+     "n": 117,
+     "desde": "BB3-j24",
+     "hasta": "BB3 riel + sup (fila 24)",
+     "color": "temporal",
+     "que": "PRUEBA: B5 a un riel (+ = 1, − = 0; se mueve en cada caso)",
+     "cm": 3.0,
+     "temporal": true,
+     "desde_es": "ALU ALTA B1 (pin 22)",
+     "hasta_es": "BB3 riel + sup (fila 24)"
+    },
+    {
+     "n": 118,
+     "desde": "BB2-b50",
+     "hasta": "BB3-j25",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 6 → A6 (ALU ALTA A2)",
+     "cm": 11.5,
+     "temporal": true,
+     "desde_es": "BB2-b50",
+     "hasta_es": "ALU ALTA A2 (pin 21)"
+    },
+    {
+     "n": 119,
+     "desde": "BB3-j26",
+     "hasta": "BB3 riel + sup (fila 25)",
+     "color": "temporal",
+     "que": "PRUEBA: B6 a un riel (+ = 1, − = 0; se mueve en cada caso)",
+     "cm": 3.5,
+     "temporal": true,
+     "desde_es": "ALU ALTA B2 (pin 20)",
+     "hasta_es": "BB3 riel + sup (fila 25)"
+    },
+    {
+     "n": 120,
+     "desde": "BB2-b51",
+     "hasta": "BB3-j27",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 7 → A7 (ALU ALTA A3)",
+     "cm": 11.5,
+     "temporal": true,
+     "desde_es": "BB2-b51",
+     "hasta_es": "ALU ALTA A3 (pin 19)"
+    },
+    {
+     "n": 121,
+     "desde": "BB3-j28",
+     "hasta": "BB3 riel + sup (fila 28)",
+     "color": "temporal",
+     "que": "PRUEBA: B7 a un riel (+ = 1, − = 0; se mueve en cada caso)",
+     "cm": 3.0,
+     "temporal": true,
+     "desde_es": "ALU ALTA B3 (pin 18)",
+     "hasta_es": "BB3 riel + sup (fila 28)"
+    },
+    {
+     "n": 122,
+     "desde": "BB3-b11",
+     "hasta": "BB3 riel + inf (fila 11)",
+     "color": "temporal",
+     "que": "PRUEBA: S0 de ALU BAJA a un riel (se mueve según la operación)",
+     "cm": 3.5,
+     "temporal": true,
+     "desde_es": "ALU BAJA S0 (pin 6)",
+     "hasta_es": "BB3 riel + inf (fila 11)"
+    },
+    {
+     "n": 123,
+     "desde": "BB3-b10",
+     "hasta": "BB3 riel + inf (fila 10)",
+     "color": "temporal",
+     "que": "PRUEBA: S1 de ALU BAJA a un riel (se mueve según la operación)",
+     "cm": 3.5,
+     "temporal": true,
+     "desde_es": "ALU BAJA S1 (pin 5)",
+     "hasta_es": "BB3 riel + inf (fila 10)"
+    },
+    {
+     "n": 124,
+     "desde": "BB3-b9",
+     "hasta": "BB3 riel + inf (fila 9)",
+     "color": "temporal",
+     "que": "PRUEBA: S2 de ALU BAJA a un riel (se mueve según la operación)",
+     "cm": 3.5,
+     "temporal": true,
+     "desde_es": "ALU BAJA S2 (pin 4)",
+     "hasta_es": "BB3 riel + inf (fila 9)"
+    },
+    {
+     "n": 125,
+     "desde": "BB3-b8",
+     "hasta": "BB3 riel + inf (fila 7)",
+     "color": "temporal",
+     "que": "PRUEBA: S3 de ALU BAJA a un riel (se mueve según la operación)",
+     "cm": 4.0,
+     "temporal": true,
+     "desde_es": "ALU BAJA S3 (pin 3)",
+     "hasta_es": "BB3 riel + inf (fila 7)"
+    },
+    {
+     "n": 126,
+     "desde": "BB3-b13",
+     "hasta": "BB3 riel + inf (fila 13)",
+     "color": "temporal",
+     "que": "PRUEBA: M de ALU BAJA a un riel (se mueve según la operación)",
+     "cm": 3.5,
+     "temporal": true,
+     "desde_es": "ALU BAJA M (pin 8)",
+     "hasta_es": "BB3 riel + inf (fila 13)"
+    },
+    {
+     "n": 127,
+     "desde": "BB3-a12",
+     "hasta": "BB3 riel + inf (fila 12)",
+     "color": "temporal",
+     "que": "PRUEBA: CN de ALU BAJA a un riel (se mueve según la operación)",
+     "cm": 3.5,
+     "temporal": true,
+     "desde_es": "ALU BAJA CN (pin 7)",
+     "hasta_es": "BB3 riel + inf (fila 12)"
+    }
+   ],
+   "retirar_cables": [
+    91,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121
+   ],
+   "retirar_piezas": []
+  },
+  {
+   "n": 3,
+   "titulo": "Registros A y B",
+   "chips": [
+    {
+     "ref": "REG_A",
+     "nombre": "REG A",
+     "parte": "74LS273",
+     "bb": "BB2",
+     "pin1": "BB2-e20",
+     "pinN": "BB2-f20",
+     "ultimo_inf": "BB2-e29",
+     "pines": 20,
+     "ancho": "300 mil",
+     "rol": "registro A"
+    },
+    {
+     "ref": "REG_B",
+     "nombre": "REG B",
+     "parte": "74LS273",
+     "bb": "BB2",
+     "pin1": "BB2-e6",
+     "pinN": "BB2-f6",
+     "ultimo_inf": "BB2-e15",
+     "pines": 20,
+     "ancho": "300 mil",
+     "rol": "registro B"
+    }
+   ],
+   "piezas": [
+    {
+     "ref": "C_REG_A",
+     "tipo": "cap",
+     "valor": "0.1 µF (104)",
+     "patas": [
+      "BB2 riel + sup (fila 21)",
+      "BB2 riel − sup (fila 21)"
+     ],
+     "nota": "desacople de REG A, pegado a su VCC",
+     "temporal": false
+    },
+    {
+     "ref": "C_REG_B",
+     "tipo": "cap",
+     "valor": "0.1 µF (104)",
+     "patas": [
+      "BB2 riel + sup (fila 7)",
+      "BB2 riel − sup (fila 7)"
+     ],
+     "nota": "desacople de REG B, pegado a su VCC",
+     "temporal": false
+    }
+   ],
+   "cables": [
+    {
+     "n": 33,
+     "desde": "BB2-j20",
+     "hasta": "BB2 riel + sup (fila 19)",
+     "color": "rojo",
+     "que": "REG A: VCC (pin 20) a +5 V",
+     "cm": 3.5,
+     "temporal": false,
+     "desde_es": "REG A VCC (pin 20)",
+     "hasta_es": "BB2 riel + sup (fila 19)"
+    },
+    {
+     "n": 34,
+     "desde": "BB2-a29",
+     "hasta": "BB2 riel − inf (fila 29)",
+     "color": "negro",
+     "que": "REG A: GND (pin 10) a tierra",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "REG A GND (pin 10)",
+     "hasta_es": "BB2 riel − inf (fila 29)"
+    },
+    {
+     "n": 35,
+     "desde": "BB2-j6",
+     "hasta": "BB2 riel + sup (fila 6)",
+     "color": "rojo",
+     "que": "REG B: VCC (pin 20) a +5 V",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "REG B VCC (pin 20)",
+     "hasta_es": "BB2 riel + sup (fila 6)"
+    },
+    {
+     "n": 36,
+     "desde": "BB2-a15",
+     "hasta": "BB2 riel − inf (fila 15)",
+     "color": "negro",
+     "que": "REG B: GND (pin 10) a tierra",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "REG B GND (pin 10)",
+     "hasta_es": "BB2 riel − inf (fila 15)"
+    },
+    {
+     "n": 128,
+     "desde": "BB2-a21",
+     "hasta": "BB3-a7",
+     "color": "verde",
+     "que": "REG A Q0 → ALU BAJA A0",
+     "cm": 11.5,
+     "temporal": false,
+     "desde_es": "REG A Q0 (pin 2)",
+     "hasta_es": "ALU BAJA A0 (pin 2)"
+    },
+    {
+     "n": 129,
+     "desde": "BB2-a7",
+     "hasta": "BB3-a6",
+     "color": "blanco",
+     "que": "REG B Q0 → ALU BAJA B0",
+     "cm": 8.0,
+     "temporal": false,
+     "desde_es": "REG B Q0 (pin 2)",
+     "hasta_es": "ALU BAJA B0 (pin 1)"
+    },
+    {
+     "n": 130,
+     "desde": "BB2-a24",
+     "hasta": "BB3-j7",
+     "color": "verde",
+     "que": "REG A Q1 → ALU BAJA A1",
+     "cm": 9.5,
+     "temporal": false,
+     "desde_es": "REG A Q1 (pin 5)",
+     "hasta_es": "ALU BAJA A1 (pin 23)"
+    },
+    {
+     "n": 131,
+     "desde": "BB2-a10",
+     "hasta": "BB3-j8",
+     "color": "blanco",
+     "que": "REG B Q1 → ALU BAJA B1",
+     "cm": 5.5,
+     "temporal": false,
+     "desde_es": "REG B Q1 (pin 5)",
+     "hasta_es": "ALU BAJA B1 (pin 22)"
+    },
+    {
+     "n": 132,
+     "desde": "BB2-a25",
+     "hasta": "BB3-j9",
+     "color": "verde",
+     "que": "REG A Q2 → ALU BAJA A2",
+     "cm": 9.0,
+     "temporal": false,
+     "desde_es": "REG A Q2 (pin 6)",
+     "hasta_es": "ALU BAJA A2 (pin 21)"
+    },
+    {
+     "n": 133,
+     "desde": "BB2-a11",
+     "hasta": "BB3-j10",
+     "color": "blanco",
+     "que": "REG B Q2 → ALU BAJA B2",
+     "cm": 5.0,
+     "temporal": false,
+     "desde_es": "REG B Q2 (pin 6)",
+     "hasta_es": "ALU BAJA B2 (pin 20)"
+    },
+    {
+     "n": 134,
+     "desde": "BB2-a28",
+     "hasta": "BB3-j11",
+     "color": "verde",
+     "que": "REG A Q3 → ALU BAJA A3",
+     "cm": 9.5,
+     "temporal": false,
+     "desde_es": "REG A Q3 (pin 9)",
+     "hasta_es": "ALU BAJA A3 (pin 19)"
+    },
+    {
+     "n": 135,
+     "desde": "BB2-a14",
+     "hasta": "BB3-j12",
+     "color": "blanco",
+     "que": "REG B Q3 → ALU BAJA B3",
+     "cm": 5.5,
+     "temporal": false,
+     "desde_es": "REG B Q3 (pin 9)",
+     "hasta_es": "ALU BAJA B3 (pin 18)"
+    },
+    {
+     "n": 136,
+     "desde": "BB2-j28",
+     "hasta": "BB3-a23",
+     "color": "verde",
+     "que": "REG A Q4 → ALU ALTA A0",
+     "cm": 12.0,
+     "temporal": false,
+     "desde_es": "REG A Q4 (pin 12)",
+     "hasta_es": "ALU ALTA A0 (pin 2)"
+    },
+    {
+     "n": 137,
+     "desde": "BB2-j14",
+     "hasta": "BB3-a22",
+     "color": "blanco",
+     "que": "REG B Q4 → ALU ALTA B0",
+     "cm": 12.5,
+     "temporal": false,
+     "desde_es": "REG B Q4 (pin 12)",
+     "hasta_es": "ALU ALTA B0 (pin 1)"
+    },
+    {
+     "n": 138,
+     "desde": "BB2-j25",
+     "hasta": "BB3-j23",
+     "color": "verde",
+     "que": "REG A Q5 → ALU ALTA A1",
+     "cm": 8.0,
+     "temporal": false,
+     "desde_es": "REG A Q5 (pin 15)",
+     "hasta_es": "ALU ALTA A1 (pin 23)"
+    },
+    {
+     "n": 139,
+     "desde": "BB2-j11",
+     "hasta": "BB3-j24",
+     "color": "blanco",
+     "que": "REG B Q5 → ALU ALTA B1",
+     "cm": 11.0,
+     "temporal": false,
+     "desde_es": "REG B Q5 (pin 15)",
+     "hasta_es": "ALU ALTA B1 (pin 22)"
+    },
+    {
+     "n": 140,
+     "desde": "BB2-j24",
+     "hasta": "BB3-j25",
+     "color": "verde",
+     "que": "REG A Q6 → ALU ALTA A2",
+     "cm": 8.0,
+     "temporal": false,
+     "desde_es": "REG A Q6 (pin 16)",
+     "hasta_es": "ALU ALTA A2 (pin 21)"
+    },
+    {
+     "n": 141,
+     "desde": "BB2-j10",
+     "hasta": "BB3-j26",
+     "color": "blanco",
+     "que": "REG B Q6 → ALU ALTA B2",
+     "cm": 12.0,
+     "temporal": false,
+     "desde_es": "REG B Q6 (pin 16)",
+     "hasta_es": "ALU ALTA B2 (pin 20)"
+    },
+    {
+     "n": 142,
+     "desde": "BB2-j21",
+     "hasta": "BB3-j27",
+     "color": "verde",
+     "que": "REG A Q7 → ALU ALTA A3",
+     "cm": 9.5,
+     "temporal": false,
+     "desde_es": "REG A Q7 (pin 19)",
+     "hasta_es": "ALU ALTA A3 (pin 19)"
+    },
+    {
+     "n": 143,
+     "desde": "BB2-j7",
+     "hasta": "BB3-j28",
+     "color": "blanco",
+     "que": "REG B Q7 → ALU ALTA B3",
+     "cm": 13.0,
+     "temporal": false,
+     "desde_es": "REG B Q7 (pin 19)",
+     "hasta_es": "ALU ALTA B3 (pin 18)"
+    },
+    {
+     "n": 144,
+     "desde": "BB2-a20",
+     "hasta": "BB2-a6",
+     "color": "cafe",
+     "que": "CLEAR: REG A → REG B",
+     "cm": 6.0,
+     "temporal": false,
+     "desde_es": "REG A CLR (pin 1)",
+     "hasta_es": "REG B CLR (pin 1)"
+    },
+    {
+     "n": 145,
+     "desde": "BB2-b6",
+     "hasta": "BB4-a10",
+     "color": "cafe",
+     "que": "CLEAR: REG B → REG SALIDA",
+     "cm": 14.5,
+     "temporal": false,
+     "desde_es": "REG B CLR (pin 1)",
+     "hasta_es": "REG SALIDA CLR (pin 1)"
+    },
+    {
+     "n": 146,
+     "desde": "BB2-b20",
+     "hasta": "BB2 riel + inf (fila 19)",
+     "color": "temporal",
+     "que": "PRUEBA: CLEAR a + (inactivo) mientras no esté el Mega",
+     "cm": 4.0,
+     "temporal": true,
+     "desde_es": "REG A CLR (pin 1)",
+     "hasta_es": "BB2 riel + inf (fila 19)"
+    },
+    {
+     "n": 147,
+     "desde": "BB2-c55",
+     "hasta": "BB2-j29",
+     "color": "temporal",
+     "que": "PRUEBA: pulsador → reloj de REG A (conecta solo el reloj que vayas a pulsar)",
+     "cm": 11.0,
+     "temporal": true,
+     "desde_es": "BB2-c55",
+     "hasta_es": "REG A CLK (pin 11)"
+    },
+    {
+     "n": 148,
+     "desde": "BB2-d55",
+     "hasta": "BB2-j15",
+     "color": "temporal",
+     "que": "PRUEBA: pulsador → reloj de REG B (conecta solo el reloj que vayas a pulsar)",
+     "cm": 14.5,
+     "temporal": true,
+     "desde_es": "BB2-d55",
+     "hasta_es": "REG B CLK (pin 11)"
+    },
+    {
+     "n": 149,
+     "desde": "BB2-b44",
+     "hasta": "BB2-a22",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 0 → REG A D0",
+     "cm": 8.0,
+     "temporal": true,
+     "desde_es": "BB2-b44",
+     "hasta_es": "REG A D0 (pin 3)"
+    },
+    {
+     "n": 150,
+     "desde": "BB2-c44",
+     "hasta": "BB2-a8",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 0 → REG B D0",
+     "cm": 12.0,
+     "temporal": true,
+     "desde_es": "BB2-c44",
+     "hasta_es": "REG B D0 (pin 3)"
+    },
+    {
+     "n": 151,
+     "desde": "BB2-b45",
+     "hasta": "BB2-a23",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 1 → REG A D1",
+     "cm": 8.0,
+     "temporal": true,
+     "desde_es": "BB2-b45",
+     "hasta_es": "REG A D1 (pin 4)"
+    },
+    {
+     "n": 152,
+     "desde": "BB2-c45",
+     "hasta": "BB2-a9",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 1 → REG B D1",
+     "cm": 12.0,
+     "temporal": true,
+     "desde_es": "BB2-c45",
+     "hasta_es": "REG B D1 (pin 4)"
+    },
+    {
+     "n": 153,
+     "desde": "BB2-b46",
+     "hasta": "BB2-a26",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 2 → REG A D2",
+     "cm": 7.5,
+     "temporal": true,
+     "desde_es": "BB2-b46",
+     "hasta_es": "REG A D2 (pin 7)"
+    },
+    {
+     "n": 154,
+     "desde": "BB2-c46",
+     "hasta": "BB2-a12",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 2 → REG B D2",
+     "cm": 11.5,
+     "temporal": true,
+     "desde_es": "BB2-c46",
+     "hasta_es": "REG B D2 (pin 7)"
+    },
+    {
+     "n": 155,
+     "desde": "BB2-b47",
+     "hasta": "BB2-a27",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 3 → REG A D3",
+     "cm": 7.5,
+     "temporal": true,
+     "desde_es": "BB2-b47",
+     "hasta_es": "REG A D3 (pin 8)"
+    },
+    {
+     "n": 156,
+     "desde": "BB2-c47",
+     "hasta": "BB2-a13",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 3 → REG B D3",
+     "cm": 11.5,
+     "temporal": true,
+     "desde_es": "BB2-c47",
+     "hasta_es": "REG B D3 (pin 8)"
+    },
+    {
+     "n": 157,
+     "desde": "BB2-b48",
+     "hasta": "BB2-j27",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 4 → REG A D4",
+     "cm": 10.0,
+     "temporal": true,
+     "desde_es": "BB2-b48",
+     "hasta_es": "REG A D4 (pin 13)"
+    },
+    {
+     "n": 158,
+     "desde": "BB2-c48",
+     "hasta": "BB2-j13",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 4 → REG B D4",
+     "cm": 13.5,
+     "temporal": true,
+     "desde_es": "BB2-c48",
+     "hasta_es": "REG B D4 (pin 13)"
+    },
+    {
+     "n": 159,
+     "desde": "BB2-b49",
+     "hasta": "BB2-j26",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 5 → REG A D5",
+     "cm": 10.5,
+     "temporal": true,
+     "desde_es": "BB2-b49",
+     "hasta_es": "REG A D5 (pin 14)"
+    },
+    {
+     "n": 160,
+     "desde": "BB2-c49",
+     "hasta": "BB2-j12",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 5 → REG B D5",
+     "cm": 14.0,
+     "temporal": true,
+     "desde_es": "BB2-c49",
+     "hasta_es": "REG B D5 (pin 14)"
+    },
+    {
+     "n": 161,
+     "desde": "BB2-b50",
+     "hasta": "BB2-j23",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 6 → REG A D6",
+     "cm": 11.5,
+     "temporal": true,
+     "desde_es": "BB2-b50",
+     "hasta_es": "REG A D6 (pin 17)"
+    },
+    {
+     "n": 162,
+     "desde": "BB2-c50",
+     "hasta": "BB2-j9",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 6 → REG B D6",
+     "cm": 15.0,
+     "temporal": true,
+     "desde_es": "BB2-c50",
+     "hasta_es": "REG B D6 (pin 17)"
+    },
+    {
+     "n": 163,
+     "desde": "BB2-b51",
+     "hasta": "BB2-j22",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 7 → REG A D7",
+     "cm": 12.0,
+     "temporal": true,
+     "desde_es": "BB2-b51",
+     "hasta_es": "REG A D7 (pin 18)"
+    },
+    {
+     "n": 164,
+     "desde": "BB2-c51",
+     "hasta": "BB2-j8",
+     "color": "temporal",
+     "que": "PRUEBA: dip bit 7 → REG B D7",
+     "cm": 15.5,
+     "temporal": true,
+     "desde_es": "BB2-c51",
+     "hasta_es": "REG B D7 (pin 18)"
+    }
+   ],
+   "retirar_cables": [
+    149,
+    151,
+    153,
+    155,
+    157,
+    159,
+    161,
+    163
+   ],
+   "retirar_piezas": []
+  },
+  {
+   "n": 4,
+   "titulo": "Multiplexor de entrada a A",
+   "chips": [
+    {
+     "ref": "MUX_BAJO",
+     "nombre": "MUX BAJO",
+     "parte": "74LS157",
+     "bb": "BB1",
+     "pin1": "BB1-e8",
+     "pinN": "BB1-f8",
+     "ultimo_inf": "BB1-e15",
+     "pines": 16,
+     "ancho": "300 mil",
+     "rol": "mux 2:1 bits 0-3"
+    },
+    {
+     "ref": "MUX_ALTO",
+     "nombre": "MUX ALTO",
+     "parte": "74LS157",
+     "bb": "BB1",
+     "pin1": "BB1-e20",
+     "pinN": "BB1-f20",
+     "ultimo_inf": "BB1-e27",
+     "pines": 16,
+     "ancho": "300 mil",
+     "rol": "mux 2:1 bits 4-7"
+    }
+   ],
+   "piezas": [
+    {
+     "ref": "C_MUX_BAJO",
+     "tipo": "cap",
+     "valor": "0.1 µF (104)",
+     "patas": [
+      "BB1 riel + sup (fila 9)",
+      "BB1 riel − sup (fila 9)"
+     ],
+     "nota": "desacople de MUX BAJO, pegado a su VCC",
+     "temporal": false
+    },
+    {
+     "ref": "C_MUX_ALTO",
+     "tipo": "cap",
+     "valor": "0.1 µF (104)",
+     "patas": [
+      "BB1 riel + sup (fila 21)",
+      "BB1 riel − sup (fila 21)"
+     ],
+     "nota": "desacople de MUX ALTO, pegado a su VCC",
+     "temporal": false
+    }
+   ],
+   "cables": [
+    {
+     "n": 29,
+     "desde": "BB1-j8",
+     "hasta": "BB1 riel + sup (fila 7)",
+     "color": "rojo",
+     "que": "MUX BAJO: VCC (pin 16) a +5 V",
+     "cm": 3.5,
+     "temporal": false,
+     "desde_es": "MUX BAJO VCC (pin 16)",
+     "hasta_es": "BB1 riel + sup (fila 7)"
+    },
+    {
+     "n": 30,
+     "desde": "BB1-a15",
+     "hasta": "BB1 riel − inf (fila 15)",
+     "color": "negro",
+     "que": "MUX BAJO: GND (pin 8) a tierra",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "MUX BAJO GND (pin 8)",
+     "hasta_es": "BB1 riel − inf (fila 15)"
+    },
+    {
+     "n": 31,
+     "desde": "BB1-j20",
+     "hasta": "BB1 riel + sup (fila 19)",
+     "color": "rojo",
+     "que": "MUX ALTO: VCC (pin 16) a +5 V",
+     "cm": 3.5,
+     "temporal": false,
+     "desde_es": "MUX ALTO VCC (pin 16)",
+     "hasta_es": "BB1 riel + sup (fila 19)"
+    },
+    {
+     "n": 32,
+     "desde": "BB1-a27",
+     "hasta": "BB1 riel − inf (fila 27)",
+     "color": "negro",
+     "que": "MUX ALTO: GND (pin 8) a tierra",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "MUX ALTO GND (pin 8)",
+     "hasta_es": "BB1 riel − inf (fila 27)"
+    },
+    {
+     "n": 45,
+     "desde": "BB1-j9",
+     "hasta": "BB1 riel − sup (fila 10)",
+     "color": "negro",
+     "que": "MUX BAJO: G̅ (pin 15) a GND — mux siempre habilitado",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "MUX BAJO G (pin 15)",
+     "hasta_es": "BB1 riel − sup (fila 10)"
+    },
+    {
+     "n": 46,
+     "desde": "BB1-j21",
+     "hasta": "BB1 riel − sup (fila 22)",
+     "color": "negro",
+     "que": "MUX ALTO: G̅ (pin 15) a GND — mux siempre habilitado",
+     "cm": 3.0,
+     "temporal": false,
+     "desde_es": "MUX ALTO G (pin 15)",
+     "hasta_es": "BB1 riel − sup (fila 22)"
+    },
+    {
+     "n": 165,
+     "desde": "BB1-a11",
+     "hasta": "BB2-a22",
+     "color": "naranja",
+     "que": "MUX BAJO 1Y → REG A D0",
+     "cm": 10.5,
+     "temporal": false,
+     "desde_es": "MUX BAJO 1Y (pin 4)",
+     "hasta_es": "REG A D0 (pin 3)"
+    },
+    {
+     "n": 166,
+     "desde": "BB3-b14",
+     "hasta": "BB1-a10",
+     "color": "azul",
+     "que": "F0: ALU BAJA F0 → MUX BAJO 1B",
+     "cm": 14.0,
+     "temporal": false,
+     "desde_es": "ALU BAJA F0 (pin 9)",
+     "hasta_es": "MUX BAJO 1B (pin 3)"
+    },
+    {
+     "n": 167,
+     "desde": "BB2-b8",
+     "hasta": "BB1-a9",
+     "color": "amarillo",
+     "que": "D0: REG B D0 → MUX BAJO 1A",
+     "cm": 7.5,
+     "temporal": false,
+     "desde_es": "REG B D0 (pin 3)",
+     "hasta_es": "MUX BAJO 1A (pin 2)"
+    },
+    {
+     "n": 168,
+     "desde": "BB1-a14",
+     "hasta": "BB2-a23",
+     "color": "naranja",
+     "que": "MUX BAJO 2Y → REG A D1",
+     "cm": 10.0,
+     "temporal": false,
+     "desde_es": "MUX BAJO 2Y (pin 7)",
+     "hasta_es": "REG A D1 (pin 4)"
+    },
+    {
+     "n": 169,
+     "desde": "BB3-b15",
+     "hasta": "BB1-a13",
+     "color": "azul",
+     "que": "F1: ALU BAJA F1 → MUX BAJO 2B",
+     "cm": 13.5,
+     "temporal": false,
+     "desde_es": "ALU BAJA F1 (pin 10)",
+     "hasta_es": "MUX BAJO 2B (pin 6)"
+    },
+    {
+     "n": 170,
+     "desde": "BB2-b9",
+     "hasta": "BB1-a12",
+     "color": "amarillo",
+     "que": "D1: REG B D1 → MUX BAJO 2A",
+     "cm": 8.0,
+     "temporal": false,
+     "desde_es": "REG B D1 (pin 4)",
+     "hasta_es": "MUX BAJO 2A (pin 5)"
+    },
+    {
+     "n": 171,
+     "desde": "BB1-j15",
+     "hasta": "BB2-a26",
+     "color": "naranja",
+     "que": "MUX BAJO 3Y → REG A D2",
+     "cm": 13.5,
+     "temporal": false,
+     "desde_es": "MUX BAJO 3Y (pin 9)",
+     "hasta_es": "REG A D2 (pin 7)"
+    },
+    {
+     "n": 172,
+     "desde": "BB3-b16",
+     "hasta": "BB1-j14",
+     "color": "azul",
+     "que": "F2: ALU BAJA F2 → MUX BAJO 3B",
+     "cm": 16.5,
+     "temporal": false,
+     "desde_es": "ALU BAJA F2 (pin 11)",
+     "hasta_es": "MUX BAJO 3B (pin 10)"
+    },
+    {
+     "n": 173,
+     "desde": "BB2-b12",
+     "hasta": "BB1-j13",
+     "color": "amarillo",
+     "que": "D2: REG B D2 → MUX BAJO 3A",
+     "cm": 10.5,
+     "temporal": false,
+     "desde_es": "REG B D2 (pin 7)",
+     "hasta_es": "MUX BAJO 3A (pin 11)"
+    },
+    {
+     "n": 174,
+     "desde": "BB1-j12",
+     "hasta": "BB2-a27",
+     "color": "naranja",
+     "que": "MUX BAJO 4Y → REG A D3",
+     "cm": 14.5,
+     "temporal": false,
+     "desde_es": "MUX BAJO 4Y (pin 12)",
+     "hasta_es": "REG A D3 (pin 8)"
+    },
+    {
+     "n": 175,
+     "desde": "BB3-i17",
+     "hasta": "BB1-j11",
+     "color": "azul",
+     "que": "F3: ALU BAJA F3 → MUX BAJO 4B",
+     "cm": 15.0,
+     "temporal": false,
+     "desde_es": "ALU BAJA F3 (pin 13)",
+     "hasta_es": "MUX BAJO 4B (pin 13)"
+    },
+    {
+     "n": 176,
+     "desde": "BB2-b13",
+     "hasta": "BB1-j10",
+     "color": "amarillo",
+     "que": "D3: REG B D3 → MUX BAJO 4A",
+     "cm": 11.0,
+     "temporal": false,
+     "desde_es": "REG B D3 (pin 8)",
+     "hasta_es": "MUX BAJO 4A (pin 14)"
+    },
+    {
+     "n": 177,
+     "desde": "BB1-a23",
+     "hasta": "BB2-j27",
+     "color": "naranja",
+     "que": "MUX ALTO 1Y → REG A D4",
+     "cm": 6.0,
+     "temporal": false,
+     "desde_es": "MUX ALTO 1Y (pin 4)",
+     "hasta_es": "REG A D4 (pin 13)"
+    },
+    {
+     "n": 178,
+     "desde": "BB3-b30",
+     "hasta": "BB1-a22",
+     "color": "azul",
+     "que": "F4: ALU ALTA F0 → MUX ALTO 1B",
+     "cm": 15.0,
+     "temporal": false,
+     "desde_es": "ALU ALTA F0 (pin 9)",
+     "hasta_es": "MUX ALTO 1B (pin 3)"
+    },
+    {
+     "n": 179,
+     "desde": "BB2-i13",
+     "hasta": "BB1-a21",
+     "color": "amarillo",
+     "que": "D4: REG B D4 → MUX ALTO 1A",
+     "cm": 7.0,
+     "temporal": false,
+     "desde_es": "REG B D4 (pin 13)",
+     "hasta_es": "MUX ALTO 1A (pin 2)"
+    },
+    {
+     "n": 180,
+     "desde": "BB1-a26",
+     "hasta": "BB2-j26",
+     "color": "naranja",
+     "que": "MUX ALTO 2Y → REG A D5",
+     "cm": 5.0,
+     "temporal": false,
+     "desde_es": "MUX ALTO 2Y (pin 7)",
+     "hasta_es": "REG A D5 (pin 14)"
+    },
+    {
+     "n": 181,
+     "desde": "BB3-b31",
+     "hasta": "BB1-a25",
+     "color": "azul",
+     "que": "F5: ALU ALTA F1 → MUX ALTO 2B",
+     "cm": 14.5,
+     "temporal": false,
+     "desde_es": "ALU ALTA F1 (pin 10)",
+     "hasta_es": "MUX ALTO 2B (pin 6)"
+    },
+    {
+     "n": 182,
+     "desde": "BB2-i12",
+     "hasta": "BB1-a24",
+     "color": "amarillo",
+     "que": "D5: REG B D5 → MUX ALTO 2A",
+     "cm": 8.0,
+     "temporal": false,
+     "desde_es": "REG B D5 (pin 14)",
+     "hasta_es": "MUX ALTO 2A (pin 5)"
+    },
+    {
+     "n": 183,
+     "desde": "BB1-j27",
+     "hasta": "BB2-j23",
+     "color": "naranja",
+     "que": "MUX ALTO 3Y → REG A D6",
+     "cm": 9.0,
+     "temporal": false,
+     "desde_es": "MUX ALTO 3Y (pin 9)",
+     "hasta_es": "REG A D6 (pin 17)"
+    },
+    {
+     "n": 184,
+     "desde": "BB3-b32",
+     "hasta": "BB1-j26",
+     "color": "azul",
+     "que": "F6: ALU ALTA F2 → MUX ALTO 3B",
+     "cm": 17.5,
+     "temporal": false,
+     "desde_es": "ALU ALTA F2 (pin 11)",
+     "hasta_es": "MUX ALTO 3B (pin 10)"
+    },
+    {
+     "n": 185,
+     "desde": "BB2-i9",
+     "hasta": "BB1-j25",
+     "color": "amarillo",
+     "que": "D6: REG B D6 → MUX ALTO 3A",
+     "cm": 12.0,
+     "temporal": false,
+     "desde_es": "REG B D6 (pin 17)",
+     "hasta_es": "MUX ALTO 3A (pin 11)"
+    },
+    {
+     "n": 186,
+     "desde": "BB1-j24",
+     "hasta": "BB2-j22",
+     "color": "naranja",
+     "que": "MUX ALTO 4Y → REG A D7",
+     "cm": 8.0,
+     "temporal": false,
+     "desde_es": "MUX ALTO 4Y (pin 12)",
+     "hasta_es": "REG A D7 (pin 18)"
+    },
+    {
+     "n": 187,
+     "desde": "BB3-i33",
+     "hasta": "BB1-j23",
+     "color": "azul",
+     "que": "F7: ALU ALTA F3 → MUX ALTO 4B",
+     "cm": 16.0,
+     "temporal": false,
+     "desde_es": "ALU ALTA F3 (pin 13)",
+     "hasta_es": "MUX ALTO 4B (pin 13)"
+    },
+    {
+     "n": 188,
+     "desde": "BB2-i8",
+     "hasta": "BB1-j22",
+     "color": "amarillo",
+     "que": "D7: REG B D7 → MUX ALTO 4A",
+     "cm": 11.5,
+     "temporal": false,
+     "desde_es": "REG B D7 (pin 18)",
+     "hasta_es": "MUX ALTO 4A (pin 14)"
+    },
+    {
+     "n": 189,
+     "desde": "BB1-a8",
+     "hasta": "BB1-a20",
+     "color": "cafe",
+     "que": "SEL: MUX BAJO → MUX ALTO",
+     "cm": 5.5,
+     "temporal": false,
+     "desde_es": "MUX BAJO SEL (pin 1)",
+     "hasta_es": "MUX ALTO SEL (pin 1)"
+    },
+    {
+     "n": 190,
+     "desde": "BB1-b8",
+     "hasta": "BB1 riel − inf (fila 7)",
+     "color": "temporal",
+     "que": "PRUEBA: SEL a un riel (− = dip switch, + = resultado de la ALU)",
+     "cm": 3.5,
+     "temporal": true,
+     "desde_es": "MUX BAJO SEL (pin 1)",
+     "hasta_es": "BB1 riel − inf (fila 7)"
+    }
+   ],
+   "retirar_cables": [
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    90,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    146,
+    147,
+    148,
+    150,
+    152,
+    154,
+    156,
+    158,
+    160,
+    162,
+    164,
+    190
+   ],
+   "retirar_piezas": [
+    "DIP",
+    "R_PU0",
+    "R_PU1",
+    "R_PU2",
+    "R_PU3",
+    "R_PU4",
+    "R_PU5",
+    "R_PU6",
+    "R_PU7",
+    "BOTON",
+    "R_BOTON"
+   ]
+  },
+  {
+   "n": 5,
+   "titulo": "Arduino Mega",
+   "chips": [],
+   "piezas": [],
+   "cables": [
+    {
+     "n": 191,
+     "desde": "Mega pin 22",
+     "hasta": "BB2-a8",
+     "color": "amarillo",
+     "que": "D0: Mega pin 22 → REG B D0",
+     "cm": 9.5,
+     "temporal": false,
+     "desde_es": "Mega pin 22",
+     "hasta_es": "REG B D0 (pin 3)"
+    },
+    {
+     "n": 192,
+     "desde": "Mega pin 23",
+     "hasta": "BB2-a9",
+     "color": "amarillo",
+     "que": "D1: Mega pin 23 → REG B D1",
+     "cm": 9.5,
+     "temporal": false,
+     "desde_es": "Mega pin 23",
+     "hasta_es": "REG B D1 (pin 4)"
+    },
+    {
+     "n": 193,
+     "desde": "Mega pin 24",
+     "hasta": "BB2-a12",
+     "color": "amarillo",
+     "que": "D2: Mega pin 24 → REG B D2",
+     "cm": 10.0,
+     "temporal": false,
+     "desde_es": "Mega pin 24",
+     "hasta_es": "REG B D2 (pin 7)"
+    },
+    {
+     "n": 194,
+     "desde": "Mega pin 25",
+     "hasta": "BB2-a13",
+     "color": "amarillo",
+     "que": "D3: Mega pin 25 → REG B D3",
+     "cm": 10.0,
+     "temporal": false,
+     "desde_es": "Mega pin 25",
+     "hasta_es": "REG B D3 (pin 8)"
+    },
+    {
+     "n": 195,
+     "desde": "Mega pin 26",
+     "hasta": "BB2-j13",
+     "color": "amarillo",
+     "que": "D4: Mega pin 26 → REG B D4",
+     "cm": 11.5,
+     "temporal": false,
+     "desde_es": "Mega pin 26",
+     "hasta_es": "REG B D4 (pin 13)"
+    },
+    {
+     "n": 196,
+     "desde": "Mega pin 27",
+     "hasta": "BB2-j12",
+     "color": "amarillo",
+     "que": "D5: Mega pin 27 → REG B D5",
+     "cm": 11.0,
+     "temporal": false,
+     "desde_es": "Mega pin 27",
+     "hasta_es": "REG B D5 (pin 14)"
+    },
+    {
+     "n": 197,
+     "desde": "Mega pin 28",
+     "hasta": "BB2-j9",
+     "color": "amarillo",
+     "que": "D6: Mega pin 28 → REG B D6",
+     "cm": 11.0,
+     "temporal": false,
+     "desde_es": "Mega pin 28",
+     "hasta_es": "REG B D6 (pin 17)"
+    },
+    {
+     "n": 198,
+     "desde": "Mega pin 29",
+     "hasta": "BB2-j8",
+     "color": "amarillo",
+     "que": "D7: Mega pin 29 → REG B D7",
+     "cm": 10.5,
+     "temporal": false,
+     "desde_es": "Mega pin 29",
+     "hasta_es": "REG B D7 (pin 18)"
+    },
+    {
+     "n": 199,
+     "desde": "BB4-b12",
+     "hasta": "Mega pin 37",
+     "color": "azul",
+     "que": "F0: REG SALIDA D0 (mismo nodo que F0) → Mega pin 37",
+     "cm": 19.0,
+     "temporal": false,
+     "desde_es": "REG SALIDA D0 (pin 3)",
+     "hasta_es": "Mega pin 37"
+    },
+    {
+     "n": 200,
+     "desde": "BB4-b13",
+     "hasta": "Mega pin 36",
+     "color": "azul",
+     "que": "F1: REG SALIDA D1 (mismo nodo que F1) → Mega pin 36",
+     "cm": 19.5,
+     "temporal": false,
+     "desde_es": "REG SALIDA D1 (pin 4)",
+     "hasta_es": "Mega pin 36"
+    },
+    {
+     "n": 201,
+     "desde": "BB4-b16",
+     "hasta": "Mega pin 35",
+     "color": "azul",
+     "que": "F2: REG SALIDA D2 (mismo nodo que F2) → Mega pin 35",
+     "cm": 20.5,
+     "temporal": false,
+     "desde_es": "REG SALIDA D2 (pin 7)",
+     "hasta_es": "Mega pin 35"
+    },
+    {
+     "n": 202,
+     "desde": "BB4-b17",
+     "hasta": "Mega pin 34",
+     "color": "azul",
+     "que": "F3: REG SALIDA D3 (mismo nodo que F3) → Mega pin 34",
+     "cm": 21.0,
+     "temporal": false,
+     "desde_es": "REG SALIDA D3 (pin 8)",
+     "hasta_es": "Mega pin 34"
+    },
+    {
+     "n": 203,
+     "desde": "BB4-i17",
+     "hasta": "Mega pin 33",
+     "color": "azul",
+     "que": "F4: REG SALIDA D4 (mismo nodo que F4) → Mega pin 33",
+     "cm": 18.5,
+     "temporal": false,
+     "desde_es": "REG SALIDA D4 (pin 13)",
+     "hasta_es": "Mega pin 33"
+    },
+    {
+     "n": 204,
+     "desde": "BB4-i16",
+     "hasta": "Mega pin 32",
+     "color": "azul",
+     "que": "F5: REG SALIDA D5 (mismo nodo que F5) → Mega pin 32",
+     "cm": 18.5,
+     "temporal": false,
+     "desde_es": "REG SALIDA D5 (pin 14)",
+     "hasta_es": "Mega pin 32"
+    },
+    {
+     "n": 205,
+     "desde": "BB4-i13",
+     "hasta": "Mega pin 31",
+     "color": "azul",
+     "que": "F6: REG SALIDA D6 (mismo nodo que F6) → Mega pin 31",
+     "cm": 18.0,
+     "temporal": false,
+     "desde_es": "REG SALIDA D6 (pin 17)",
+     "hasta_es": "Mega pin 31"
+    },
+    {
+     "n": 206,
+     "desde": "BB4-i12",
+     "hasta": "Mega pin 30",
+     "color": "azul",
+     "que": "F7: REG SALIDA D7 (mismo nodo que F7) → Mega pin 30",
+     "cm": 18.0,
+     "temporal": false,
+     "desde_es": "REG SALIDA D7 (pin 18)",
+     "hasta_es": "Mega pin 30"
+    },
+    {
+     "n": 207,
+     "desde": "Mega pin 49",
+     "hasta": "BB3-b11",
+     "color": "morado",
+     "que": "S0: Mega pin 49 → ALU BAJA",
+     "cm": 12.0,
+     "temporal": false,
+     "desde_es": "Mega pin 49",
+     "hasta_es": "ALU BAJA S0 (pin 6)"
+    },
+    {
+     "n": 208,
+     "desde": "Mega pin 48",
+     "hasta": "BB3-b10",
+     "color": "morado",
+     "que": "S1: Mega pin 48 → ALU BAJA",
+     "cm": 12.0,
+     "temporal": false,
+     "desde_es": "Mega pin 48",
+     "hasta_es": "ALU BAJA S1 (pin 5)"
+    },
+    {
+     "n": 209,
+     "desde": "Mega pin 47",
+     "hasta": "BB3-b9",
+     "color": "morado",
+     "que": "S2: Mega pin 47 → ALU BAJA",
+     "cm": 11.5,
+     "temporal": false,
+     "desde_es": "Mega pin 47",
+     "hasta_es": "ALU BAJA S2 (pin 4)"
+    },
+    {
+     "n": 210,
+     "desde": "Mega pin 46",
+     "hasta": "BB3-b8",
+     "color": "morado",
+     "que": "S3: Mega pin 46 → ALU BAJA",
+     "cm": 11.5,
+     "temporal": false,
+     "desde_es": "Mega pin 46",
+     "hasta_es": "ALU BAJA S3 (pin 3)"
+    },
+    {
+     "n": 211,
+     "desde": "Mega pin 45",
+     "hasta": "BB3-b13",
+     "color": "morado",
+     "que": "M: Mega pin 45 → ALU BAJA",
+     "cm": 13.0,
+     "temporal": false,
+     "desde_es": "Mega pin 45",
+     "hasta_es": "ALU BAJA M (pin 8)"
+    },
+    {
+     "n": 212,
+     "desde": "Mega pin 44",
+     "hasta": "BB3-a12",
+     "color": "morado",
+     "que": "CN: Mega pin 44 → ALU BAJA",
+     "cm": 13.0,
+     "temporal": false,
+     "desde_es": "Mega pin 44",
+     "hasta_es": "ALU BAJA CN (pin 7)"
+    },
+    {
+     "n": 213,
+     "desde": "BB3-j30",
+     "hasta": "Mega pin 2",
+     "color": "morado",
+     "que": "Acarreo final: C̄n+4 de ALU ALTA (pin 16) → Mega pin 2",
+     "cm": 20.5,
+     "temporal": false,
+     "desde_es": "ALU ALTA CN4 (pin 16)",
+     "hasta_es": "Mega pin 2"
+    },
+    {
+     "n": 214,
+     "desde": "Mega pin 41",
+     "hasta": "BB2-j29",
+     "color": "cafe",
+     "que": "CLK A: Mega pin 41 → REG A pin 11",
+     "cm": 17.0,
+     "temporal": false,
+     "desde_es": "Mega pin 41",
+     "hasta_es": "REG A CLK (pin 11)"
+    },
+    {
+     "n": 215,
+     "desde": "Mega pin 40",
+     "hasta": "BB2-j15",
+     "color": "cafe",
+     "que": "CLK B: Mega pin 40 → REG B pin 11",
+     "cm": 14.0,
+     "temporal": false,
+     "desde_es": "Mega pin 40",
+     "hasta_es": "REG B CLK (pin 11)"
+    },
+    {
+     "n": 216,
+     "desde": "Mega pin 7",
+     "hasta": "BB4-j19",
+     "color": "cafe",
+     "que": "CLK S: Mega pin 7 → REG SALIDA pin 11",
+     "cm": 24.5,
+     "temporal": false,
+     "desde_es": "Mega pin 7",
+     "hasta_es": "REG SALIDA CLK (pin 11)"
+    },
+    {
+     "n": 217,
+     "desde": "Mega pin 38",
+     "hasta": "BB2-b20",
+     "color": "cafe",
+     "que": "CLEAR: Mega pin 38 → REG A pin 1",
+     "cm": 12.5,
+     "temporal": false,
+     "desde_es": "Mega pin 38",
+     "hasta_es": "REG A CLR (pin 1)"
+    },
+    {
+     "n": 218,
+     "desde": "Mega pin 39",
+     "hasta": "BB1-b8",
+     "color": "cafe",
+     "que": "SEL: Mega pin 39 → MUX BAJO pin 1",
+     "cm": 14.5,
+     "temporal": false,
+     "desde_es": "Mega pin 39",
+     "hasta_es": "MUX BAJO SEL (pin 1)"
+    },
+    {
+     "n": 219,
+     "desde": "Mega GND",
+     "hasta": "BB3 riel − sup (fila 5)",
+     "color": "negro",
+     "que": "GND común: Mega GND → riel − (sin esto nada funciona)",
+     "cm": 8.0,
+     "temporal": false,
+     "desde_es": "Mega GND",
+     "hasta_es": "BB3 riel − sup (fila 5)"
+    }
+   ],
+   "retirar_cables": [],
+   "retirar_piezas": []
+  },
+  {
+   "n": 6,
+   "titulo": "Cierre y verificación final",
+   "chips": [],
+   "piezas": [],
+   "cables": [],
+   "retirar_cables": [],
+   "retirar_piezas": []
+  }
+ ],
+ "colores": {
+  "rojo": {
+   "hex": "#d62828",
+   "uso": "+5 V"
+  },
+  "negro": {
+   "hex": "#1d1d1d",
+   "uso": "GND y habilitaciones atadas a GND"
+  },
+  "amarillo": {
+   "hex": "#f2c200",
+   "uso": "Bus D: Arduino → REG B y entradas A del mux"
+  },
+  "azul": {
+   "hex": "#1f5fd1",
+   "uso": "Bus F: salida de la ALU → Arduino, mux B y registro de salida"
+  },
+  "verde": {
+   "hex": "#2e9e44",
+   "uso": "REG A (Q) → ALU A"
+  },
+  "blanco": {
+   "hex": "#f4f4f4",
+   "uso": "REG B (Q) → ALU B"
+  },
+  "naranja": {
+   "hex": "#f07d19",
+   "uso": "Salida Y del mux → REG A (D)"
+  },
+  "gris": {
+   "hex": "#8a8a8a",
+   "uso": "Etapa de salida: REG SALIDA (Q) → 244 → LEDs"
+  },
+  "morado": {
+   "hex": "#7b3fb5",
+   "uso": "Control de la ALU: S0–S3, M, C̄n y acarreos"
+  },
+  "cafe": {
+   "hex": "#8b5a2b",
+   "uso": "Control de registros: relojes, CLEAR y selección del mux"
+  }
+ },
+ "metros_por_color": {
+  "amarillo": 2.6,
+  "azul": 5.0,
+  "blanco": 1.4,
+  "cafe": 1.9,
+  "gris": 2.0,
+  "morado": 2.2,
+  "naranja": 1.5,
+  "negro": 2.3,
+  "rojo": 1.8,
+  "verde": 1.5
+ },
+ "totales": {
+  "cables_definitivos": 158,
+  "cables_prueba": 61
+ }
+}
