@@ -12,9 +12,11 @@
 // configurando el 74LS181 y leyendo F. La única excepción que permite el
 // spec es Z = (F == 0), que es leer un resultado, no calcularlo.
 //
-// (Los ++ sobre pc y los índices de microciclo no son operaciones de ALU:
-// PC, IR y MAR son variables de la unidad de control, no registros del
-// camino de datos — A.2.)
+// El PC tampoco se calcula aquí: es hardware (2× 74LS161). El núcleo solo
+// pide contar (hal::incrementarPC) o cargar (hal::cargarPC) y lo lee de la
+// placa; no hay copia en software. IR y MAR sí son variables de la unidad
+// de control (A.2); los ++ de los índices de microciclo no son operaciones
+// de ALU.
 // ---------------------------------------------------------------------------
 
 #ifndef NUCLEO_H
@@ -22,6 +24,7 @@
 
 #include <stdint.h>
 
+#include "hal.h"
 #include "isa.h"
 
 // Estado de una instrucción, para el volcado en formato A.9.
@@ -85,7 +88,8 @@ class Nucleo {
   uint8_t leerMemoria(uint8_t direccion) const;
 
   // ── Estado ─────────────────────────────────────────────────────────────
-  uint8_t pc() const { return pc_; }
+  // El PC se lee del 74LS161, no de una copia (igual que A y B, abajo).
+  uint8_t pc() const { return hal::leerPC(); }
   uint8_t ir() const { return ir_; }
   uint8_t mar() const { return mar_; }
   uint8_t z() const { return z_; }
@@ -119,7 +123,6 @@ class Nucleo {
   void configurarOperacion(uint8_t opcode);
 
   uint8_t memoria_[MEMORIA_TAM];
-  uint8_t pc_;
   uint8_t ir_;
   uint8_t mar_;
   uint8_t z_;

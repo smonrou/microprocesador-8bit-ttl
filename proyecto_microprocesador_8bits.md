@@ -29,7 +29,8 @@
 | Registro B | **Físico** — 74LS273 (1 chip de 8 bits) ✅ decidido |
 | ALU | **Físico** — 2× SN74LS181 ✅ comprados y aprobados |
 | Multiplexor de entrada a A | **Físico** — 2× 74LS157 (decisión de camino de datos) |
-| PC, IR, MAR | Variables en el Arduino |
+| Contador de programa (PC) | **Físico** — 2× 74LS161 en cascada (§22) |
+| IR, MAR | Variables en el Arduino |
 | Memoria (matriz) | Arduino — celdas de 1 byte, 256 direcciones |
 | Banderas (Z, C) | Calculadas/leídas por el Arduino, mostradas en consola (sin LEDs) |
 | Entrada de datos | **Monitor serial** ✅ confirmado |
@@ -956,3 +957,50 @@ VCC pin 20, GND pin 10, 0.1 µF pegado al chip. LEDs rojos, verdes o amarillos (
 *"El resultado sale del 74LS181, se engancha en un 74LS273 cuando se ejecuta `OUT`, y el 74LS244 le da la corriente a los LEDs. Cada LED es un bit: no hay nada que convertir, y el Arduino nunca toca el dato; solo dice cuándo capturarlo."*
 
 Demostración concreta si la piden: detener el Arduino después de un `OUT`. Los LEDs siguen mostrando el valor, porque vive en el registro físico y no en el controlador.
+
+## 22. Contador de programa físico (2026-09-25)
+
+### Qué pasó
+
+El ingeniero rechazó el PC simulado. Hasta aquí era `uint8_t pc_` en `nucleo.h`, con `pc_++` en FETCH/FETCH2 y `pc_ = operando_` en los saltos. Es la misma objeción que en §20: `pc_++` es una suma, y el Arduino no calcula. IR y MAR se quedan como variables (el ingeniero solo pidió el PC).
+
+### Qué se evaluó
+
+Criterio principal: cuánto cambia el montaje ya diseñado.
+
+| Alternativa | Chips | Cambia el montaje existente | Veredicto |
+|---|---|---|---|
+| **2× 74LS161** (contador síncrono, carga síncrona, clear asíncrono) | 2 | Nada: se agregan en BB1 y toman el bus D que ya existe | **Elegida.** Es el PC de libro (SAP-1, Mano), y ya estaban en existencia |
+| 2× 74LS193 (up/down, carga asíncrona) | 2 | Nada | Sirve, pero su CLR es activo en alto (no comparte el CLEAR sin inversor) y la carga no espera al reloj |
+| 74LS273 + 2× 74LS283 (+1) + 2× 74LS157 (cargar o incrementar) | 5 | Nada, pero ~60 cables | Muy didáctico, demasiado cableado |
+| 74LS273 y el +1 con la ALU 181 | 1–3 | Mucho: multiplexar la entrada A de la ALU y rehacer las fases 2–4 | Descartado |
+| Contador ripple 74LS393 (sin carga paralela) | 1 | Nada | Descartado: un salto sería CLEAR + N pulsos, que es el Arduino calculando |
+| PC → RAM/EEPROM física con bus de direcciones | 3+ | Saca la RAM del Arduino | Fuera de alcance: la RAM simulada está aprobada |
+
+### Conexión
+
+| Señal | 74LS161 | Va a |
+|---|---|---|
+| P0–P3 (pines 3–6) | PC BAJO / PC ALTO | Bus D (entradas A del mux, amarillo): la dirección del salto |
+| Q0–Q3 (pines 14, 13, 12, 11) | PC BAJO → A8–A11, PC ALTO → A12–A15 | PORTK del Mega, ascendente (gris) |
+| CLK (pin 2) | Los dos | Mega pin 42, con 1 kΩ a GND |
+| /LOAD (pin 9) | Los dos | Mega pin 43, con 1 kΩ a +5 V (en reposo cuenta) |
+| /CLR (pin 1) | Los dos | CLEAR, Mega pin 38 (el mismo de los 273) |
+| ENP (pin 7) | Los dos | +5 V |
+| ENT (pin 10) | PC BAJO: +5 V · PC ALTO: RCO (pin 15) de PC BAJO | Cascada: el alto cuenta solo cuando el bajo pasa de 1111 a 0000 |
+
+Pines 42 y 43 son PL7 y PL6. `configurarALU()` escribe PORTL entero pero preserva esos dos bits (`MASCARA_NO_ALU`), así que no pisa el control del PC.
+
+### Efecto en el firmware
+
+- `pc_` desaparece. `Nucleo::pc()` devuelve `hal::leerPC()` (PINK): no hay copia en software, igual que con A y B (§19).
+- FETCH/FETCH2 llaman `hal::incrementarPC()` (un flanco con /LOAD en alto). JMP/JZ/JNZ llaman `hal::cargarPC(operando_)`: pone la dirección en el bus D, baja /LOAD, pulsa el reloj y sube /LOAD.
+- RESET: `hal::limpiarRegistros()` ya pulsaba CLEAR, y ahora también pone el PC en 0x00. Un `static_assert` exige `DIRECCION_INICIO == 0x00`, que es lo que deja el CLEAR.
+- `hal_falso.cpp` emula el 161, incluida la vuelta 0xFF → 0x00, y cuenta los flancos. Las pruebas comprueban que cada byte leído produce exactamente una cuenta y cada salto tomado exactamente una carga. El lockstep contra `sim/cpu.py` sigue comparando el PC después de cada instrucción.
+
+### Argumento para la defensa
+
+*"El PC son dos 74LS161. El Arduino no suma nada: pulsa el reloj y el contador avanza, o baja /LOAD y el contador carga la dirección del salto desde el bus. La RAM está simulada en el Arduino, así que el Arduino lee el PC por A8–A15: esas son las patas de dirección de su RAM."*
+
+Demostración si la piden: `STEP` por el monitor serial con el multímetro en las Q de los 161. El `PC=` del monitor es lo que marcan los chips, porque el firmware no guarda otro.
+

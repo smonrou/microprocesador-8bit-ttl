@@ -1,6 +1,6 @@
 # Simulación en Proteus vs. montaje físico
 
-> Actualizado al diseño vigente (2026-09-17): salida en **8 LEDs** (registro de salida 74LS273 → buffer 74LS244 → LEDs), **8 integrados TTL**, entrega **en protoboards**. Ver `contexto_proyecto.md` A.2 y `proyecto_microprocesador_8bits.md` §13.4/§21 para el detalle de cada decisión.
+> Actualizado al diseño vigente (2026-09-17): salida en **8 LEDs** (registro de salida 74LS273 → buffer 74LS244 → LEDs), **10 integrados TTL** (el PC pasó a 2× 74LS161 el 2026-09-25), entrega **en protoboards**. Ver `contexto_proyecto.md` A.2 y `proyecto_microprocesador_8bits.md` §13.4/§21 para el detalle de cada decisión.
 
 Este documento responde dos preguntas: **qué simplifica Proteus** (para no confiarse de que "si corrió en la simulación, ya está") y **qué hace falta comprar/agregar** que la simulación no exige.
 
@@ -27,7 +27,7 @@ Proteus es un simulador ideal: varias cosas que en físico son obligatorias, en 
 
 ## 2. Qué es idéntico entre simulación y físico
 
-- **Los 8 integrados TTL** (tabla completa en la sección 4) y su cableado punto a punto.
+- **Los 10 integrados TTL** (tabla completa en la sección 4) y su cableado punto a punto.
 - **El firmware** — el mismo `.hex` compilado de `firmware/microprocesador/` se carga en el Arduino de Proteus y en el Arduino real, sin cambios.
 - **El protocolo serial** (`LOAD`, `LOADB`, `RUN`, `STEP`, …) a 115200 baudios.
 - **El programa de referencia** (4×3=12) y el resultado esperado: los ocho LEDs deben mostrar `0 0 0 0 1 1 0 0` (encendidos solo los bits 3 y 2).
@@ -38,10 +38,10 @@ Proteus es un simulador ideal: varias cosas que en físico son obligatorias, en 
 
 | Elemento | En Proteus | En físico (obligatorio) |
 |---|---|---|
-| Alimentación de cada chip | Implícita (pines ocultos) | Cable a VCC y a GND en cada uno de los 8 chips. 74LS244: VCC pin 20, GND pin 10 |
+| Alimentación de cada chip | Implícita (pines ocultos) | Cable a VCC y a GND en cada uno de los 10 chips. 74LS244: VCC pin 20, GND pin 10 |
 | Habilitaciones del 74LS244 | Conviene atarlas igual | 1G (pin 1) y 2G (pin 19) **a GND**. Sueltas se leen como alto y los LEDs quedan apagados |
 | LEDs de salida | Parte `LED-RED` (o cualquier color) | **Rojos, verdes o amarillos**. En alto el 244 da 2.4–3.4 V; a un LED azul o blanco (~3 V) no le queda corriente |
-| Capacitores de desacople (0.1 µF) | Opcionales (no rompen nada si faltan) | Obligatorios: 1 por cada uno de los 8 chips TTL, lo más cerca posible del pin VCC |
+| Capacitores de desacople (0.1 µF) | Opcionales (no rompen nada si faltan) | Obligatorios: 1 por cada uno de los 10 chips TTL, lo más cerca posible del pin VCC |
 | Capacitor electrolítico de entrada | No aplica | 1× 10–100 µF en la entrada de alimentación general |
 | Fuente de alimentación | Terminales ideales `POWER`/`GROUND` | Fuente 5V regulada, **mínimo 1 A** — el pin 5V del Mega da ~500 mA. GND común con el Arduino es obligatorio |
 | Banco de montaje | No aplica | 4 protoboards de 830 puntos sobre base rígida. **Son el entregable** (el ingeniero lo aceptó el 2026-09-17) |
@@ -54,7 +54,7 @@ Proteus es un simulador ideal: varias cosas que en físico son obligatorias, en 
 
 ## 4. Lista de materiales completa para el montaje físico
 
-### Integrados (8 TTL + Arduino)
+### Integrados (10 TTL + Arduino)
 
 | Cant. | Componente | Función |
 |---|---|---|
@@ -62,8 +62,9 @@ Proteus es un simulador ideal: varias cosas que en físico son obligatorias, en 
 | 2 | 74LS273 | Registros A y B |
 | 1 | 74LS273 | Registro de salida (engancha el bus F al ejecutar `OUT`) |
 | 2 | 74LS157 | Mux de entrada al registro A |
+| 2 | 74LS161 | Contador de programa (PC) de 8 bits en cascada. Ya en existencia (2026-09-25) |
 | 1 | 74LS244 | Buffer de corriente de los 8 LEDs de salida. Sustituto válido: 74LS240 con los LEDs cableados al revés (5V → 330 Ω → LED → salida) |
-| 1 | Arduino Mega 2560 | Unidad de control, memoria (256 B) y reloj |
+| 1 | Arduino Mega 2560 | Unidad de control, memoria (256 B) y reloj. Lee el PC por A8–A15 |
 | 1–2 | Repuestos de cada tipo | Los TTL se dañan con estática o polaridad invertida |
 
 ### Salida
@@ -78,7 +79,7 @@ Proteus es un simulador ideal: varias cosas que en físico son obligatorias, en 
 | Cant. | Componente | Notas |
 |---|---|---|
 | 1 | Fuente 5V regulada, mínimo 1 A | No alimentar todo desde el Arduino |
-| 8 | Capacitores cerámicos 0.1 µF | Desacople, uno por cada integrado TTL |
+| 10 | Capacitores cerámicos 0.1 µF | Desacople, uno por cada integrado TTL |
 | 1 | Capacitor electrolítico 10–100 µF | Entrada de alimentación general |
 
 ### Banco de pruebas y montaje
@@ -91,6 +92,7 @@ Proteus es un simulador ideal: varias cosas que en físico son obligatorias, en 
 | 20+ | LEDs (varios colores) | Depuración de buses y registros |
 | 30+ | Resistencias 220–330 Ω | Limitar corriente en LEDs de depuración |
 | 9 | Resistencias 1 kΩ | Pull-ups del dip switch (8) y del pulsador (1) del banco de pruebas |
+| 7 | Resistencias 1 kΩ | Permanentes (fase 5): reposo de CLEAR, SEL, los tres relojes, el reloj del PC y /LOAD del PC |
 | 1 | Dip switch de 8 | Caracterización manual de la ALU |
 | 1 | Pulsador (push button) | Reset / clock manual |
 | — | Dupont macho-macho | **Solo** cables de prueba de las fases 1–4; el cableado final (incluido el del Mega) es 22 AWG sólido |

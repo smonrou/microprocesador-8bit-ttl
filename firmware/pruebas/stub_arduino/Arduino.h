@@ -30,9 +30,9 @@
 #define BIN 2
 
 // Registros de puerto del ATmega2560. Aquí son variables sin efecto.
-extern volatile uint8_t PORTA, PORTC, PORTL;
-extern volatile uint8_t DDRA, DDRC, DDRL;
-extern volatile uint8_t PINA, PINC, PINL;
+extern volatile uint8_t PORTA, PORTC, PORTK, PORTL;
+extern volatile uint8_t DDRA, DDRC, DDRK, DDRL;
+extern volatile uint8_t PINA, PINC, PINK, PINL;
 
 void pinMode(uint8_t pin, uint8_t modo);
 void digitalWrite(uint8_t pin, uint8_t valor);

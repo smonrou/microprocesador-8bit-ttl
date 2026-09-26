@@ -162,3 +162,23 @@ def test_load_confirma_cada_escritura():
 def test_los_comandos_desconocidos_responden_error():
     fuente = (SKETCH / "consola.cpp").read_text(encoding="utf-8")
     assert "ERR comando desconocido" in fuente
+
+
+# ── El PC es hardware (2× 74LS161) ───────────────────────────────────────
+
+def test_el_nucleo_no_guarda_ni_calcula_el_pc():
+    # El ingeniero no acepta un PC simulado: incrementarlo en software sería
+    # el Arduino calculando. El núcleo solo pide contar o cargar al 161.
+    fuente = (SKETCH / "nucleo.cpp").read_text(encoding="utf-8")
+    cabecera = (SKETCH / "nucleo.h").read_text(encoding="utf-8")
+    assert not re.search(r"\bpc_\b", fuente + cabecera)
+    assert "hal::incrementarPC()" in fuente
+    assert "hal::cargarPC(operando_)" in fuente
+    assert "hal::leerPC()" in fuente
+
+
+def test_el_pc_se_lee_por_portk():
+    fuente = (SKETCH / "hal_arduino.cpp").read_text(encoding="utf-8")
+    cuerpo = fuente.split("uint8_t leerPC()")[1].split("\n}")[0]
+    assert "PINK" in cuerpo
+    assert "DDRK = 0x00" in fuente

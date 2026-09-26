@@ -6,6 +6,11 @@
 
 #include "hal.h"
 
+// El PC arranca donde lo deja el CLEAR de los 74LS161: 0x00. Si alguna vez
+// cambia la dirección de inicio, el reinicio tendría que cargarla.
+static_assert(DIRECCION_INICIO == 0x00,
+              "el CLEAR de los 74LS161 deja el PC en 0x00");
+
 namespace {
 
 // Secuencia de microciclos según la forma de la instrucción (decisión B.1).
@@ -42,7 +47,6 @@ void Nucleo::borrarTodo() {
 }
 
 void Nucleo::reiniciar() {
-  pc_ = DIRECCION_INICIO;
   ir_ = 0;
   mar_ = 0;
   z_ = 0;
@@ -57,7 +61,8 @@ void Nucleo::reiniciar() {
   huboSalida_ = false;
   traza_ = Traza();
 
-  hal::limpiarRegistros();   // CLEAR asíncrono de ambos 74LS273
+  // CLEAR asíncrono de los 74LS273 y de los 74LS161: PC = DIRECCION_INICIO.
+  hal::limpiarRegistros();
 }
 
 void Nucleo::escribirMemoria(uint8_t direccion, uint8_t valor) {
@@ -116,12 +121,11 @@ void Nucleo::configurarOperacion(uint8_t opcode) {
 // ── Máquina de microciclos ───────────────────────────────────────────────
 
 void Nucleo::empezarInstruccion() {
-  uint8_t pcAntes = pc_;
-
-  // FETCH: MAR <- PC; IR <- Mem[MAR]; PC++
-  mar_ = pc_;
+  // FETCH: MAR <- PC; IR <- Mem[MAR]; PC++ (lo cuenta el 161)
+  mar_ = hal::leerPC();
+  uint8_t pcAntes = mar_;
   ir_ = memoria_[mar_];
-  pc_++;
+  hal::incrementarPC();
 
   actual_ = &TABLA_OPCODES[ir_ >> 4];   // A.4: el opcode son siempre 4 bits
   operando_ = 0;
@@ -174,7 +178,7 @@ PasoResultado Nucleo::paso() {
   resultado.paso = paso;
 
   if (indicePaso_ >= pasosPendientes_) {
-    traza_.pcDespues = pc_;
+    traza_.pcDespues = hal::leerPC();
     traza_.z = z_;
     traza_.c = c_;
     instrucciones_++;
@@ -194,8 +198,8 @@ void Nucleo::ejecutarMicrociclo(uint8_t paso) {
       break;
 
     case PASO_FETCH2:
-      operando_ = memoria_[pc_];
-      pc_++;
+      operando_ = memoria_[hal::leerPC()];
+      hal::incrementarPC();
       traza_.operando = operando_;
       traza_.tieneOperando = true;
       break;
@@ -258,14 +262,15 @@ void Nucleo::faseEjecutar() {
     }
 
     case CAT_SALTO_INCONDICIONAL:
-      pc_ = operando_;
+      // Carga paralela del 161 desde el bus D.
+      hal::cargarPC(operando_);
       break;
 
     case CAT_SALTO_CONDICIONAL: {
       // A.5: JZ salta con Z=1, JNZ con Z=0. Las banderas NO se tocan aquí.
       bool condicion = (actual_->opcode == OP_JZ) ? (z_ == 1) : (z_ == 0);
       if (condicion) {
-        pc_ = operando_;
+        hal::cargarPC(operando_);
       }
       break;
     }

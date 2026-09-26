@@ -5,6 +5,7 @@
 //   SN74LS181  ALU, tabla 2 (active-high) decodificada desde M / S3-S0 / C̄n
 //   74LS273    registros A y B, enganchan en el flanco de subida
 //   74LS157    mux de entrada a A
+//   74LS161    ×2 en cascada: contador de programa de 8 bits
 //
 // Clave del diseño: la ALU falsa decide qué operación hacer leyendo las
 // LÍNEAS DE CONTROL que el núcleo puso, no el nemónico de la instrucción. Si
@@ -27,6 +28,7 @@ namespace hal_falso {
 struct Estado {
   uint8_t registroA;
   uint8_t registroB;
+  uint8_t pc;          // Q0-Q7 de los dos 74LS161
   uint8_t bus;
   uint8_t muxFuente;
   uint8_t m;
@@ -38,6 +40,8 @@ struct Estado {
   // Contadores, para verificar que el núcleo hace lo que dice.
   uint32_t pulsosA;
   uint32_t pulsosB;
+  uint32_t pulsosPC;   // flancos del reloj del PC (cuentas + cargas)
+  uint32_t cargasPC;   // de esos, cuántos fueron con /LOAD en bajo
   uint32_t esperas;
   uint32_t lecturasF;
 };
@@ -50,6 +54,9 @@ const Estado& estado();
 
 // Fuerza los registros — atajo para montar escenarios sin ejecutar programas.
 void forzarRegistros(uint8_t a, uint8_t b);
+
+// Fuerza el PC, para probar la vuelta 0xFF -> 0x00 sin 255 pulsos.
+void forzarPC(uint8_t pc);
 
 }  // namespace hal_falso
 

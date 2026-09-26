@@ -184,6 +184,8 @@ def _parsear(texto):
         "total": int(fin.get("instrucciones", 0)),
         "microciclos": int(fin.get("microciclos", 0)),
         "limite": fin.get("limite") == "1",
+        "pulsos_pc": int(fin.get("pulsos_pc", 0)),
+        "cargas_pc": int(fin.get("cargas_pc", 0)),
     }
 
 

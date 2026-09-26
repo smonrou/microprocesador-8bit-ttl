@@ -4,7 +4,7 @@ Registro de lo que realmente pasó al armar el microprocesador en las 4 protoboa
 
 - **Guía paso a paso:** artifacts de la tabla de abajo. Las casillas y resultados que se marcan ahí se guardan en cada artifact; Claude puede leerlos y pasarlos aquí.
 - **Fuente de verdad del cableado:** `montaje/netlist.py` (verificado por `tests/test_montaje.py`). Si algo del montaje cambia, se cambia ahí y se regeneran las guías (`python -m montaje.generar` y `python -m montaje.paginas`); nunca a mano en la protoboard sin anotarlo aquí.
-- **Totales:** 158 cables definitivos, 61 cables de prueba, 8 integrados TTL.
+- **Totales:** 188 cables definitivos, 63 cables de prueba, 10 integrados TTL. Resistencias permanentes: 8 de 220 Ω (LEDs), 8 de 330 Ω (serie del bus F) y 7 de 1 kΩ (reposo de CLEAR, SEL, los tres relojes, el reloj del PC y /LOAD del PC). Aparte van las 9 de 1 kΩ del banco de pruebas, que se retiran al cerrar la fase 4.
 
 ## Guías de montaje (artifacts)
 
@@ -15,7 +15,7 @@ Registro de lo que realmente pasó al armar el microprocesador en las 4 protoboa
 | Fase 1: Etapa de salida: registro de salida, 74LS244 y 8 LEDs | https://claude.ai/artifact/WeFKZu5PRsN8ZTFX8wjgUm |
 | Fase 2: ALU: dos 74LS181 en cascada | https://claude.ai/artifact/4PMaFtAbBHvTVFfcX48KMF |
 | Fase 3: Registros A y B | https://claude.ai/artifact/4Tu72dRn3nBvR3QbLUSUzV |
-| Fase 4: Multiplexor de entrada a A | https://claude.ai/artifact/2WNVRdJk6En1Y2xn3QmYfb |
+| Fase 4: Multiplexor de entrada a A y contador de programa (PC) | https://claude.ai/artifact/2WNVRdJk6En1Y2xn3QmYfb |
 | Fase 5: Arduino Mega | https://claude.ai/artifact/Xpejh7JomeKUjAvVGAAbzd |
 | Fase 6: Cierre y verificación final | https://claude.ai/artifact/BetMDcMWtAQ57s2jDWBecG |
 
@@ -27,6 +27,10 @@ Registro de lo que realmente pasó al armar el microprocesador en las 4 protoboa
 | 2026-09-17 | 74LS181 en columnas d/h (DIP-24 de 600 mil) | Medido en físico: entre las dos filas de patas quedan 3 agujeros más el canal |
 | 2026-09-17 | Pines 22/23 del 181: 23 = A1, 22 = B1 | Datasheet TI; §6.5 del registro de diseño los tenía cruzados (corregido) |
 | 2026-09-17 | Colocación de chips por minimización de largo de cable | Búsqueda por coordenadas sobre filas y giro; 3633 → 3225 pasos de cable |
+| 2026-09-19 | 5 resistencias de 1 kΩ de reposo en CLEAR, SEL y los tres relojes (fase 5) | Esos pines colgaban solo del Mega; quedan en alta impedancia al resetear y en cada carga de firmware, y una entrada TTL flotante conmuta con el ruido |
+| 2026-09-19 | 8 resistencias de 330 Ω en serie en el bus F hacia el Mega (fase 5) | Si un pin del Mega quedara como `OUTPUT` habría contención contra la 74LS181; la resistencia la limita a ~15 mA en vez de quemar uno de los dos |
+| 2026-09-25 | **PC físico: 2× 74LS161 en cascada** en BB1 (filas 32 y 44), montados en la fase 4 | El ingeniero no acepta el PC como variable del Arduino. Carga paralela desde el bus D (saltos), CLEAR compartido, Q → Mega A8–A15 (PORTK). Reloj en el pin 42 y /LOAD en el 43, con sus 1 kΩ de reposo. Ver §22 del registro de diseño |
+| 2026-09-25 | Renumeración de cables desde la fase 1 (+4) al agregar el PC | Los cables #1–28 de la fase 0 no cambiaron, así que su avance marcado sigue válido. De la fase 1 en adelante no había nada marcado todavía |
 |  |  |  |
 
 ## Fase 0 — Preparación, base y alimentación
@@ -35,20 +39,29 @@ Registro de lo que realmente pasó al armar el microprocesador en las 4 protoboa
 
 - **Inicio:** 
 - **Fin:** 
-- **Estado:** ⬜ pendiente
+- **Última marca en la guía:** 2026-09-19
+- **Estado:** 🟨 casi completa: falta la prueba 4 y la casilla de la fuente (ver abajo)
+
+Avance leído de la guía el 2026-09-25:
+
+- **Hecho:** preparación (6/6), los 28 cables, el capacitor C_ENT, el cierre (2/2) y las pruebas 1–3 y 5–8.
+- **Sin marcar:** la prueba 4 (sin resultado anotado) y la pieza FUENTE.
+- **Rieles puenteados:** la guía no lo registra. Anótalo aquí (lo pide el cierre de la fase).
 
 ### Resultados de la prueba
 
 | # | Prueba | Esperado | Resultado | OK |
 |---|---|---|---|---|
-| 1 | Sin fuente, continuidad entre el + de BB1 (arriba) y el + de BB4 (abajo) | Pita |  | ⬜ |
-| 2 | Sin fuente, continuidad entre el − de BB1 y el − de BB4 | Pita |  | ⬜ |
-| 3 | Sin fuente, continuidad entre + y − (cualquier protoboard) | NO pita. Si pita, hay un corto: no conectes la fuente |  | ⬜ |
+| 1 | Sin fuente, continuidad entre el + de BB1 (arriba) y el + de BB4 (abajo) | Pita | 5.14V (anotado así en la guía) | ✅ |
+| 2 | Sin fuente, continuidad entre el − de BB1 y el − de BB4 | Pita | 5.14V (anotado así en la guía) | ✅ |
+| 3 | Sin fuente, continuidad entre + y − (cualquier protoboard) | NO pita. Si pita, hay un corto: no conectes la fuente | 5.14V (anotado así en la guía) | ✅ |
 | 4 | Conecta la fuente. Voltaje + a − en BB1, riel superior, fila 3 y fila 61 | 4.75 – 5.25 V |  | ⬜ |
-| 5 | Igual en BB1 riel inferior | 4.75 – 5.25 V |  | ⬜ |
-| 6 | Igual en BB2 (superior e inferior) | 4.75 – 5.25 V |  | ⬜ |
-| 7 | Igual en BB3 (superior e inferior) | 4.75 – 5.25 V |  | ⬜ |
-| 8 | Igual en BB4 (superior e inferior) | 4.75 – 5.25 V |  | ⬜ |
+| 5 | Igual en BB1 riel inferior | 4.75 – 5.25 V | 5.14 V | ✅ |
+| 6 | Igual en BB2 (superior e inferior) | 4.75 – 5.25 V | 5.14 V | ✅ |
+| 7 | Igual en BB3 (superior e inferior) | 4.75 – 5.25 V | 5.14 V | ✅ |
+| 8 | Igual en BB4 (superior e inferior) | 4.75 – 5.25 V | 5.14 V | ✅ |
+
+Las pruebas 1–3 son de continuidad (pita / no pita), pero en la guía quedó escrito "5.14V" en las tres; se marcaron como correctas. Conviene confirmar que se hicieron sin fuente.
 
 ### Problemas y soluciones
 
@@ -164,7 +177,7 @@ Registro de lo que realmente pasó al armar el microprocesador en las 4 protoboa
 
 - 
 
-## Fase 4 — Multiplexor de entrada a A
+## Fase 4 — Multiplexor de entrada a A y contador de programa (PC)
 
 **Guía:** https://claude.ai/artifact/2WNVRdJk6En1Y2xn3QmYfb
 
@@ -182,6 +195,10 @@ Registro de lo que realmente pasó al armar el microprocesador en las 4 protoboa
 | 4 | SEL en + · pulsador en CLK A · pulsa una vez | A = A + B = 2 |  | ⬜ |
 | 5 | Pulsador en CLK de salida · pulsa | LEDs 00000011 |  | ⬜ |
 | 6 | Repite: CLK A, luego CLK de salida, tres veces más | LEDs 00000100, 00000101, 00000110: el acumulador suma |  | ⬜ |
+| 7 | PC: pasa un momento el puente de CLEAR de REG A del riel + al − y regrésalo | Las 8 Q de los dos 161 en 0 V |  | ⬜ |
+| 8 | PC: dip = 10100101 · /LOAD en − · pulsador solo en CLK PC · pulsa · /LOAD en + | PC = 10100101 (carga paralela) |  | ⬜ |
+| 9 | PC: dip = 00001111 · /LOAD en − · pulsa · /LOAD en + · pulsa otra vez | Q0 de PC ALTO (pin 14) en 1: pasó a 0001xxxx, la cascada funciona |  | ⬜ |
+| 10 | PC: dip = 11111111 · /LOAD en − · pulsa · /LOAD en + · pulsa otra vez | Q de PC ALTO todo en 0: 0xFF + 1 dio la vuelta a 0x00 |  | ⬜ |
 
 ### Problemas y soluciones
 
@@ -210,6 +227,7 @@ Registro de lo que realmente pasó al armar el microprocesador en las 4 protoboa
 | 3 | BORRAR, pega las 5 líneas de programas/referencia.load, RUN | LEDs 00001100 · traza 34 ciclos · A=0x0C · DETENIDO |  | ⬜ |
 | 4 | LOAD 0xCC 0x09 · LOAD 0x05 0x07 · RESET · RUN (9 × 7) | LEDs 00111111 (63) |  | ⬜ |
 | 5 | RESET y varios STEP | Avanza un microciclo por comando, igual que el simulador |  | ⬜ |
+| 6 | STATE tras cada instrucción, y el multímetro en las Q de los 161 | El PC= del monitor es el mismo valor que marcan los 161 |  | ⬜ |
 
 ### Problemas y soluciones
 

@@ -228,3 +228,42 @@ def test_limite_de_instrucciones_corta_un_bucle_infinito(ejecutar_arnes):
     resultado = ejecutar_arnes(ensamblar("BUCLE: JMP BUCLE\n"), "--limite", "50")
     assert resultado["limite"] is True
     assert resultado["detenido"] is False
+
+
+# ── Contador de programa físico (2× 74LS161) ─────────────────────────────
+#
+# El PC no es una variable del Arduino: el núcleo solo pide contar o cargar
+# y lo lee de la placa. Aquí se comprueba contra el 161 emulado que cada
+# byte leído produce exactamente un flanco de cuenta y cada salto tomado
+# exactamente una carga.
+
+def test_cada_byte_leido_es_un_pulso_de_cuenta(ejecutar_arnes):
+    # LDI A (2 bytes) + OUT (1) + HLT (1) = 4 cuentas, ninguna carga.
+    resultado = ejecutar_arnes(ensamblar("LDI A,#5\nOUT\nHLT\n"))
+    assert resultado["pulsos_pc"] == 4
+    assert resultado["cargas_pc"] == 0
+
+
+def test_un_salto_carga_el_pc_desde_el_bus(ejecutar_arnes):
+    # JMP (2 cuentas + 1 carga) + HLT (1 cuenta).
+    resultado = ejecutar_arnes(ensamblar("JMP FIN\nNOP\nFIN: HLT\n"))
+    assert resultado["cargas_pc"] == 1
+    assert resultado["pulsos_pc"] == 4
+    assert int(resultado["instrucciones"][0]["pc"], 0) == 0x03
+
+
+def test_un_salto_no_tomado_no_carga_el_pc(ejecutar_arnes):
+    # Tras el reinicio Z=0, así que JZ no salta.
+    resultado = ejecutar_arnes(ensamblar("JZ FIN\nNOP\nFIN: HLT\n"))
+    assert resultado["cargas_pc"] == 0
+    assert int(resultado["instrucciones"][0]["pc"], 0) == 0x02
+
+
+def test_el_pc_da_la_vuelta_de_0xff_a_0x00(ejecutar_arnes):
+    # 0xFF está vacío (NOP). Tras ejecutarlo, la cascada RCO -> ENT del 161
+    # deja el PC en 0x00, igual que el & 0xFF de sim/cpu.py.
+    resultado = ejecutar_arnes(ensamblar("JMP 0xFF\n"), "--limite", "3")
+    nop = resultado["instrucciones"][1]
+    assert int(nop["pc_antes"], 0) == 0xFF
+    assert int(nop["pc"], 0) == 0x00
+    assert int(resultado["instrucciones"][2]["pc_antes"], 0) == 0x00

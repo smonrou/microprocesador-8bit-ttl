@@ -22,8 +22,8 @@ from montaje.generar import (SALIDA, escena, vista_chip, etiquetas_chip, largo_c
 from montaje.guias import GUIAS
 
 TITULOS = {0: 'Fase 0 Alimentación', 1: 'Fase 1 Salida', 2: 'Fase 2 ALU', 3: 'Fase 3 Registros',
-           4: 'Fase 4 Multiplexor', 5: 'Fase 5 Arduino Mega', 6: 'Fase 6 Cierre'}
-CORTOS = {0: 'Alimentación', 1: 'Salida', 2: 'ALU', 3: 'Registros', 4: 'Mux', 5: 'Mega', 6: 'Cierre'}
+           4: 'Fase 4 Mux y PC', 5: 'Fase 5 Arduino Mega', 6: 'Fase 6 Cierre'}
+CORTOS = {0: 'Alimentación', 1: 'Salida', 2: 'ALU', 3: 'Registros', 4: 'Mux y PC', 5: 'Mega', 6: 'Cierre'}
 NOMBRE_COLOR = {'rojo': 'Rojo', 'negro': 'Negro', 'amarillo': 'Amarillo', 'azul': 'Azul', 'verde': 'Verde',
                 'blanco': 'Blanco', 'naranja': 'Naranja', 'gris': 'Gris', 'morado': 'Morado',
                 'cafe': 'Café', 'temporal': 'Dupont de prueba'}
@@ -326,6 +326,13 @@ def seccion_chips(fase):
                         marca = ' <span class="tag">prueba</span>' if cab.temporal else ''
                         fase_txt = '' if cab.fase == fase else f' <small>(fase {cab.fase})</small>'
                         conex.append(f'{swatch(cab.color)} <b>#{cab.n}</b> {e(ag)} → {e(destino)}{marca}{fase_txt}')
+            for p in (x for x in MONTAJE.piezas if len(x.patas) == 2):
+                for ag, otro in ((p.patas[0], p.patas[1]), (p.patas[1], p.patas[0])):
+                    if not getattr(ag, 'riel', '') and ag.tira() == tira:
+                        marca = ' <span class="tag">prueba</span>' if p.retirar is not None else ''
+                        fase_txt = '' if p.fase == fase else f' <small>(fase {p.fase})</small>'
+                        conex.append(f'<b>{e(TIPO_PIEZA[p.tipo])} {e(p.valor)}</b> ({e(p.ref)}) '
+                                     f'{e(ag)} → {e(otro)}{marca}{fase_txt}')
             tipo = c.pinout.tipo(pin)
             if not conex:
                 conex = ['<span style="color:var(--ink-soft)">sin conexión (salida que no se usa)</span>'
@@ -334,7 +341,7 @@ def seccion_chips(fase):
                              f'<td class="ag">{e(c.agujero(pin))}</td><td>{"<br>".join(conex)}</td></tr>')
         tabla_pines = ('<details><summary style="cursor:pointer;margin-top:10px;font-weight:600">Tabla de pines de '
                        f'{e(c.nombre)}: qué llega a cada pata (todas las fases)</summary><div class="tabla"><table><thead><tr>'
-                       '<th>Pin</th><th>Señal</th><th>Agujero</th><th>Cables en su tira</th></tr></thead><tbody>'
+                       '<th>Pin</th><th>Señal</th><th>Agujero</th><th>Qué hay en su tira</th></tr></thead><tbody>'
                        + ''.join(filas_pin) + '</tbody></table></div></details>')
         ult_inf = c.agujero(c.mitad)
         pin_n = c.agujero(c.pinout.pines)
@@ -506,7 +513,7 @@ def pagina_indice(u):
 <header class="top">
   <div class="eyebrow">Montaje físico · microprocesador 8 bits</div>
   <h1>Montaje en 4 protoboards</h1>
-  <p class="lede">Guía del montaje final: 8 integrados TTL en 4 protoboards de 830 puntos y el Arduino Mega, sobre una
+  <p class="lede">Guía del montaje final: 10 integrados TTL en 4 protoboards de 830 puntos y el Arduino Mega, sobre una
   base rígida, con cable sólido 22 AWG en 10 colores, uno por función. Se arma en 7 fases y cada una termina con una
   prueba: no se pasa a la siguiente sin aprobarla.</p>
   {nav(-1, u)}
@@ -529,7 +536,7 @@ def pagina_indice(u):
 
 <section><h2>Qué va en cada protoboard</h2>
   <div class="tabla"><table><thead><tr><th>Protoboard</th><th>Integrados</th></tr></thead><tbody>{placa}
-  <tr><td class="num">Mega</td><td>A la izquierda de BB2/BB3, USB hacia afuera, cabecera 22–53 hacia las protoboards</td></tr>
+  <tr><td class="num">Mega</td><td>A la izquierda de BB2/BB3, USB hacia afuera, cabecera 22–53 hacia las protoboards; A8–A15 (abajo) leen el PC</td></tr>
   </tbody></table></div>
 </section>
 
@@ -545,10 +552,11 @@ def pagina_indice(u):
   <tr><td>Multímetro con continuidad (pitido)</td><td>Se usa en todas las fases</td></tr>
   <tr><td>Pelacables para 22 AWG y pinzas de corte</td><td>Pelado de 8 mm en cada punta</td></tr>
   <tr><td>Pinzas de punta fina</td><td>Para doblar y colocar cables cortos</td></tr>
-  <tr><td>Fuente 5 V ≥1 A + adaptador jack hembra a bornera</td><td>Alimenta las protoboards; el Mega va por USB</td></tr>
+  <tr><td>Fuente 5 V ≥1 A + adaptador jack hembra a bornera</td><td>Alimenta las protoboards; el Mega va por USB. <b>5 V regulada</b>: 6 V directo no (ver fase 0)</td></tr>
   <tr><td>Base de MDF o acrílico ~35 × 25 cm, 4 separadores M3 de 10 mm con tornillos</td><td>Fija las protoboards y el Mega</td></tr>
   <tr><td>Kit dupont macho-macho (cualquier color)</td><td>Solo para las pruebas; se retiran</td></tr>
-  <tr><td>Dip switch de 8, pulsador de 4 patas, 9 resistencias de 1 kΩ</td><td>Banco de pruebas de las fases 1–4</td></tr>
+  <tr><td>Dip switch de 8, pulsador de 4 patas, 9 resistencias de 1 kΩ</td><td>Banco de pruebas de las fases 1–4; <b>se retiran</b> al cerrar la fase 4</td></tr>
+  <tr><td>15 resistencias más: 8 de 330 Ω y 7 de 1 kΩ</td><td>Protecciones de la fase 5, <b>permanentes</b>: son aparte de las 9 del banco de pruebas</td></tr>
   <tr><td>Cinta de enmascarar y marcador</td><td>Rótulos de protoboards y chips</td></tr>
   </tbody></table></div>
 </section>

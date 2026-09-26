@@ -135,10 +135,16 @@ int main(int argc, char** argv) {
   }
   std::printf("\n");
 
-  std::printf("FIN detenido=%u instrucciones=%u microciclos=%u limite=%u\n",
+  // Flancos que recibió el contador de programa emulado (2× 74LS161):
+  // cuántas cuentas y cuántas cargas pidió el núcleo.
+  const hal_falso::Estado& placa = hal_falso::estado();
+  std::printf("FIN detenido=%u instrucciones=%u microciclos=%u limite=%u "
+              "pulsos_pc=%u cargas_pc=%u\n",
               static_cast<unsigned>(nucleo.detenido() ? 1 : 0),
               static_cast<unsigned>(nucleo.instrucciones()),
               static_cast<unsigned>(microciclos),
-              static_cast<unsigned>(limiteAlcanzado ? 1 : 0));
+              static_cast<unsigned>(limiteAlcanzado ? 1 : 0),
+              static_cast<unsigned>(placa.pulsosPC),
+              static_cast<unsigned>(placa.cargasPC));
   return 0;
 }

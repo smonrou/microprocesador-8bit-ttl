@@ -33,6 +33,11 @@ OX_BB = MEGA_W + SEP_MEGA + 1.5          # borde izquierdo de las protoboards
 OY_MEGA = 2 * ALTO_BB - MEGA_H / 2       # Mega centrado entre BB2 y BB3
 MARGEN = 3.0
 
+# Bandas de color de cada resistencia del montaje, por valor.
+BANDAS = {'220': ['#d62828', '#d62828', '#6b3d1a'],    # rojo rojo café
+          '330': ['#f07d19', '#f07d19', '#6b3d1a'],    # naranja naranja café
+          '1 k': ['#6b3d1a', '#1d1d1d', '#d62828']}    # café negro rojo
+
 SALIDA = os.path.join(os.path.dirname(__file__), 'salida')
 
 
@@ -43,10 +48,14 @@ def pos_mega(pin):
 
     Mega en orientación estándar (USB a la izquierda). Cabecera doble 22-53 en
     el extremo derecho: pares en la columna interna, impares en la externa;
-    arriba 5V/5V y abajo GND/GND. Cabecera digital 0-7 en el borde superior."""
+    arriba 5V/5V y abajo GND/GND. Cabecera digital 0-7 en el borde superior.
+    Cabecera analógica A0-A15 en el borde inferior, de izquierda a derecha."""
     x0, y0 = MARGEN, OY_MEGA
     if pin == 'GND':
         return (x0 + MEGA_W - 2.2, y0 + 19.0)
+    if pin.startswith('A'):
+        n = int(pin[1:])
+        return (x0 + 17.0 + n + (1 if n >= 8 else 0), y0 + MEGA_H - 1.2)
     n = int(pin)
     if n >= 22:
         col = MEGA_W - 2.2 if n % 2 else MEGA_W - 3.2
@@ -161,7 +170,15 @@ def _mega(svg, pines_usados):
                 f'fill="{"#ffd166" if usado else "#111"}"/>'
                 f'<text x="{_px(x)}" y="{_px(y + 1.5)}" font-size="7.5" fill="#e8f4f8" text-anchor="middle">{n}</text>')
     svg.add(f'<text x="{_px(x0 + 25.5)}" y="{_px(y0 + 3.4)}" font-size="8" fill="#bfe0ea" '
-            f'text-anchor="middle">DIGITAL (PWM)</text></g>')
+            f'text-anchor="middle">DIGITAL (PWM)</text>')
+    for n in range(0, 16):
+        x, y = pos_mega(f'A{n}')
+        usado = f'A{n}' in pines_usados
+        svg.add(f'<rect x="{_px(x - 0.4)}" y="{_px(y - 0.4)}" width="{_px(0.8)}" height="{_px(0.8)}" '
+                f'fill="{"#ffd166" if usado else "#111"}"/>'
+                f'<text x="{_px(x)}" y="{_px(y - 0.9)}" font-size="7" fill="#e8f4f8" text-anchor="middle">{n}</text>')
+    svg.add(f'<text x="{_px(x0 + 25.5)}" y="{_px(y0 + MEGA_H - 3.4)}" font-size="8" fill="#bfe0ea" '
+            f'text-anchor="middle">ANALOG IN A0–A15 · A8–A15 = PORTK: lectura del PC</text></g>')
 
 
 def _chip(svg, c, tenue):
@@ -205,7 +222,7 @@ def _pieza(svg, p, tenue, temporal):
         svg.add(f'<line x1="{_px(xa)}" y1="{_px(ya)}" x2="{_px(xb)}" y2="{_px(yb)}" stroke="#9a9a9a" stroke-width="1.6"/>')
         mx, my = (xa + xb) / 2, (ya + yb) / 2
         ang = math.degrees(math.atan2(yb - ya, xb - xa))
-        bandas = ['#d62828', '#d62828', '#6b3d1a'] if '220' in p.valor else ['#6b3d1a', '#1d1d1d', '#d62828']
+        bandas = BANDAS.get(next((v for v in BANDAS if v in p.valor), ''), BANDAS['1 k'])
         svg.add(f'<g transform="translate({_px(mx)} {_px(my)}) rotate({ang:.1f})">'
                 f'<rect x="-11" y="-4" width="22" height="8" rx="3.5" fill="#d8c29a" stroke="#8d7a55" stroke-width=".8"/>'
                 + ''.join(f'<rect x="{-7 + 4.5 * i}" y="-4" width="2.2" height="8" fill="{b}"/>' for i, b in enumerate(bandas))

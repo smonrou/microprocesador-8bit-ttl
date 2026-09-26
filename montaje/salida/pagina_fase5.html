@@ -98,15 +98,15 @@ footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-si
 <header class="top">
   <div class="eyebrow">Montaje físico · microprocesador 8 bits · fase 5 de 6</div>
   <h1>Arduino Mega</h1>
-  <p class="lede">Conectar el Arduino Mega: bus D, bus F, control de la ALU, relojes, CLEAR, selección del mux, acarreo y GND común. Cargar el firmware y correr el programa de referencia: 4 × 3 = 12 tiene que aparecer en los LEDs.</p>
-  <nav class="fases" aria-label="Fases"><a href="https://claude.ai/artifact/3Et1w2RqYGTCZERfkgsorB">Índice</a><a href="https://claude.ai/artifact/LBEYepv8NYrCCVcnSVbr9K">0 · Alimentación</a><a href="https://claude.ai/artifact/WeFKZu5PRsN8ZTFX8wjgUm">1 · Salida</a><a href="https://claude.ai/artifact/4PMaFtAbBHvTVFfcX48KMF">2 · ALU</a><a href="https://claude.ai/artifact/4Tu72dRn3nBvR3QbLUSUzV">3 · Registros</a><a href="https://claude.ai/artifact/2WNVRdJk6En1Y2xn3QmYfb">4 · Mux</a><span class="aqui" aria-current="page">5 · Mega</span><a href="https://claude.ai/artifact/BetMDcMWtAQ57s2jDWBecG">6 · Cierre</a></nav>
+  <p class="lede">Conectar el Arduino Mega: bus D, bus F, control de la ALU, relojes, CLEAR, selección del mux, acarreo, reloj y /LOAD del PC, lectura del PC (A8–A15) y GND común. Cargar el firmware y correr el programa de referencia: 4 × 3 = 12 tiene que aparecer en los LEDs.</p>
+  <nav class="fases" aria-label="Fases"><a href="https://claude.ai/artifact/3Et1w2RqYGTCZERfkgsorB">Índice</a><a href="https://claude.ai/artifact/LBEYepv8NYrCCVcnSVbr9K">0 · Alimentación</a><a href="https://claude.ai/artifact/WeFKZu5PRsN8ZTFX8wjgUm">1 · Salida</a><a href="https://claude.ai/artifact/4PMaFtAbBHvTVFfcX48KMF">2 · ALU</a><a href="https://claude.ai/artifact/4Tu72dRn3nBvR3QbLUSUzV">3 · Registros</a><a href="https://claude.ai/artifact/2WNVRdJk6En1Y2xn3QmYfb">4 · Mux y PC</a><span class="aqui" aria-current="page">5 · Mega</span><a href="https://claude.ai/artifact/BetMDcMWtAQ57s2jDWBecG">6 · Cierre</a></nav>
 </header>
 <div class="progreso"><span id="cuenta" class="mono">0 marcados</span><div class="barra"><i id="barra"></i></div>
   <span id="estado-db" class="estado-db">cargando…</span></div>
 
-<section id="antes"><h2>Antes de empezar</h2><div class="callout warn"><span class="m">!</span><div><b>Primero el firmware, con el Mega desconectado de la protoboard.</b> Si en la fase 2 C.5 salió invertido, cambia <code>CARRY_SUB_INVERTIDO</code> a 1 en <code>isa.h</code>. Sube <code>firmware/microprocesador/microprocesador.ino</code> desde el IDE, abre el monitor serial a <b>115200</b> y escribe <code>HELP</code>: debe responder la lista de comandos.</div></div><div class="callout warn"><span class="m">!</span><div><b>El pin 5V del Mega no se conecta a nada.</b> El Mega se alimenta por USB y la protoboard por su fuente; solo se unen las tierras. Conecta el <b>GND primero</b>.</div></div><div class="callout warn"><span class="m">!</span><div><b>PORTC y PORTL van al revés.</b> F0 va al pin <b>37</b> (no al 30) y S0 al pin <b>49</b>. Si lo inviertes, los resultados salen con los bits al revés sin ningún otro síntoma.</div></div><div class="callout note"><span class="m">i</span><div><b>Orden de encendido:</b> fuente de la protoboard primero, luego el USB. Para apagar, al revés.</div></div></section>
+<section id="antes"><h2>Antes de empezar</h2><div class="callout warn"><span class="m">!</span><div><b>Primero el firmware, con el Mega desconectado de la protoboard.</b> Si en la fase 2 C.5 salió invertido, cambia <code>CARRY_SUB_INVERTIDO</code> a 1 en <code>isa.h</code>. Sube <code>firmware/microprocesador/microprocesador.ino</code> desde el IDE, abre el monitor serial a <b>115200</b> y escribe <code>HELP</code>: debe responder la lista de comandos.</div></div><div class="callout warn"><span class="m">!</span><div><b>El pin 5V del Mega no se conecta a nada.</b> El Mega se alimenta por USB y la protoboard por su fuente; solo se unen las tierras. Conecta el <b>GND primero</b>.</div></div><div class="callout warn"><span class="m">!</span><div><b>Las 15 resistencias de esta fase van antes que los cables del Mega</b>, no después. Las 7 de <b>1 kΩ</b> fijan el nivel de reposo de CLEAR, SEL, los tres relojes, el reloj del PC y /LOAD del PC: esos pines del Mega quedan en alta impedancia mientras resetea y durante <b>cada carga de firmware</b>, y una entrada TTL al aire no vale 0 ni 1: flota alto y conmuta con el ruido. Sin ellas, un CLEAR o un reloj espurio corrompe los registros a media ejecución.</div></div><div class="callout note"><span class="m">i</span><div><b>Las 8 de 330 Ω del bus F van en serie</b>, cada una entre un pin D del registro de salida y la tira de la que sale su cable azul al Mega. Saltan 4 filas: dobla las patas en L y déjala plana. Protegen contra contención si un pin del Mega quedara como <code>OUTPUT</code> por un <code>pinMode</code> mal puesto: limitan a ~15 mA en vez de quemar el pin del Mega o la salida de la ALU. No estorban la lectura, la entrada del Mega es de alta impedancia.</div></div><div class="callout warn"><span class="m">!</span><div><b>PORTC y PORTL van al revés.</b> F0 va al pin <b>37</b> (no al 30) y S0 al pin <b>49</b>. Si lo inviertes, los resultados salen con los bits al revés sin ningún otro síntoma.</div></div><div class="callout note"><span class="m">i</span><div><b>El PC va a la cabecera analógica, en orden normal:</b> Q0 de PC BAJO → <b>A8</b> … Q3 de PC ALTO → <b>A15</b> (PORTK asciende). El Arduino es la RAM: A8–A15 son sus patas de dirección.</div></div><div class="callout note"><span class="m">i</span><div><b>Orden de encendido:</b> fuente de la protoboard primero, luego el USB. Para apagar, al revés.</div></div></section>
 
-<section id="material"><h2>Material de esta fase</h2><div class="material"><div class="tabla"><table><thead><tr><th>Cable</th><th>Cant.</th><th>Total</th></tr></thead><tbody><tr><td><span class="sw"><i style="background:#1d1d1d"></i>Negro</span></td><td class="num">1</td><td class="cm">8 cm</td></tr><tr><td><span class="sw"><i style="background:#7b3fb5"></i>Morado</span></td><td class="num">7</td><td class="cm">94 cm</td></tr><tr><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="num">8</td><td class="cm">153 cm</td></tr><tr><td><span class="sw"><i style="background:#8b5a2b"></i>Café</span></td><td class="num">5</td><td class="cm">82 cm</td></tr><tr><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="num">8</td><td class="cm">83 cm</td></tr></tbody></table></div></div></section>
+<section id="material"><h2>Material de esta fase</h2><div class="material"><div class="tabla"><table><thead><tr><th>Cant.</th><th>Pieza</th><th>Valor</th></tr></thead><tbody><tr><td class="num">7</td><td>Resistencia</td><td>1 kΩ</td></tr><tr><td class="num">8</td><td>Resistencia</td><td>330 Ω</td></tr></tbody></table></div><div class="tabla"><table><thead><tr><th>Cable</th><th>Cant.</th><th>Total</th></tr></thead><tbody><tr><td><span class="sw"><i style="background:#1d1d1d"></i>Negro</span></td><td class="num">1</td><td class="cm">8 cm</td></tr><tr><td><span class="sw"><i style="background:#8a8a8a"></i>Gris</span></td><td class="num">8</td><td class="cm">240 cm</td></tr><tr><td><span class="sw"><i style="background:#7b3fb5"></i>Morado</span></td><td class="num">7</td><td class="cm">94 cm</td></tr><tr><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="num">8</td><td class="cm">153 cm</td></tr><tr><td><span class="sw"><i style="background:#8b5a2b"></i>Café</span></td><td class="num">7</td><td class="cm">130 cm</td></tr><tr><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="num">8</td><td class="cm">83 cm</td></tr></tbody></table></div></div></section>
 
 <section id="plano"><h2>Plano</h2>
   <p class="dek">Vista de arriba, fila 1 a la izquierda, letra j arriba. En color lo de esta fase; atenuado lo de fases
@@ -114,7 +114,7 @@ footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-si
   <div class="leyenda"><span><span class="sw"><i style="background:#d62828"></i>Rojo</span></span><span><span class="sw"><i style="background:#1d1d1d"></i>Negro</span></span><span><span class="sw"><i style="background:#8a8a8a"></i>Gris</span></span><span><span class="sw"><i style="background:#7b3fb5"></i>Morado</span></span><span><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></span><span><span class="sw"><i style="background:#2e9e44"></i>Verde</span></span><span><span class="sw"><i style="background:#f4f4f4"></i>Blanco</span></span><span><span class="sw"><i style="background:#8b5a2b"></i>Café</span></span><span><span class="sw"><i style="background:#f07d19"></i>Naranja</span></span><span><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></span><span><span class="sw t"><i style="background:#e0409a"></i>Dupont de prueba</span></span></div>
   <div class="botones"><button type="button" data-escala="plano-general">Ver a tamaño real</button></div>
   <figure><div class="plano" id="plano-general"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0.0 0.0 1362.0 1108.8" font-family="IBM Plex Mono, Consolas, monospace" role="img">
-<defs><pattern id="aguj14" width="12" height="12" patternUnits="userSpaceOnUse"><rect x="4" y="4" width="4" height="4" rx=".6" fill="#6d6859"/></pattern></defs>
+<defs><pattern id="aguj16" width="12" height="12" patternUnits="userSpaceOnUse"><rect x="4" y="4" width="4" height="4" rx=".6" fill="#6d6859"/></pattern></defs>
 <rect x="0.0" y="0.0" width="1362.0" height="1108.8" fill="#fbfaf6"/>
 <g class="bb"><rect x="546.0" y="37.8" width="780.0" height="255.6" rx="6" fill="#f3f1ea" stroke="#c9c3b3"/>
 <rect x="552.0" y="151.2" width="768.0" height="16.8" fill="#e2ddd0"/>
@@ -326,8 +326,8 @@ footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-si
 <rect x="1252.0" y="271.6" width="4" height="4" fill="#4a4740" rx="0.6"/>
 <rect x="1264.0" y="271.6" width="4" height="4" fill="#4a4740" rx="0.6"/>
 <rect x="1276.0" y="271.6" width="4" height="4" fill="#4a4740" rx="0.6"/>
-<rect x="552.0" y="87.6" width="756.0" height="60.0" fill="url(#aguj14)"/>
-<rect x="552.0" y="171.6" width="756.0" height="60.0" fill="url(#aguj14)"/>
+<rect x="552.0" y="87.6" width="756.0" height="60.0" fill="url(#aguj16)"/>
+<rect x="552.0" y="171.6" width="756.0" height="60.0" fill="url(#aguj16)"/>
 <text x="558.0" y="82.2" font-size="7.5" text-anchor="middle" fill="#8b8574">1</text>
 <text x="558.0" y="240.6" font-size="7.5" text-anchor="middle" fill="#8b8574">1</text>
 <text x="606.0" y="82.2" font-size="7.5" text-anchor="middle" fill="#8b8574">5</text>
@@ -585,8 +585,8 @@ footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-si
 <rect x="1252.0" y="530.8" width="4" height="4" fill="#4a4740" rx="0.6"/>
 <rect x="1264.0" y="530.8" width="4" height="4" fill="#4a4740" rx="0.6"/>
 <rect x="1276.0" y="530.8" width="4" height="4" fill="#4a4740" rx="0.6"/>
-<rect x="552.0" y="346.8" width="756.0" height="60.0" fill="url(#aguj14)"/>
-<rect x="552.0" y="430.8" width="756.0" height="60.0" fill="url(#aguj14)"/>
+<rect x="552.0" y="346.8" width="756.0" height="60.0" fill="url(#aguj16)"/>
+<rect x="552.0" y="430.8" width="756.0" height="60.0" fill="url(#aguj16)"/>
 <text x="558.0" y="341.4" font-size="7.5" text-anchor="middle" fill="#8b8574">1</text>
 <text x="558.0" y="499.8" font-size="7.5" text-anchor="middle" fill="#8b8574">1</text>
 <text x="606.0" y="341.4" font-size="7.5" text-anchor="middle" fill="#8b8574">5</text>
@@ -844,8 +844,8 @@ footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-si
 <rect x="1252.0" y="790.0" width="4" height="4" fill="#4a4740" rx="0.6"/>
 <rect x="1264.0" y="790.0" width="4" height="4" fill="#4a4740" rx="0.6"/>
 <rect x="1276.0" y="790.0" width="4" height="4" fill="#4a4740" rx="0.6"/>
-<rect x="552.0" y="606.0" width="756.0" height="60.0" fill="url(#aguj14)"/>
-<rect x="552.0" y="690.0" width="756.0" height="60.0" fill="url(#aguj14)"/>
+<rect x="552.0" y="606.0" width="756.0" height="60.0" fill="url(#aguj16)"/>
+<rect x="552.0" y="690.0" width="756.0" height="60.0" fill="url(#aguj16)"/>
 <text x="558.0" y="600.6" font-size="7.5" text-anchor="middle" fill="#8b8574">1</text>
 <text x="558.0" y="759.0" font-size="7.5" text-anchor="middle" fill="#8b8574">1</text>
 <text x="606.0" y="600.6" font-size="7.5" text-anchor="middle" fill="#8b8574">5</text>
@@ -1103,8 +1103,8 @@ footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-si
 <rect x="1252.0" y="1049.2" width="4" height="4" fill="#4a4740" rx="0.6"/>
 <rect x="1264.0" y="1049.2" width="4" height="4" fill="#4a4740" rx="0.6"/>
 <rect x="1276.0" y="1049.2" width="4" height="4" fill="#4a4740" rx="0.6"/>
-<rect x="552.0" y="865.2" width="756.0" height="60.0" fill="url(#aguj14)"/>
-<rect x="552.0" y="949.2" width="756.0" height="60.0" fill="url(#aguj14)"/>
+<rect x="552.0" y="865.2" width="756.0" height="60.0" fill="url(#aguj16)"/>
+<rect x="552.0" y="949.2" width="756.0" height="60.0" fill="url(#aguj16)"/>
 <text x="558.0" y="859.8" font-size="7.5" text-anchor="middle" fill="#8b8574">1</text>
 <text x="558.0" y="1018.2" font-size="7.5" text-anchor="middle" fill="#8b8574">1</text>
 <text x="606.0" y="859.8" font-size="7.5" text-anchor="middle" fill="#8b8574">5</text>
@@ -1196,9 +1196,9 @@ footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-si
 <text x="468.6" y="540.0" font-size="7.5" fill="#e8f4f8" text-anchor="end">40</text>
 <rect x="484.8" y="531.6" width="9.6" height="9.6" fill="#ffd166" stroke="#000" stroke-width=".5"/>
 <text x="498.6" y="540.0" font-size="7.5" fill="#e8f4f8" text-anchor="start">41</text>
-<rect x="472.8" y="543.6" width="9.6" height="9.6" fill="#111" stroke="#000" stroke-width=".5"/>
+<rect x="472.8" y="543.6" width="9.6" height="9.6" fill="#ffd166" stroke="#000" stroke-width=".5"/>
 <text x="468.6" y="552.0" font-size="7.5" fill="#e8f4f8" text-anchor="end">42</text>
-<rect x="484.8" y="543.6" width="9.6" height="9.6" fill="#111" stroke="#000" stroke-width=".5"/>
+<rect x="484.8" y="543.6" width="9.6" height="9.6" fill="#ffd166" stroke="#000" stroke-width=".5"/>
 <text x="498.6" y="552.0" font-size="7.5" fill="#e8f4f8" text-anchor="start">43</text>
 <rect x="472.8" y="555.6" width="9.6" height="9.6" fill="#ffd166" stroke="#000" stroke-width=".5"/>
 <text x="468.6" y="564.0" font-size="7.5" fill="#e8f4f8" text-anchor="end">44</text>
@@ -1234,7 +1234,24 @@ footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-si
 <rect x="319.2" y="402.0" width="9.6" height="9.6" fill="#111"/><text x="324.0" y="424.8" font-size="7.5" fill="#e8f4f8" text-anchor="middle">5</text>
 <rect x="307.2" y="402.0" width="9.6" height="9.6" fill="#111"/><text x="312.0" y="424.8" font-size="7.5" fill="#e8f4f8" text-anchor="middle">6</text>
 <rect x="295.2" y="402.0" width="9.6" height="9.6" fill="#ffd166"/><text x="300.0" y="424.8" font-size="7.5" fill="#e8f4f8" text-anchor="middle">7</text>
-<text x="342.0" y="433.2" font-size="8" fill="#bfe0ea" text-anchor="middle">DIGITAL (PWM)</text></g>
+<text x="342.0" y="433.2" font-size="8" fill="#bfe0ea" text-anchor="middle">DIGITAL (PWM)</text>
+<rect x="235.2" y="625.2" width="9.6" height="9.6" fill="#111"/><text x="240.0" y="619.2" font-size="7" fill="#e8f4f8" text-anchor="middle">0</text>
+<rect x="247.2" y="625.2" width="9.6" height="9.6" fill="#111"/><text x="252.0" y="619.2" font-size="7" fill="#e8f4f8" text-anchor="middle">1</text>
+<rect x="259.2" y="625.2" width="9.6" height="9.6" fill="#111"/><text x="264.0" y="619.2" font-size="7" fill="#e8f4f8" text-anchor="middle">2</text>
+<rect x="271.2" y="625.2" width="9.6" height="9.6" fill="#111"/><text x="276.0" y="619.2" font-size="7" fill="#e8f4f8" text-anchor="middle">3</text>
+<rect x="283.2" y="625.2" width="9.6" height="9.6" fill="#111"/><text x="288.0" y="619.2" font-size="7" fill="#e8f4f8" text-anchor="middle">4</text>
+<rect x="295.2" y="625.2" width="9.6" height="9.6" fill="#111"/><text x="300.0" y="619.2" font-size="7" fill="#e8f4f8" text-anchor="middle">5</text>
+<rect x="307.2" y="625.2" width="9.6" height="9.6" fill="#111"/><text x="312.0" y="619.2" font-size="7" fill="#e8f4f8" text-anchor="middle">6</text>
+<rect x="319.2" y="625.2" width="9.6" height="9.6" fill="#111"/><text x="324.0" y="619.2" font-size="7" fill="#e8f4f8" text-anchor="middle">7</text>
+<rect x="343.2" y="625.2" width="9.6" height="9.6" fill="#ffd166"/><text x="348.0" y="619.2" font-size="7" fill="#e8f4f8" text-anchor="middle">8</text>
+<rect x="355.2" y="625.2" width="9.6" height="9.6" fill="#ffd166"/><text x="360.0" y="619.2" font-size="7" fill="#e8f4f8" text-anchor="middle">9</text>
+<rect x="367.2" y="625.2" width="9.6" height="9.6" fill="#ffd166"/><text x="372.0" y="619.2" font-size="7" fill="#e8f4f8" text-anchor="middle">10</text>
+<rect x="379.2" y="625.2" width="9.6" height="9.6" fill="#ffd166"/><text x="384.0" y="619.2" font-size="7" fill="#e8f4f8" text-anchor="middle">11</text>
+<rect x="391.2" y="625.2" width="9.6" height="9.6" fill="#ffd166"/><text x="396.0" y="619.2" font-size="7" fill="#e8f4f8" text-anchor="middle">12</text>
+<rect x="403.2" y="625.2" width="9.6" height="9.6" fill="#ffd166"/><text x="408.0" y="619.2" font-size="7" fill="#e8f4f8" text-anchor="middle">13</text>
+<rect x="415.2" y="625.2" width="9.6" height="9.6" fill="#ffd166"/><text x="420.0" y="619.2" font-size="7" fill="#e8f4f8" text-anchor="middle">14</text>
+<rect x="427.2" y="625.2" width="9.6" height="9.6" fill="#ffd166"/><text x="432.0" y="619.2" font-size="7" fill="#e8f4f8" text-anchor="middle">15</text>
+<text x="342.0" y="603.6" font-size="8" fill="#bfe0ea" text-anchor="middle">ANALOG IN A0–A15 · A8–A15 = PORTK: lectura del PC</text></g>
 <g class="chip" opacity=".45">
 <rect x="635.4" y="145.8" width="97.2" height="27.6" rx="3" fill="#26272b"/>
 <path d="M635.4 153.0 a6.6 6.6 0 0 1 0 13.2" fill="#55565c"/>
@@ -1279,6 +1296,50 @@ footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-si
 <circle cx="787.2" cy="166.2" r="2.6" fill="#d9d9d9"/>
 <text x="828.0" y="157.2" font-size="9.5" fill="#f5f5f5" text-anchor="middle" font-weight="700">MUX ALTO</text>
 <text x="828.0" y="169.8" font-size="8.5" fill="#bdbdbd" text-anchor="middle">74LS157</text></g>
+<g class="chip" opacity=".45">
+<rect x="923.4" y="145.8" width="97.2" height="27.6" rx="3" fill="#26272b"/>
+<path d="M923.4 153.0 a6.6 6.6 0 0 1 0 13.2" fill="#55565c"/>
+<rect x="926.6" y="176.6" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="938.6" y="176.6" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="950.6" y="176.6" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="962.6" y="176.6" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="974.6" y="176.6" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="986.6" y="176.6" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="998.6" y="176.6" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="1010.6" y="176.6" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="1010.6" y="135.8" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="998.6" y="135.8" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="986.6" y="135.8" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="974.6" y="135.8" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="962.6" y="135.8" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="950.6" y="135.8" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="938.6" y="135.8" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="926.6" y="135.8" width="6.7" height="6.7" fill="#c8c8c8"/>
+<circle cx="931.2" cy="166.2" r="2.6" fill="#d9d9d9"/>
+<text x="972.0" y="157.2" font-size="9.5" fill="#f5f5f5" text-anchor="middle" font-weight="700">PC BAJO</text>
+<text x="972.0" y="169.8" font-size="8.5" fill="#bdbdbd" text-anchor="middle">74LS161</text></g>
+<g class="chip" opacity=".45">
+<rect x="1067.4" y="145.8" width="97.2" height="27.6" rx="3" fill="#26272b"/>
+<path d="M1067.4 153.0 a6.6 6.6 0 0 1 0 13.2" fill="#55565c"/>
+<rect x="1070.6" y="176.6" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="1082.6" y="176.6" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="1094.6" y="176.6" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="1106.6" y="176.6" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="1118.6" y="176.6" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="1130.6" y="176.6" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="1142.6" y="176.6" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="1154.6" y="176.6" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="1154.6" y="135.8" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="1142.6" y="135.8" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="1130.6" y="135.8" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="1118.6" y="135.8" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="1106.6" y="135.8" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="1094.6" y="135.8" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="1082.6" y="135.8" width="6.7" height="6.7" fill="#c8c8c8"/>
+<rect x="1070.6" y="135.8" width="6.7" height="6.7" fill="#c8c8c8"/>
+<circle cx="1075.2" cy="166.2" r="2.6" fill="#d9d9d9"/>
+<text x="1116.0" y="157.2" font-size="9.5" fill="#f5f5f5" text-anchor="middle" font-weight="700">PC ALTO</text>
+<text x="1116.0" y="169.8" font-size="8.5" fill="#bdbdbd" text-anchor="middle">74LS161</text></g>
 <g class="chip" opacity=".45">
 <rect x="779.4" y="405.0" width="121.2" height="27.6" rx="3" fill="#26272b"/>
 <path d="M779.4 412.2 a6.6 6.6 0 0 1 0 13.2" fill="#55565c"/>
@@ -1464,6 +1525,16 @@ footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-si
 <ellipse cx="808.8" cy="61.2" rx="7" ry="6" fill="#e3a72f" stroke="#9c6b10"/>
 </g>
 <g class="pieza" opacity=".45">
+<line x1="942.0" y1="55.2" x2="942.0" y2="61.2" stroke="#999" stroke-width="1.4"/>
+<line x1="942.0" y1="67.2" x2="942.0" y2="61.2" stroke="#999" stroke-width="1.4"/>
+<ellipse cx="952.8" cy="61.2" rx="7" ry="6" fill="#e3a72f" stroke="#9c6b10"/>
+</g>
+<g class="pieza" opacity=".45">
+<line x1="1086.0" y1="55.2" x2="1086.0" y2="61.2" stroke="#999" stroke-width="1.4"/>
+<line x1="1086.0" y1="67.2" x2="1086.0" y2="61.2" stroke="#999" stroke-width="1.4"/>
+<ellipse cx="1096.8" cy="61.2" rx="7" ry="6" fill="#e3a72f" stroke="#9c6b10"/>
+</g>
+<g class="pieza" opacity=".45">
 <line x1="798.0" y1="314.4" x2="798.0" y2="320.4" stroke="#999" stroke-width="1.4"/>
 <line x1="798.0" y1="326.4" x2="798.0" y2="320.4" stroke="#999" stroke-width="1.4"/>
 <ellipse cx="808.8" cy="320.4" rx="7" ry="6" fill="#e3a72f" stroke="#9c6b10"/>
@@ -1548,6 +1619,66 @@ footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-si
 </g>
 <g class="pieza" opacity=".45">
 <circle cx="1260.0" cy="882.0" r="7.5" fill="#ff4d4d" stroke="#8e1b1b" stroke-width="1.2" opacity=".92"/><line x1="1254.0" y1="895.2" x2="1254.0" y2="886.8" stroke="#777" stroke-width="1.6"/><line x1="1266.0" y1="895.2" x2="1266.0" y2="886.8" stroke="#777" stroke-width="1.6"/><text x="1252.8" y="906.6" font-size="7" fill="#8e1b1b" text-anchor="middle">+</text>
+</g>
+<g class="pieza">
+<line x1="786.0" y1="472.8" x2="774.0" y2="532.8" stroke="#9a9a9a" stroke-width="1.6"/>
+<g transform="translate(780.0 502.8) rotate(101.3)"><rect x="-11" y="-4" width="22" height="8" rx="3.5" fill="#d8c29a" stroke="#8d7a55" stroke-width=".8"/><rect x="-7.0" y="-4" width="2.2" height="8" fill="#6b3d1a"/><rect x="-2.5" y="-4" width="2.2" height="8" fill="#1d1d1d"/><rect x="2.0" y="-4" width="2.2" height="8" fill="#d62828"/></g>
+</g>
+<g class="pieza">
+<line x1="642.0" y1="213.6" x2="630.0" y2="261.6" stroke="#9a9a9a" stroke-width="1.6"/>
+<g transform="translate(636.0 237.6) rotate(104.0)"><rect x="-11" y="-4" width="22" height="8" rx="3.5" fill="#d8c29a" stroke="#8d7a55" stroke-width=".8"/><rect x="-7.0" y="-4" width="2.2" height="8" fill="#6b3d1a"/><rect x="-2.5" y="-4" width="2.2" height="8" fill="#1d1d1d"/><rect x="2.0" y="-4" width="2.2" height="8" fill="#d62828"/></g>
+</g>
+<g class="pieza">
+<line x1="894.0" y1="352.8" x2="894.0" y2="326.4" stroke="#9a9a9a" stroke-width="1.6"/>
+<g transform="translate(894.0 339.6) rotate(-90.0)"><rect x="-11" y="-4" width="22" height="8" rx="3.5" fill="#d8c29a" stroke="#8d7a55" stroke-width=".8"/><rect x="-7.0" y="-4" width="2.2" height="8" fill="#6b3d1a"/><rect x="-2.5" y="-4" width="2.2" height="8" fill="#1d1d1d"/><rect x="2.0" y="-4" width="2.2" height="8" fill="#d62828"/></g>
+</g>
+<g class="pieza">
+<line x1="726.0" y1="352.8" x2="726.0" y2="326.4" stroke="#9a9a9a" stroke-width="1.6"/>
+<g transform="translate(726.0 339.6) rotate(-90.0)"><rect x="-11" y="-4" width="22" height="8" rx="3.5" fill="#d8c29a" stroke="#8d7a55" stroke-width=".8"/><rect x="-7.0" y="-4" width="2.2" height="8" fill="#6b3d1a"/><rect x="-2.5" y="-4" width="2.2" height="8" fill="#1d1d1d"/><rect x="2.0" y="-4" width="2.2" height="8" fill="#d62828"/></g>
+</g>
+<g class="pieza">
+<line x1="774.0" y1="871.2" x2="774.0" y2="844.8" stroke="#9a9a9a" stroke-width="1.6"/>
+<g transform="translate(774.0 858.0) rotate(-90.0)"><rect x="-11" y="-4" width="22" height="8" rx="3.5" fill="#d8c29a" stroke="#8d7a55" stroke-width=".8"/><rect x="-7.0" y="-4" width="2.2" height="8" fill="#6b3d1a"/><rect x="-2.5" y="-4" width="2.2" height="8" fill="#1d1d1d"/><rect x="2.0" y="-4" width="2.2" height="8" fill="#d62828"/></g>
+</g>
+<g class="pieza">
+<line x1="942.0" y1="213.6" x2="942.0" y2="261.6" stroke="#9a9a9a" stroke-width="1.6"/>
+<g transform="translate(942.0 237.6) rotate(90.0)"><rect x="-11" y="-4" width="22" height="8" rx="3.5" fill="#d8c29a" stroke="#8d7a55" stroke-width=".8"/><rect x="-7.0" y="-4" width="2.2" height="8" fill="#6b3d1a"/><rect x="-2.5" y="-4" width="2.2" height="8" fill="#1d1d1d"/><rect x="2.0" y="-4" width="2.2" height="8" fill="#d62828"/></g>
+</g>
+<g class="pieza">
+<line x1="1014.0" y1="105.6" x2="1014.0" y2="55.2" stroke="#9a9a9a" stroke-width="1.6"/>
+<g transform="translate(1014.0 80.4) rotate(-90.0)"><rect x="-11" y="-4" width="22" height="8" rx="3.5" fill="#d8c29a" stroke="#8d7a55" stroke-width=".8"/><rect x="-7.0" y="-4" width="2.2" height="8" fill="#6b3d1a"/><rect x="-2.5" y="-4" width="2.2" height="8" fill="#1d1d1d"/><rect x="2.0" y="-4" width="2.2" height="8" fill="#d62828"/></g>
+</g>
+<g class="pieza">
+<line x1="690.0" y1="991.2" x2="642.0" y2="1003.2" stroke="#9a9a9a" stroke-width="1.6"/>
+<g transform="translate(666.0 997.2) rotate(166.0)"><rect x="-11" y="-4" width="22" height="8" rx="3.5" fill="#d8c29a" stroke="#8d7a55" stroke-width=".8"/><rect x="-7.0" y="-4" width="2.2" height="8" fill="#f07d19"/><rect x="-2.5" y="-4" width="2.2" height="8" fill="#f07d19"/><rect x="2.0" y="-4" width="2.2" height="8" fill="#6b3d1a"/></g>
+</g>
+<g class="pieza">
+<line x1="702.0" y1="991.2" x2="654.0" y2="1003.2" stroke="#9a9a9a" stroke-width="1.6"/>
+<g transform="translate(678.0 997.2) rotate(166.0)"><rect x="-11" y="-4" width="22" height="8" rx="3.5" fill="#d8c29a" stroke="#8d7a55" stroke-width=".8"/><rect x="-7.0" y="-4" width="2.2" height="8" fill="#f07d19"/><rect x="-2.5" y="-4" width="2.2" height="8" fill="#f07d19"/><rect x="2.0" y="-4" width="2.2" height="8" fill="#6b3d1a"/></g>
+</g>
+<g class="pieza">
+<line x1="738.0" y1="991.2" x2="786.0" y2="1003.2" stroke="#9a9a9a" stroke-width="1.6"/>
+<g transform="translate(762.0 997.2) rotate(14.0)"><rect x="-11" y="-4" width="22" height="8" rx="3.5" fill="#d8c29a" stroke="#8d7a55" stroke-width=".8"/><rect x="-7.0" y="-4" width="2.2" height="8" fill="#f07d19"/><rect x="-2.5" y="-4" width="2.2" height="8" fill="#f07d19"/><rect x="2.0" y="-4" width="2.2" height="8" fill="#6b3d1a"/></g>
+</g>
+<g class="pieza">
+<line x1="750.0" y1="991.2" x2="798.0" y2="1003.2" stroke="#9a9a9a" stroke-width="1.6"/>
+<g transform="translate(774.0 997.2) rotate(14.0)"><rect x="-11" y="-4" width="22" height="8" rx="3.5" fill="#d8c29a" stroke="#8d7a55" stroke-width=".8"/><rect x="-7.0" y="-4" width="2.2" height="8" fill="#f07d19"/><rect x="-2.5" y="-4" width="2.2" height="8" fill="#f07d19"/><rect x="2.0" y="-4" width="2.2" height="8" fill="#6b3d1a"/></g>
+</g>
+<g class="pieza">
+<line x1="750.0" y1="883.2" x2="798.0" y2="871.2" stroke="#9a9a9a" stroke-width="1.6"/>
+<g transform="translate(774.0 877.2) rotate(-14.0)"><rect x="-11" y="-4" width="22" height="8" rx="3.5" fill="#d8c29a" stroke="#8d7a55" stroke-width=".8"/><rect x="-7.0" y="-4" width="2.2" height="8" fill="#f07d19"/><rect x="-2.5" y="-4" width="2.2" height="8" fill="#f07d19"/><rect x="2.0" y="-4" width="2.2" height="8" fill="#6b3d1a"/></g>
+</g>
+<g class="pieza">
+<line x1="738.0" y1="883.2" x2="786.0" y2="871.2" stroke="#9a9a9a" stroke-width="1.6"/>
+<g transform="translate(762.0 877.2) rotate(-14.0)"><rect x="-11" y="-4" width="22" height="8" rx="3.5" fill="#d8c29a" stroke="#8d7a55" stroke-width=".8"/><rect x="-7.0" y="-4" width="2.2" height="8" fill="#f07d19"/><rect x="-2.5" y="-4" width="2.2" height="8" fill="#f07d19"/><rect x="2.0" y="-4" width="2.2" height="8" fill="#6b3d1a"/></g>
+</g>
+<g class="pieza">
+<line x1="702.0" y1="883.2" x2="654.0" y2="871.2" stroke="#9a9a9a" stroke-width="1.6"/>
+<g transform="translate(678.0 877.2) rotate(-166.0)"><rect x="-11" y="-4" width="22" height="8" rx="3.5" fill="#d8c29a" stroke="#8d7a55" stroke-width=".8"/><rect x="-7.0" y="-4" width="2.2" height="8" fill="#f07d19"/><rect x="-2.5" y="-4" width="2.2" height="8" fill="#f07d19"/><rect x="2.0" y="-4" width="2.2" height="8" fill="#6b3d1a"/></g>
+</g>
+<g class="pieza">
+<line x1="690.0" y1="883.2" x2="642.0" y2="871.2" stroke="#9a9a9a" stroke-width="1.6"/>
+<g transform="translate(666.0 877.2) rotate(-166.0)"><rect x="-11" y="-4" width="22" height="8" rx="3.5" fill="#d8c29a" stroke="#8d7a55" stroke-width=".8"/><rect x="-7.0" y="-4" width="2.2" height="8" fill="#f07d19"/><rect x="-2.5" y="-4" width="2.2" height="8" fill="#f07d19"/><rect x="2.0" y="-4" width="2.2" height="8" fill="#6b3d1a"/></g>
 </g>
 <g opacity=".35"><path d="M582.0 55.2 Q568.9 164.4 582.0 273.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M582.0 55.2 Q568.9 164.4 582.0 273.6" stroke="#d62828" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="582.0" cy="55.2" r="2.6" fill="#d62828" stroke="#111" stroke-width=".8"/>
@@ -1676,6 +1807,22 @@ footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-si
 <g opacity=".35"><path d="M870.0 225.6 Q872.2 243.6 870.0 261.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M870.0 225.6 Q872.2 243.6 870.0 261.6" stroke="#1d1d1d" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="870.0" cy="225.6" r="2.6" fill="#1d1d1d" stroke="#111" stroke-width=".8"/>
 <circle cx="870.0" cy="261.6" r="2.6" fill="#1d1d1d" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M930.0 93.6 Q926.3 73.7 918.0 55.2" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M930.0 93.6 Q926.3 73.7 918.0 55.2" stroke="#d62828" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="930.0" cy="93.6" r="2.6" fill="#d62828" stroke="#111" stroke-width=".8"/>
+<circle cx="918.0" cy="55.2" r="2.6" fill="#d62828" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M1014.0 225.6 Q1016.2 243.6 1014.0 261.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M1014.0 225.6 Q1016.2 243.6 1014.0 261.6" stroke="#1d1d1d" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="1014.0" cy="225.6" r="2.6" fill="#1d1d1d" stroke="#111" stroke-width=".8"/>
+<circle cx="1014.0" cy="261.6" r="2.6" fill="#1d1d1d" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M1074.0 93.6 Q1070.3 73.7 1062.0 55.2" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M1074.0 93.6 Q1070.3 73.7 1062.0 55.2" stroke="#d62828" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="1074.0" cy="93.6" r="2.6" fill="#d62828" stroke="#111" stroke-width=".8"/>
+<circle cx="1062.0" cy="55.2" r="2.6" fill="#d62828" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M1158.0 225.6 Q1160.2 243.6 1158.0 261.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M1158.0 225.6 Q1160.2 243.6 1158.0 261.6" stroke="#1d1d1d" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="1158.0" cy="225.6" r="2.6" fill="#1d1d1d" stroke="#111" stroke-width=".8"/>
+<circle cx="1158.0" cy="261.6" r="2.6" fill="#1d1d1d" stroke="#111" stroke-width=".8"/>
 </g>
 <g opacity=".35"><path d="M786.0 352.8 Q782.3 332.9 774.0 314.4" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M786.0 352.8 Q782.3 332.9 774.0 314.4" stroke="#d62828" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="786.0" cy="352.8" r="2.6" fill="#d62828" stroke="#111" stroke-width=".8"/>
@@ -2065,160 +2212,274 @@ footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-si
 <circle cx="642.0" cy="225.6" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
 <circle cx="786.0" cy="225.6" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
 </g>
+<g opacity=".35"><path d="M654.0 213.6 Q803.4 234.0 954.0 225.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M654.0 213.6 Q803.4 234.0 954.0 225.6" stroke="#f2c200" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="654.0" cy="213.6" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
+<circle cx="954.0" cy="225.6" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M690.0 213.6 Q828.6 205.2 966.0 225.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M690.0 213.6 Q828.6 205.2 966.0 225.6" stroke="#f2c200" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="690.0" cy="213.6" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
+<circle cx="966.0" cy="225.6" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M702.0 105.6 Q834.3 178.8 978.0 225.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M702.0 105.6 Q834.3 178.8 978.0 225.6" stroke="#f2c200" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="702.0" cy="105.6" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
+<circle cx="978.0" cy="225.6" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M666.0 105.6 Q833.0 152.1 990.0 225.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M666.0 105.6 Q833.0 152.1 990.0 225.6" stroke="#f2c200" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="666.0" cy="105.6" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
+<circle cx="990.0" cy="225.6" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M798.0 213.6 Q947.4 234.0 1098.0 225.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M798.0 213.6 Q947.4 234.0 1098.0 225.6" stroke="#f2c200" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="798.0" cy="213.6" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
+<circle cx="1098.0" cy="225.6" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M834.0 213.6 Q972.6 205.2 1110.0 225.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M834.0 213.6 Q972.6 205.2 1110.0 225.6" stroke="#f2c200" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="834.0" cy="213.6" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
+<circle cx="1110.0" cy="225.6" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M846.0 105.6 Q978.3 178.8 1122.0 225.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M846.0 105.6 Q978.3 178.8 1122.0 225.6" stroke="#f2c200" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="846.0" cy="105.6" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
+<circle cx="1122.0" cy="225.6" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M810.0 105.6 Q977.0 152.1 1134.0 225.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M810.0 105.6 Q977.0 152.1 1134.0 225.6" stroke="#f2c200" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="810.0" cy="105.6" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
+<circle cx="1134.0" cy="225.6" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M1002.0 225.6 Q993.1 248.9 990.0 273.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M1002.0 225.6 Q993.1 248.9 990.0 273.6" stroke="#d62828" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="1002.0" cy="225.6" r="2.6" fill="#d62828" stroke="#111" stroke-width=".8"/>
+<circle cx="990.0" cy="273.6" r="2.6" fill="#d62828" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M1146.0 225.6 Q1142.9 250.3 1134.0 273.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M1146.0 225.6 Q1142.9 250.3 1134.0 273.6" stroke="#d62828" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="1146.0" cy="225.6" r="2.6" fill="#d62828" stroke="#111" stroke-width=".8"/>
+<circle cx="1134.0" cy="273.6" r="2.6" fill="#d62828" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M1002.0 93.6 Q998.3 73.7 990.0 55.2" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M1002.0 93.6 Q998.3 73.7 990.0 55.2" stroke="#d62828" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="1002.0" cy="93.6" r="2.6" fill="#d62828" stroke="#111" stroke-width=".8"/>
+<circle cx="990.0" cy="55.2" r="2.6" fill="#d62828" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M942.0 93.6 Q1044.0 81.4 1146.0 93.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M942.0 93.6 Q1044.0 81.4 1146.0 93.6" stroke="#8b5a2b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="942.0" cy="93.6" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+<circle cx="1146.0" cy="93.6" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M942.0 225.6 Q1014.0 234.2 1086.0 225.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M942.0 225.6 Q1014.0 234.2 1086.0 225.6" stroke="#8b5a2b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="942.0" cy="225.6" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+<circle cx="1086.0" cy="225.6" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M1014.0 93.6 Q1086.0 85.0 1158.0 93.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M1014.0 93.6 Q1086.0 85.0 1158.0 93.6" stroke="#8b5a2b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="1014.0" cy="93.6" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+<circle cx="1158.0" cy="93.6" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M930.0 225.6 Q1002.0 234.2 1074.0 225.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M930.0 225.6 Q1002.0 234.2 1074.0 225.6" stroke="#8b5a2b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="930.0" cy="225.6" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+<circle cx="1074.0" cy="225.6" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+</g>
+<g opacity=".35"><path d="M930.0 213.6 Q870.4 344.4 786.0 460.8" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M930.0 213.6 Q870.4 344.4 786.0 460.8" stroke="#8b5a2b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="930.0" cy="213.6" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+<circle cx="786.0" cy="460.8" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+</g>
 <g opacity="1"><path d="M477.6 428.4 Q556.4 466.5 642.0 484.8" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M477.6 428.4 Q556.4 466.5 642.0 484.8" stroke="#f2c200" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="477.6" cy="428.4" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
 <circle cx="642.0" cy="484.8" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
-<circle cx="558.1" cy="461.5" r="7.5" fill="#fff" stroke="#f2c200" stroke-width="2"/><text x="558.1" y="464.8" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">191</text>
+<circle cx="558.1" cy="461.5" r="7.5" fill="#fff" stroke="#f2c200" stroke-width="2"/><text x="558.1" y="464.8" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">213</text>
 </g>
 <g opacity="1"><path d="M489.6 428.4 Q575.2 446.7 654.0 484.8" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M489.6 428.4 Q575.2 446.7 654.0 484.8" stroke="#f2c200" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="489.6" cy="428.4" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
 <circle cx="654.0" cy="484.8" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
-<circle cx="573.5" cy="451.7" r="7.5" fill="#fff" stroke="#f2c200" stroke-width="2"/><text x="573.5" y="454.9" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">192</text>
+<circle cx="573.5" cy="451.7" r="7.5" fill="#fff" stroke="#f2c200" stroke-width="2"/><text x="573.5" y="454.9" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">214</text>
 </g>
 <g opacity="1"><path d="M477.6 440.4 Q581.1 475.3 690.0 484.8" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M477.6 440.4 Q581.1 475.3 690.0 484.8" stroke="#f2c200" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="477.6" cy="440.4" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
 <circle cx="690.0" cy="484.8" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
-<circle cx="582.5" cy="469.0" r="7.5" fill="#fff" stroke="#f2c200" stroke-width="2"/><text x="582.5" y="472.2" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">193</text>
+<circle cx="582.5" cy="469.0" r="7.5" fill="#fff" stroke="#f2c200" stroke-width="2"/><text x="582.5" y="472.2" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">215</text>
 </g>
 <g opacity="1"><path d="M489.6 440.4 Q598.5 449.9 702.0 484.8" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M489.6 440.4 Q598.5 449.9 702.0 484.8" stroke="#f2c200" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="489.6" cy="440.4" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
 <circle cx="702.0" cy="484.8" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
-<circle cx="597.1" cy="456.2" r="7.5" fill="#fff" stroke="#f2c200" stroke-width="2"/><text x="597.1" y="459.5" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">194</text>
+<circle cx="597.1" cy="456.2" r="7.5" fill="#fff" stroke="#f2c200" stroke-width="2"/><text x="597.1" y="459.5" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">216</text>
 </g>
 <g opacity="1"><path d="M477.6 452.4 Q595.6 415.8 702.0 352.8" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M477.6 452.4 Q595.6 415.8 702.0 352.8" stroke="#f2c200" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="477.6" cy="452.4" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
 <circle cx="702.0" cy="352.8" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
-<circle cx="592.7" cy="409.2" r="7.5" fill="#fff" stroke="#f2c200" stroke-width="2"/><text x="592.7" y="412.4" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">195</text>
+<circle cx="592.7" cy="409.2" r="7.5" fill="#fff" stroke="#f2c200" stroke-width="2"/><text x="592.7" y="412.4" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">217</text>
 </g>
 <g opacity="1"><path d="M489.6 452.4 Q583.8 390.6 690.0 352.8" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M489.6 452.4 Q583.8 390.6 690.0 352.8" stroke="#f2c200" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="489.6" cy="452.4" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
 <circle cx="690.0" cy="352.8" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
-<circle cx="586.8" cy="396.6" r="7.5" fill="#fff" stroke="#f2c200" stroke-width="2"/><text x="586.8" y="399.8" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">196</text>
+<circle cx="586.8" cy="396.6" r="7.5" fill="#fff" stroke="#f2c200" stroke-width="2"/><text x="586.8" y="399.8" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">218</text>
 </g>
 <g opacity="1"><path d="M477.6 464.4 Q572.5 419.2 654.0 352.8" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M477.6 464.4 Q572.5 419.2 654.0 352.8" stroke="#f2c200" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="477.6" cy="464.4" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
 <circle cx="654.0" cy="352.8" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
-<circle cx="569.1" cy="413.9" r="7.5" fill="#fff" stroke="#f2c200" stroke-width="2"/><text x="569.1" y="417.1" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">197</text>
+<circle cx="569.1" cy="413.9" r="7.5" fill="#fff" stroke="#f2c200" stroke-width="2"/><text x="569.1" y="417.1" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">219</text>
 </g>
 <g opacity="1"><path d="M489.6 464.4 Q559.1 399.5 642.0 352.8" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M489.6 464.4 Q559.1 399.5 642.0 352.8" stroke="#f2c200" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="489.6" cy="464.4" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
 <circle cx="642.0" cy="352.8" r="2.6" fill="#f2c200" stroke="#111" stroke-width=".8"/>
-<circle cx="562.5" cy="404.0" r="7.5" fill="#fff" stroke="#f2c200" stroke-width="2"/><text x="562.5" y="407.3" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">198</text>
+<circle cx="562.5" cy="404.0" r="7.5" fill="#fff" stroke="#f2c200" stroke-width="2"/><text x="562.5" y="407.3" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">220</text>
 </g>
-<g opacity="1"><path d="M690.0 991.2 Q603.1 746.2 489.6 512.4" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M690.0 991.2 Q603.1 746.2 489.6 512.4" stroke="#1f5fd1" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-<circle cx="690.0" cy="991.2" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
+<g opacity="1"><path d="M642.0 991.2 Q579.5 747.4 489.6 512.4" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M642.0 991.2 Q579.5 747.4 489.6 512.4" stroke="#1f5fd1" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="642.0" cy="991.2" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
 <circle cx="489.6" cy="512.4" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
-<circle cx="596.4" cy="749.0" r="7.5" fill="#fff" stroke="#1f5fd1" stroke-width="2"/><text x="596.4" y="752.3" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">199</text>
+<circle cx="572.7" cy="749.6" r="7.5" fill="#fff" stroke="#1f5fd1" stroke-width="2"/><text x="572.7" y="752.9" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">221</text>
 </g>
-<g opacity="1"><path d="M702.0 991.2 Q576.8 757.9 477.6 512.4" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M702.0 991.2 Q576.8 757.9 477.6 512.4" stroke="#1f5fd1" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-<circle cx="702.0" cy="991.2" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
+<g opacity="1"><path d="M654.0 991.2 Q552.3 756.8 477.6 512.4" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M654.0 991.2 Q552.3 756.8 477.6 512.4" stroke="#1f5fd1" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="654.0" cy="991.2" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
 <circle cx="477.6" cy="512.4" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
-<circle cx="583.3" cy="754.9" r="7.5" fill="#fff" stroke="#1f5fd1" stroke-width="2"/><text x="583.3" y="758.1" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">200</text>
+<circle cx="559.0" cy="754.3" r="7.5" fill="#fff" stroke="#1f5fd1" stroke-width="2"/><text x="559.0" y="757.5" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">222</text>
 </g>
-<g opacity="1"><path d="M738.0 991.2 Q626.6 739.3 489.6 500.4" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M738.0 991.2 Q626.6 739.3 489.6 500.4" stroke="#1f5fd1" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-<circle cx="738.0" cy="991.2" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
+<g opacity="1"><path d="M786.0 991.2 Q650.1 738.4 489.6 500.4" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M786.0 991.2 Q650.1 738.4 489.6 500.4" stroke="#1f5fd1" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="786.0" cy="991.2" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
 <circle cx="489.6" cy="500.4" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
-<circle cx="620.2" cy="742.5" r="7.5" fill="#fff" stroke="#1f5fd1" stroke-width="2"/><text x="620.2" y="745.8" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">201</text>
+<circle cx="644.0" cy="742.1" r="7.5" fill="#fff" stroke="#1f5fd1" stroke-width="2"/><text x="644.0" y="745.3" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">223</text>
 </g>
-<g opacity="1"><path d="M750.0 991.2 Q601.2 752.8 477.6 500.4" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M750.0 991.2 Q601.2 752.8 477.6 500.4" stroke="#1f5fd1" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-<circle cx="750.0" cy="991.2" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
+<g opacity="1"><path d="M798.0 991.2 Q625.7 753.7 477.6 500.4" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M798.0 991.2 Q625.7 753.7 477.6 500.4" stroke="#1f5fd1" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="798.0" cy="991.2" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
 <circle cx="477.6" cy="500.4" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
-<circle cx="607.5" cy="749.3" r="7.5" fill="#fff" stroke="#1f5fd1" stroke-width="2"/><text x="607.5" y="752.5" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">202</text>
+<circle cx="631.8" cy="749.7" r="7.5" fill="#fff" stroke="#1f5fd1" stroke-width="2"/><text x="631.8" y="753.0" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">224</text>
 </g>
-<g opacity="1"><path d="M750.0 883.2 Q631.8 677.9 489.6 488.4" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M750.0 883.2 Q631.8 677.9 489.6 488.4" stroke="#1f5fd1" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-<circle cx="750.0" cy="883.2" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
+<g opacity="1"><path d="M798.0 883.2 Q655.1 676.9 489.6 488.4" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M798.0 883.2 Q655.1 676.9 489.6 488.4" stroke="#1f5fd1" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="798.0" cy="883.2" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
 <circle cx="489.6" cy="488.4" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
-<circle cx="625.8" cy="681.8" r="7.5" fill="#fff" stroke="#1f5fd1" stroke-width="2"/><text x="625.8" y="685.1" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">203</text>
+<circle cx="649.5" cy="681.4" r="7.5" fill="#fff" stroke="#1f5fd1" stroke-width="2"/><text x="649.5" y="684.6" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">225</text>
 </g>
-<g opacity="1"><path d="M738.0 883.2 Q595.8 693.7 477.6 488.4" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M738.0 883.2 Q595.8 693.7 477.6 488.4" stroke="#1f5fd1" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-<circle cx="738.0" cy="883.2" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
+<g opacity="1"><path d="M786.0 883.2 Q620.5 694.7 477.6 488.4" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M786.0 883.2 Q620.5 694.7 477.6 488.4" stroke="#1f5fd1" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="786.0" cy="883.2" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
 <circle cx="477.6" cy="488.4" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
-<circle cx="601.8" cy="689.8" r="7.5" fill="#fff" stroke="#1f5fd1" stroke-width="2"/><text x="601.8" y="693.0" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">204</text>
+<circle cx="626.1" cy="690.2" r="7.5" fill="#fff" stroke="#1f5fd1" stroke-width="2"/><text x="626.1" y="693.5" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">226</text>
 </g>
-<g opacity="1"><path d="M702.0 883.2 Q608.6 673.1 489.6 476.4" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M702.0 883.2 Q608.6 673.1 489.6 476.4" stroke="#1f5fd1" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-<circle cx="702.0" cy="883.2" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
+<g opacity="1"><path d="M654.0 883.2 Q585.2 674.4 489.6 476.4" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M654.0 883.2 Q585.2 674.4 489.6 476.4" stroke="#1f5fd1" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="654.0" cy="883.2" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
 <circle cx="489.6" cy="476.4" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
-<circle cx="602.2" cy="676.5" r="7.5" fill="#fff" stroke="#1f5fd1" stroke-width="2"/><text x="602.2" y="679.7" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">205</text>
+<circle cx="578.5" cy="677.1" r="7.5" fill="#fff" stroke="#1f5fd1" stroke-width="2"/><text x="578.5" y="680.3" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">227</text>
 </g>
-<g opacity="1"><path d="M690.0 883.2 Q571.0 686.5 477.6 476.4" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M690.0 883.2 Q571.0 686.5 477.6 476.4" stroke="#1f5fd1" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-<circle cx="690.0" cy="883.2" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
+<g opacity="1"><path d="M642.0 883.2 Q546.4 685.2 477.6 476.4" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M642.0 883.2 Q546.4 685.2 477.6 476.4" stroke="#1f5fd1" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="642.0" cy="883.2" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
 <circle cx="477.6" cy="476.4" r="2.6" fill="#1f5fd1" stroke="#111" stroke-width=".8"/>
-<circle cx="577.4" cy="683.1" r="7.5" fill="#fff" stroke="#1f5fd1" stroke-width="2"/><text x="577.4" y="686.4" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">206</text>
+<circle cx="553.1" cy="682.5" r="7.5" fill="#fff" stroke="#1f5fd1" stroke-width="2"/><text x="553.1" y="685.7" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">228</text>
 </g>
 <g opacity="1"><path d="M489.6 584.4 Q574.9 669.5 678.0 732.0" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M489.6 584.4 Q574.9 669.5 678.0 732.0" stroke="#7b3fb5" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="489.6" cy="584.4" r="2.6" fill="#7b3fb5" stroke="#111" stroke-width=".8"/>
 <circle cx="678.0" cy="732.0" r="2.6" fill="#7b3fb5" stroke="#111" stroke-width=".8"/>
-<circle cx="579.4" cy="663.9" r="7.5" fill="#fff" stroke="#7b3fb5" stroke-width="2"/><text x="579.4" y="667.1" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">207</text>
+<circle cx="579.4" cy="663.9" r="7.5" fill="#fff" stroke="#7b3fb5" stroke-width="2"/><text x="579.4" y="667.1" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">229</text>
 </g>
 <g opacity="1"><path d="M477.6 584.4 Q580.7 646.9 666.0 732.0" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M477.6 584.4 Q580.7 646.9 666.0 732.0" stroke="#7b3fb5" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="477.6" cy="584.4" r="2.6" fill="#7b3fb5" stroke="#111" stroke-width=".8"/>
 <circle cx="666.0" cy="732.0" r="2.6" fill="#7b3fb5" stroke="#111" stroke-width=".8"/>
-<circle cx="576.2" cy="652.5" r="7.5" fill="#fff" stroke="#7b3fb5" stroke-width="2"/><text x="576.2" y="655.8" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">208</text>
+<circle cx="576.2" cy="652.5" r="7.5" fill="#fff" stroke="#7b3fb5" stroke-width="2"/><text x="576.2" y="655.8" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">230</text>
 </g>
 <g opacity="1"><path d="M489.6 572.4 Q562.2 662.1 654.0 732.0" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M489.6 572.4 Q562.2 662.1 654.0 732.0" stroke="#7b3fb5" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="489.6" cy="572.4" r="2.6" fill="#7b3fb5" stroke="#111" stroke-width=".8"/>
 <circle cx="654.0" cy="732.0" r="2.6" fill="#7b3fb5" stroke="#111" stroke-width=".8"/>
-<circle cx="567.0" cy="657.1" r="7.5" fill="#fff" stroke="#7b3fb5" stroke-width="2"/><text x="567.0" y="660.4" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">209</text>
+<circle cx="567.0" cy="657.1" r="7.5" fill="#fff" stroke="#7b3fb5" stroke-width="2"/><text x="567.0" y="660.4" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">231</text>
 </g>
 <g opacity="1"><path d="M477.6 572.4 Q569.4 642.3 642.0 732.0" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M477.6 572.4 Q569.4 642.3 642.0 732.0" stroke="#7b3fb5" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="477.6" cy="572.4" r="2.6" fill="#7b3fb5" stroke="#111" stroke-width=".8"/>
 <circle cx="642.0" cy="732.0" r="2.6" fill="#7b3fb5" stroke="#111" stroke-width=".8"/>
-<circle cx="564.6" cy="647.3" r="7.5" fill="#fff" stroke="#7b3fb5" stroke-width="2"/><text x="564.6" y="650.5" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">210</text>
+<circle cx="564.6" cy="647.3" r="7.5" fill="#fff" stroke="#7b3fb5" stroke-width="2"/><text x="564.6" y="650.5" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">232</text>
 </g>
 <g opacity="1"><path d="M489.6 560.4 Q586.8 657.4 702.0 732.0" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M489.6 560.4 Q586.8 657.4 702.0 732.0" stroke="#7b3fb5" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="489.6" cy="560.4" r="2.6" fill="#7b3fb5" stroke="#111" stroke-width=".8"/>
 <circle cx="702.0" cy="732.0" r="2.6" fill="#7b3fb5" stroke="#111" stroke-width=".8"/>
-<circle cx="591.3" cy="651.8" r="7.5" fill="#fff" stroke="#7b3fb5" stroke-width="2"/><text x="591.3" y="655.0" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">211</text>
+<circle cx="591.3" cy="651.8" r="7.5" fill="#fff" stroke="#7b3fb5" stroke-width="2"/><text x="591.3" y="655.0" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">233</text>
 </g>
 <g opacity="1"><path d="M477.6 560.4 Q593.2 641.3 690.0 744.0" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M477.6 560.4 Q593.2 641.3 690.0 744.0" stroke="#7b3fb5" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="477.6" cy="560.4" r="2.6" fill="#7b3fb5" stroke="#111" stroke-width=".8"/>
 <circle cx="690.0" cy="744.0" r="2.6" fill="#7b3fb5" stroke="#111" stroke-width=".8"/>
-<circle cx="588.5" cy="646.8" r="7.5" fill="#fff" stroke="#7b3fb5" stroke-width="2"/><text x="588.5" y="650.0" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">212</text>
+<circle cx="588.5" cy="646.8" r="7.5" fill="#fff" stroke="#7b3fb5" stroke-width="2"/><text x="588.5" y="650.0" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">234</text>
 </g>
 <g opacity="1"><path d="M906.0 612.0 Q638.1 495.9 360.0 406.8" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M906.0 612.0 Q638.1 495.9 360.0 406.8" stroke="#7b3fb5" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="906.0" cy="612.0" r="2.6" fill="#7b3fb5" stroke="#111" stroke-width=".8"/>
 <circle cx="360.0" cy="406.8" r="2.6" fill="#7b3fb5" stroke="#111" stroke-width=".8"/>
-<circle cx="635.5" cy="502.7" r="7.5" fill="#fff" stroke="#7b3fb5" stroke-width="2"/><text x="635.5" y="505.9" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">213</text>
+<circle cx="635.5" cy="502.7" r="7.5" fill="#fff" stroke="#7b3fb5" stroke-width="2"/><text x="635.5" y="505.9" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">235</text>
 </g>
-<g opacity="1"><path d="M489.6 536.4 Q685.8 431.5 894.0 352.8" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M489.6 536.4 Q685.8 431.5 894.0 352.8" stroke="#8b5a2b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<g opacity="1"><path d="M489.6 536.4 Q686.2 437.3 894.0 364.8" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M489.6 536.4 Q686.2 437.3 894.0 364.8" stroke="#8b5a2b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="489.6" cy="536.4" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
-<circle cx="894.0" cy="352.8" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
-<circle cx="688.8" cy="438.0" r="7.5" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><text x="688.8" y="441.3" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">214</text>
+<circle cx="894.0" cy="364.8" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+<circle cx="689.0" cy="444.0" r="7.5" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><text x="689.0" y="447.2" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">236</text>
 </g>
-<g opacity="1"><path d="M477.6 536.4 Q610.4 456.2 726.0 352.8" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M477.6 536.4 Q610.4 456.2 726.0 352.8" stroke="#8b5a2b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<g opacity="1"><path d="M477.6 536.4 Q610.0 462.4 726.0 364.8" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M477.6 536.4 Q610.0 462.4 726.0 364.8" stroke="#8b5a2b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="477.6" cy="536.4" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
-<circle cx="726.0" cy="352.8" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
-<circle cx="606.1" cy="450.4" r="7.5" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><text x="606.1" y="453.6" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">215</text>
+<circle cx="726.0" cy="364.8" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+<circle cx="605.9" cy="456.5" r="7.5" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><text x="605.9" y="459.8" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">237</text>
 </g>
-<g opacity="1"><path d="M300.0 406.8 Q547.1 628.7 774.0 871.2" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M300.0 406.8 Q547.1 628.7 774.0 871.2" stroke="#8b5a2b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<g opacity="1"><path d="M300.0 406.8 Q547.2 634.8 774.0 883.2" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M300.0 406.8 Q547.2 634.8 774.0 883.2" stroke="#8b5a2b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="300.0" cy="406.8" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
-<circle cx="774.0" cy="871.2" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
-<circle cx="542.0" cy="633.9" r="7.5" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><text x="542.0" y="637.1" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">216</text>
+<circle cx="774.0" cy="883.2" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+<circle cx="542.1" cy="639.9" r="7.5" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><text x="542.1" y="643.2" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">238</text>
 </g>
-<g opacity="1"><path d="M477.6 524.4 Q634.2 512.8 786.0 472.8" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M477.6 524.4 Q634.2 512.8 786.0 472.8" stroke="#8b5a2b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<g opacity="1"><path d="M477.6 524.4 Q635.2 500.6 786.0 448.8" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M477.6 524.4 Q635.2 500.6 786.0 448.8" stroke="#8b5a2b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="477.6" cy="524.4" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
-<circle cx="786.0" cy="472.8" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
-<circle cx="633.0" cy="505.7" r="7.5" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><text x="633.0" y="508.9" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">217</text>
+<circle cx="786.0" cy="448.8" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+<circle cx="633.5" cy="493.6" r="7.5" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><text x="633.5" y="496.8" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">239</text>
 </g>
-<g opacity="1"><path d="M489.6 524.4 Q552.9 362.7 642.0 213.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M489.6 524.4 Q552.9 362.7 642.0 213.6" stroke="#8b5a2b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<g opacity="1"><path d="M489.6 524.4 Q552.8 356.9 642.0 201.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M489.6 524.4 Q552.8 356.9 642.0 201.6" stroke="#8b5a2b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="489.6" cy="524.4" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
-<circle cx="642.0" cy="213.6" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
-<circle cx="559.3" cy="365.8" r="7.5" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><text x="559.3" y="369.1" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">218</text>
+<circle cx="642.0" cy="201.6" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+<circle cx="559.3" cy="359.9" r="7.5" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><text x="559.3" y="363.2" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">240</text>
+</g>
+<g opacity="1"><path d="M477.6 548.4 Q718.4 386.5 942.0 201.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M477.6 548.4 Q718.4 386.5 942.0 201.6" stroke="#8b5a2b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="477.6" cy="548.4" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+<circle cx="942.0" cy="201.6" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+<circle cx="714.1" cy="380.8" r="7.5" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><text x="714.1" y="384.0" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">241</text>
+</g>
+<g opacity="1"><path d="M489.6 548.4 Q742.7 321.9 1014.0 117.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M489.6 548.4 Q742.7 321.9 1014.0 117.6" stroke="#8b5a2b" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="489.6" cy="548.4" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+<circle cx="1014.0" cy="117.6" r="2.6" fill="#8b5a2b" stroke="#111" stroke-width=".8"/>
+<circle cx="747.2" cy="327.4" r="7.5" fill="#fff" stroke="#8b5a2b" stroke-width="2"/><text x="747.2" y="330.7" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">242</text>
+</g>
+<g opacity="1"><path d="M954.0 93.6 Q641.5 351.0 348.0 630.0" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M954.0 93.6 Q641.5 351.0 348.0 630.0" stroke="#8a8a8a" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="954.0" cy="93.6" r="2.6" fill="#8a8a8a" stroke="#111" stroke-width=".8"/>
+<circle cx="348.0" cy="630.0" r="2.6" fill="#8a8a8a" stroke="#111" stroke-width=".8"/>
+<circle cx="646.2" cy="356.4" r="7.5" fill="#fff" stroke="#8a8a8a" stroke-width="2"/><text x="646.2" y="359.6" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">243</text>
+</g>
+<g opacity="1"><path d="M966.0 93.6 Q672.5 372.6 360.0 630.0" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M966.0 93.6 Q672.5 372.6 360.0 630.0" stroke="#8a8a8a" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="966.0" cy="93.6" r="2.6" fill="#8a8a8a" stroke="#111" stroke-width=".8"/>
+<circle cx="360.0" cy="630.0" r="2.6" fill="#8a8a8a" stroke="#111" stroke-width=".8"/>
+<circle cx="667.8" cy="367.2" r="7.5" fill="#fff" stroke="#8a8a8a" stroke-width="2"/><text x="667.8" y="370.4" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">244</text>
+</g>
+<g opacity="1"><path d="M978.0 93.6 Q665.5 351.0 372.0 630.0" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M978.0 93.6 Q665.5 351.0 372.0 630.0" stroke="#8a8a8a" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="978.0" cy="93.6" r="2.6" fill="#8a8a8a" stroke="#111" stroke-width=".8"/>
+<circle cx="372.0" cy="630.0" r="2.6" fill="#8a8a8a" stroke="#111" stroke-width=".8"/>
+<circle cx="670.2" cy="356.4" r="7.5" fill="#fff" stroke="#8a8a8a" stroke-width="2"/><text x="670.2" y="359.6" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">245</text>
+</g>
+<g opacity="1"><path d="M990.0 93.6 Q696.5 372.6 384.0 630.0" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M990.0 93.6 Q696.5 372.6 384.0 630.0" stroke="#8a8a8a" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="990.0" cy="93.6" r="2.6" fill="#8a8a8a" stroke="#111" stroke-width=".8"/>
+<circle cx="384.0" cy="630.0" r="2.6" fill="#8a8a8a" stroke="#111" stroke-width=".8"/>
+<circle cx="691.8" cy="367.2" r="7.5" fill="#fff" stroke="#8a8a8a" stroke-width="2"/><text x="691.8" y="370.4" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">246</text>
+</g>
+<g opacity="1"><path d="M1098.0 93.6 Q738.3 350.4 396.0 630.0" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M1098.0 93.6 Q738.3 350.4 396.0 630.0" stroke="#8a8a8a" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="1098.0" cy="93.6" r="2.6" fill="#8a8a8a" stroke="#111" stroke-width=".8"/>
+<circle cx="396.0" cy="630.0" r="2.6" fill="#8a8a8a" stroke="#111" stroke-width=".8"/>
+<circle cx="742.6" cy="356.1" r="7.5" fill="#fff" stroke="#8a8a8a" stroke-width="2"/><text x="742.6" y="359.3" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">247</text>
+</g>
+<g opacity="1"><path d="M1110.0 93.6 Q767.7 373.2 408.0 630.0" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M1110.0 93.6 Q767.7 373.2 408.0 630.0" stroke="#8a8a8a" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="1110.0" cy="93.6" r="2.6" fill="#8a8a8a" stroke="#111" stroke-width=".8"/>
+<circle cx="408.0" cy="630.0" r="2.6" fill="#8a8a8a" stroke="#111" stroke-width=".8"/>
+<circle cx="763.4" cy="367.5" r="7.5" fill="#fff" stroke="#8a8a8a" stroke-width="2"/><text x="763.4" y="370.8" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">248</text>
+</g>
+<g opacity="1"><path d="M1122.0 93.6 Q762.3 350.4 420.0 630.0" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M1122.0 93.6 Q762.3 350.4 420.0 630.0" stroke="#8a8a8a" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="1122.0" cy="93.6" r="2.6" fill="#8a8a8a" stroke="#111" stroke-width=".8"/>
+<circle cx="420.0" cy="630.0" r="2.6" fill="#8a8a8a" stroke="#111" stroke-width=".8"/>
+<circle cx="766.6" cy="356.1" r="7.5" fill="#fff" stroke="#8a8a8a" stroke-width="2"/><text x="766.6" y="359.3" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">249</text>
+</g>
+<g opacity="1"><path d="M1134.0 93.6 Q791.7 373.2 432.0 630.0" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M1134.0 93.6 Q791.7 373.2 432.0 630.0" stroke="#8a8a8a" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+<circle cx="1134.0" cy="93.6" r="2.6" fill="#8a8a8a" stroke="#111" stroke-width=".8"/>
+<circle cx="432.0" cy="630.0" r="2.6" fill="#8a8a8a" stroke="#111" stroke-width=".8"/>
+<circle cx="787.4" cy="367.5" r="7.5" fill="#fff" stroke="#8a8a8a" stroke-width="2"/><text x="787.4" y="370.8" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">250</text>
 </g>
 <g opacity="1"><path d="M489.6 620.4 Q549.9 610.0 606.0 585.6" stroke="#1b1b1b" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/><path d="M489.6 620.4 Q549.9 610.0 606.0 585.6" stroke="#1d1d1d" stroke-width="3.2" fill="none" stroke-linecap="round"/>
 <circle cx="489.6" cy="620.4" r="2.6" fill="#1d1d1d" stroke="#111" stroke-width=".8"/>
 <circle cx="606.0" cy="585.6" r="2.6" fill="#1d1d1d" stroke="#111" stroke-width=".8"/>
-<circle cx="548.8" cy="606.5" r="7.5" fill="#fff" stroke="#1d1d1d" stroke-width="2"/><text x="548.8" y="609.7" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">219</text>
+<circle cx="548.8" cy="606.5" r="7.5" fill="#fff" stroke="#1d1d1d" stroke-width="2"/><text x="548.8" y="609.7" font-size="6.5" text-anchor="middle" font-weight="700" fill="#111">251</text>
 </g>
 </svg></div>
   <figcaption>Las líneas del dibujo van en recto de agujero a agujero; en físico cada cable va plano y rodea los chips.</figcaption></figure>
 </section>
 
 
-
-<section id="cables"><h2><span class="n">C</span>Cables</h2><p class="dek">En este orden: primero alimentación y tierras, luego las señales. El número (#) es el mismo que aparece en el plano. Cada agujero dice debajo qué pin de qué chip hay en esa tira.</p><h3 style="font-size:17px;margin:18px 0 4px"><span class="sw"><i style="background:#1d1d1d"></i>Negro</span> &nbsp;Tierra y habilitaciones a GND <span class="mono" style="font-size:13px;color:var(--ink-soft)">· 1</span></h3><div class="tabla"><table><thead><tr><th></th><th>#</th><th>Color</th><th>Desde</th><th>Hasta</th><th>Largo</th><th>Qué es</th></tr></thead><tbody><tr><td><input type="checkbox" data-id="cable-219" aria-label="Cable 219 puesto"></td><td class="num">#219</td><td><span class="sw"><i style="background:#1d1d1d"></i>Negro</span></td><td class="ag">Mega GND<small>cabecera del Arduino</small></td><td class="ag">BB3 riel − sup (fila 5)<small>BB3 riel − sup (fila 5)</small></td><td class="cm">8.0 cm</td><td class="que">GND común: Mega GND → riel − (sin esto nada funciona)</td></tr></tbody></table></div><h3 style="font-size:17px;margin:18px 0 4px"><span class="sw"><i style="background:#7b3fb5"></i>Morado</span> &nbsp;Control de la ALU: S0–S3, M, C̄n y acarreos <span class="mono" style="font-size:13px;color:var(--ink-soft)">· 7</span></h3><div class="tabla"><table><thead><tr><th></th><th>#</th><th>Color</th><th>Desde</th><th>Hasta</th><th>Largo</th><th>Qué es</th></tr></thead><tbody><tr><td><input type="checkbox" data-id="cable-207" aria-label="Cable 207 puesto"></td><td class="num">#207</td><td><span class="sw"><i style="background:#7b3fb5"></i>Morado</span></td><td class="ag">Mega pin 49<small>cabecera del Arduino</small></td><td class="ag">BB3-b11<small>ALU BAJA S0 (pin 6)</small></td><td class="cm">12.0 cm</td><td class="que">S0: Mega pin 49 → ALU BAJA</td></tr><tr><td><input type="checkbox" data-id="cable-208" aria-label="Cable 208 puesto"></td><td class="num">#208</td><td><span class="sw"><i style="background:#7b3fb5"></i>Morado</span></td><td class="ag">Mega pin 48<small>cabecera del Arduino</small></td><td class="ag">BB3-b10<small>ALU BAJA S1 (pin 5)</small></td><td class="cm">12.0 cm</td><td class="que">S1: Mega pin 48 → ALU BAJA</td></tr><tr><td><input type="checkbox" data-id="cable-209" aria-label="Cable 209 puesto"></td><td class="num">#209</td><td><span class="sw"><i style="background:#7b3fb5"></i>Morado</span></td><td class="ag">Mega pin 47<small>cabecera del Arduino</small></td><td class="ag">BB3-b9<small>ALU BAJA S2 (pin 4)</small></td><td class="cm">11.5 cm</td><td class="que">S2: Mega pin 47 → ALU BAJA</td></tr><tr><td><input type="checkbox" data-id="cable-210" aria-label="Cable 210 puesto"></td><td class="num">#210</td><td><span class="sw"><i style="background:#7b3fb5"></i>Morado</span></td><td class="ag">Mega pin 46<small>cabecera del Arduino</small></td><td class="ag">BB3-b8<small>ALU BAJA S3 (pin 3)</small></td><td class="cm">11.5 cm</td><td class="que">S3: Mega pin 46 → ALU BAJA</td></tr><tr><td><input type="checkbox" data-id="cable-211" aria-label="Cable 211 puesto"></td><td class="num">#211</td><td><span class="sw"><i style="background:#7b3fb5"></i>Morado</span></td><td class="ag">Mega pin 45<small>cabecera del Arduino</small></td><td class="ag">BB3-b13<small>ALU BAJA M (pin 8)</small></td><td class="cm">13.0 cm</td><td class="que">M: Mega pin 45 → ALU BAJA</td></tr><tr><td><input type="checkbox" data-id="cable-212" aria-label="Cable 212 puesto"></td><td class="num">#212</td><td><span class="sw"><i style="background:#7b3fb5"></i>Morado</span></td><td class="ag">Mega pin 44<small>cabecera del Arduino</small></td><td class="ag">BB3-a12<small>ALU BAJA CN (pin 7)</small></td><td class="cm">13.0 cm</td><td class="que">CN: Mega pin 44 → ALU BAJA</td></tr><tr><td><input type="checkbox" data-id="cable-213" aria-label="Cable 213 puesto"></td><td class="num">#213</td><td><span class="sw"><i style="background:#7b3fb5"></i>Morado</span></td><td class="ag">BB3-j30<small>ALU ALTA CN4 (pin 16)</small></td><td class="ag">Mega pin 2<small>cabecera del Arduino</small></td><td class="cm">20.5 cm</td><td class="que">Acarreo final: C̄n+4 de ALU ALTA (pin 16) → Mega pin 2</td></tr></tbody></table></div><h3 style="font-size:17px;margin:18px 0 4px"><span class="sw"><i style="background:#1f5fd1"></i>Azul</span> &nbsp;Bus F: salida de la ALU → Arduino, mux B y registro de salida <span class="mono" style="font-size:13px;color:var(--ink-soft)">· 8</span></h3><div class="tabla"><table><thead><tr><th></th><th>#</th><th>Color</th><th>Desde</th><th>Hasta</th><th>Largo</th><th>Qué es</th></tr></thead><tbody><tr><td><input type="checkbox" data-id="cable-199" aria-label="Cable 199 puesto"></td><td class="num">#199</td><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="ag">BB4-b12<small>REG SALIDA D0 (pin 3)</small></td><td class="ag">Mega pin 37<small>cabecera del Arduino</small></td><td class="cm">19.0 cm</td><td class="que">F0: REG SALIDA D0 (mismo nodo que F0) → Mega pin 37</td></tr><tr><td><input type="checkbox" data-id="cable-200" aria-label="Cable 200 puesto"></td><td class="num">#200</td><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="ag">BB4-b13<small>REG SALIDA D1 (pin 4)</small></td><td class="ag">Mega pin 36<small>cabecera del Arduino</small></td><td class="cm">19.5 cm</td><td class="que">F1: REG SALIDA D1 (mismo nodo que F1) → Mega pin 36</td></tr><tr><td><input type="checkbox" data-id="cable-201" aria-label="Cable 201 puesto"></td><td class="num">#201</td><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="ag">BB4-b16<small>REG SALIDA D2 (pin 7)</small></td><td class="ag">Mega pin 35<small>cabecera del Arduino</small></td><td class="cm">20.5 cm</td><td class="que">F2: REG SALIDA D2 (mismo nodo que F2) → Mega pin 35</td></tr><tr><td><input type="checkbox" data-id="cable-202" aria-label="Cable 202 puesto"></td><td class="num">#202</td><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="ag">BB4-b17<small>REG SALIDA D3 (pin 8)</small></td><td class="ag">Mega pin 34<small>cabecera del Arduino</small></td><td class="cm">21.0 cm</td><td class="que">F3: REG SALIDA D3 (mismo nodo que F3) → Mega pin 34</td></tr><tr><td><input type="checkbox" data-id="cable-203" aria-label="Cable 203 puesto"></td><td class="num">#203</td><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="ag">BB4-i17<small>REG SALIDA D4 (pin 13)</small></td><td class="ag">Mega pin 33<small>cabecera del Arduino</small></td><td class="cm">18.5 cm</td><td class="que">F4: REG SALIDA D4 (mismo nodo que F4) → Mega pin 33</td></tr><tr><td><input type="checkbox" data-id="cable-204" aria-label="Cable 204 puesto"></td><td class="num">#204</td><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="ag">BB4-i16<small>REG SALIDA D5 (pin 14)</small></td><td class="ag">Mega pin 32<small>cabecera del Arduino</small></td><td class="cm">18.5 cm</td><td class="que">F5: REG SALIDA D5 (mismo nodo que F5) → Mega pin 32</td></tr><tr><td><input type="checkbox" data-id="cable-205" aria-label="Cable 205 puesto"></td><td class="num">#205</td><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="ag">BB4-i13<small>REG SALIDA D6 (pin 17)</small></td><td class="ag">Mega pin 31<small>cabecera del Arduino</small></td><td class="cm">18.0 cm</td><td class="que">F6: REG SALIDA D6 (mismo nodo que F6) → Mega pin 31</td></tr><tr><td><input type="checkbox" data-id="cable-206" aria-label="Cable 206 puesto"></td><td class="num">#206</td><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="ag">BB4-i12<small>REG SALIDA D7 (pin 18)</small></td><td class="ag">Mega pin 30<small>cabecera del Arduino</small></td><td class="cm">18.0 cm</td><td class="que">F7: REG SALIDA D7 (mismo nodo que F7) → Mega pin 30</td></tr></tbody></table></div><h3 style="font-size:17px;margin:18px 0 4px"><span class="sw"><i style="background:#8b5a2b"></i>Café</span> &nbsp;Control de registros: relojes, CLEAR y selección del mux <span class="mono" style="font-size:13px;color:var(--ink-soft)">· 5</span></h3><div class="tabla"><table><thead><tr><th></th><th>#</th><th>Color</th><th>Desde</th><th>Hasta</th><th>Largo</th><th>Qué es</th></tr></thead><tbody><tr><td><input type="checkbox" data-id="cable-214" aria-label="Cable 214 puesto"></td><td class="num">#214</td><td><span class="sw"><i style="background:#8b5a2b"></i>Café</span></td><td class="ag">Mega pin 41<small>cabecera del Arduino</small></td><td class="ag">BB2-j29<small>REG A CLK (pin 11)</small></td><td class="cm">17.0 cm</td><td class="que">CLK A: Mega pin 41 → REG A pin 11</td></tr><tr><td><input type="checkbox" data-id="cable-215" aria-label="Cable 215 puesto"></td><td class="num">#215</td><td><span class="sw"><i style="background:#8b5a2b"></i>Café</span></td><td class="ag">Mega pin 40<small>cabecera del Arduino</small></td><td class="ag">BB2-j15<small>REG B CLK (pin 11)</small></td><td class="cm">14.0 cm</td><td class="que">CLK B: Mega pin 40 → REG B pin 11</td></tr><tr><td><input type="checkbox" data-id="cable-216" aria-label="Cable 216 puesto"></td><td class="num">#216</td><td><span class="sw"><i style="background:#8b5a2b"></i>Café</span></td><td class="ag">Mega pin 7<small>cabecera del Arduino</small></td><td class="ag">BB4-j19<small>REG SALIDA CLK (pin 11)</small></td><td class="cm">24.5 cm</td><td class="que">CLK S: Mega pin 7 → REG SALIDA pin 11</td></tr><tr><td><input type="checkbox" data-id="cable-217" aria-label="Cable 217 puesto"></td><td class="num">#217</td><td><span class="sw"><i style="background:#8b5a2b"></i>Café</span></td><td class="ag">Mega pin 38<small>cabecera del Arduino</small></td><td class="ag">BB2-b20<small>REG A CLR (pin 1)</small></td><td class="cm">12.5 cm</td><td class="que">CLEAR: Mega pin 38 → REG A pin 1</td></tr><tr><td><input type="checkbox" data-id="cable-218" aria-label="Cable 218 puesto"></td><td class="num">#218</td><td><span class="sw"><i style="background:#8b5a2b"></i>Café</span></td><td class="ag">Mega pin 39<small>cabecera del Arduino</small></td><td class="ag">BB1-b8<small>MUX BAJO SEL (pin 1)</small></td><td class="cm">14.5 cm</td><td class="que">SEL: Mega pin 39 → MUX BAJO pin 1</td></tr></tbody></table></div><h3 style="font-size:17px;margin:18px 0 4px"><span class="sw"><i style="background:#f2c200"></i>Amarillo</span> &nbsp;Bus D: Arduino → REG B y entradas A del mux <span class="mono" style="font-size:13px;color:var(--ink-soft)">· 8</span></h3><div class="tabla"><table><thead><tr><th></th><th>#</th><th>Color</th><th>Desde</th><th>Hasta</th><th>Largo</th><th>Qué es</th></tr></thead><tbody><tr><td><input type="checkbox" data-id="cable-191" aria-label="Cable 191 puesto"></td><td class="num">#191</td><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="ag">Mega pin 22<small>cabecera del Arduino</small></td><td class="ag">BB2-a8<small>REG B D0 (pin 3)</small></td><td class="cm">9.5 cm</td><td class="que">D0: Mega pin 22 → REG B D0</td></tr><tr><td><input type="checkbox" data-id="cable-192" aria-label="Cable 192 puesto"></td><td class="num">#192</td><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="ag">Mega pin 23<small>cabecera del Arduino</small></td><td class="ag">BB2-a9<small>REG B D1 (pin 4)</small></td><td class="cm">9.5 cm</td><td class="que">D1: Mega pin 23 → REG B D1</td></tr><tr><td><input type="checkbox" data-id="cable-193" aria-label="Cable 193 puesto"></td><td class="num">#193</td><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="ag">Mega pin 24<small>cabecera del Arduino</small></td><td class="ag">BB2-a12<small>REG B D2 (pin 7)</small></td><td class="cm">10.0 cm</td><td class="que">D2: Mega pin 24 → REG B D2</td></tr><tr><td><input type="checkbox" data-id="cable-194" aria-label="Cable 194 puesto"></td><td class="num">#194</td><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="ag">Mega pin 25<small>cabecera del Arduino</small></td><td class="ag">BB2-a13<small>REG B D3 (pin 8)</small></td><td class="cm">10.0 cm</td><td class="que">D3: Mega pin 25 → REG B D3</td></tr><tr><td><input type="checkbox" data-id="cable-195" aria-label="Cable 195 puesto"></td><td class="num">#195</td><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="ag">Mega pin 26<small>cabecera del Arduino</small></td><td class="ag">BB2-j13<small>REG B D4 (pin 13)</small></td><td class="cm">11.5 cm</td><td class="que">D4: Mega pin 26 → REG B D4</td></tr><tr><td><input type="checkbox" data-id="cable-196" aria-label="Cable 196 puesto"></td><td class="num">#196</td><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="ag">Mega pin 27<small>cabecera del Arduino</small></td><td class="ag">BB2-j12<small>REG B D5 (pin 14)</small></td><td class="cm">11.0 cm</td><td class="que">D5: Mega pin 27 → REG B D5</td></tr><tr><td><input type="checkbox" data-id="cable-197" aria-label="Cable 197 puesto"></td><td class="num">#197</td><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="ag">Mega pin 28<small>cabecera del Arduino</small></td><td class="ag">BB2-j9<small>REG B D6 (pin 17)</small></td><td class="cm">11.0 cm</td><td class="que">D6: Mega pin 28 → REG B D6</td></tr><tr><td><input type="checkbox" data-id="cable-198" aria-label="Cable 198 puesto"></td><td class="num">#198</td><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="ag">Mega pin 29<small>cabecera del Arduino</small></td><td class="ag">BB2-j8<small>REG B D7 (pin 18)</small></td><td class="cm">10.5 cm</td><td class="que">D7: Mega pin 29 → REG B D7</td></tr></tbody></table></div></section>
-<section id="prueba"><h2><span class="n">D</span>Prueba de la fase</h2><p class="dek">No pases a la siguiente fase hasta que todas estén marcadas. Escribe lo que viste en cada una: queda guardado y lo paso a la bitácora.</p><div class="tabla"><table><thead><tr><th>OK</th><th>#</th><th>Haz esto</th><th>Debe pasar</th><th>Resultado</th></tr></thead><tbody><tr><td><input type="checkbox" data-id="prueba-1" aria-label="Prueba 1 correcta"></td><td class="num">1</td><td>Monitor serial: <code>STATE</code></td><td>Responde el bloque de estado (PC=0x00)</td><td><input type="text" id="res-1" data-id="res-1" placeholder="lo que viste / mediste"></td></tr><tr><td><input type="checkbox" data-id="prueba-2" aria-label="Prueba 2 correcta"></td><td class="num">2</td><td><code>LOADB 0x00 0x30 0x55 0xB0 0xC0</code> y luego <code>RUN</code> (LDI A,#0x55 · OUT · HLT)</td><td>LEDs 01010101</td><td><input type="text" id="res-2" data-id="res-2" placeholder="lo que viste / mediste"></td></tr><tr><td><input type="checkbox" data-id="prueba-3" aria-label="Prueba 3 correcta"></td><td class="num">3</td><td><code>BORRAR</code>, pega las 5 líneas de <code>programas/referencia.load</code>, <code>RUN</code></td><td>LEDs <b>00001100</b> · traza 34 ciclos · A=0x0C · DETENIDO</td><td><input type="text" id="res-3" data-id="res-3" placeholder="lo que viste / mediste"></td></tr><tr><td><input type="checkbox" data-id="prueba-4" aria-label="Prueba 4 correcta"></td><td class="num">4</td><td><code>LOAD 0xCC 0x09</code> · <code>LOAD 0x05 0x07</code> · <code>RESET</code> · <code>RUN</code> (9 × 7)</td><td>LEDs 00111111 (63)</td><td><input type="text" id="res-4" data-id="res-4" placeholder="lo que viste / mediste"></td></tr><tr><td><input type="checkbox" data-id="prueba-5" aria-label="Prueba 5 correcta"></td><td class="num">5</td><td><code>RESET</code> y varios <code>STEP</code></td><td>Avanza un microciclo por comando, igual que el simulador</td><td><input type="text" id="res-5" data-id="res-5" placeholder="lo que viste / mediste"></td></tr></tbody></table></div></section>
-<section id="fallas"><h2><span class="n">E</span>Si algo falla</h2><div class="tabla"><table><thead><tr><th>Síntoma</th><th>Causa probable</th><th>Qué revisar</th></tr></thead><tbody><tr><td>Nada responde en la protoboard</td><td>Falta el GND común</td><td>Cable negro del GND del Mega al riel −</td></tr><tr><td>Resultados con bits al revés</td><td>Bus F cableado 30→37 en vez de 37→30</td><td>F0 = pin 37 … F7 = pin 30</td></tr><tr><td>Operaciones equivocadas</td><td>Control PORTL invertido</td><td>S0 = 49, S1 = 48, S2 = 47, S3 = 46, M = 45, C̄n = 44</td></tr><tr><td>STATE bien pero LEDs no cambian con OUT</td><td>Reloj de salida</td><td>Mega pin 7 → pin 11 del registro de salida</td></tr><tr><td>Monitor serial mudo</td><td>Velocidad o fin de línea</td><td>115200 baudios; cualquier fin de línea sirve</td></tr><tr><td>Bucle no termina / JNZ raro</td><td>Acarreo o C.5</td><td>Mega pin 2 ← pin 16 ALU ALTA; revisa CARRY_SUB_INVERTIDO</td></tr></tbody></table></div></section>
+<section id="piezas"><h2><span class="n">B</span>Componentes</h2><p class="dek">Capacitores de desacople pegados al VCC de su chip, resistencias y LEDs. Corta las patas a ~8 mm para que queden a ras.</p><div class="tabla"><table><thead><tr><th></th><th>Ref.</th><th>Pieza</th><th>Agujeros</th><th>Nota</th></tr></thead><tbody><tr><td><input type="checkbox" data-id="pieza-R_CLEAR" aria-label="R_CLEAR puesta"></td><td class="num">R_CLEAR</td><td>Resistencia · 1 kΩ</td><td class="ag">BB2-b20<br>BB2 riel + inf (fila 19)</td><td class="que">pull-up de CLEAR: en reposo inactivo. Una sola basta, CLEAR es un nodo que ya encadena REG A, REG B, REG SALIDA y los dos 161</td></tr><tr><td><input type="checkbox" data-id="pieza-R_SEL" aria-label="R_SEL puesta"></td><td class="num">R_SEL</td><td>Resistencia · 1 kΩ</td><td class="ag">BB1-b8<br>BB1 riel − inf (fila 7)</td><td class="que">pull-down de SEL: en reposo el mux deja pasar el bus D</td></tr><tr><td><input type="checkbox" data-id="pieza-R_CLK_A" aria-label="R_CLK_A puesta"></td><td class="num">R_CLK_A</td><td>Resistencia · 1 kΩ</td><td class="ag">BB2-j29<br>BB2 riel − sup (fila 29)</td><td class="que">pull-down del reloj de REG A: el 273 carga en flanco de subida, así que el reposo es bajo</td></tr><tr><td><input type="checkbox" data-id="pieza-R_CLK_B" aria-label="R_CLK_B puesta"></td><td class="num">R_CLK_B</td><td>Resistencia · 1 kΩ</td><td class="ag">BB2-j15<br>BB2 riel − sup (fila 15)</td><td class="que">pull-down del reloj de REG B: el 273 carga en flanco de subida, así que el reposo es bajo</td></tr><tr><td><input type="checkbox" data-id="pieza-R_CLK_S" aria-label="R_CLK_S puesta"></td><td class="num">R_CLK_S</td><td>Resistencia · 1 kΩ</td><td class="ag">BB4-j19<br>BB4 riel − sup (fila 19)</td><td class="que">pull-down del reloj de REG SALIDA: el 273 carga en flanco de subida, así que el reposo es bajo</td></tr><tr><td><input type="checkbox" data-id="pieza-R_CLK_PC" aria-label="R_CLK_PC puesta"></td><td class="num">R_CLK_PC</td><td>Resistencia · 1 kΩ</td><td class="ag">BB1-b33<br>BB1 riel − inf (fila 33)</td><td class="que">pull-down del reloj del PC: el 161 cuenta en flanco de subida, así que el reposo es bajo</td></tr><tr><td><input type="checkbox" data-id="pieza-R_LOAD_PC" aria-label="R_LOAD_PC puesta"></td><td class="num">R_LOAD_PC</td><td>Resistencia · 1 kΩ</td><td class="ag">BB1-i39<br>BB1 riel + sup (fila 39)</td><td class="que">pull-up de /LOAD: en reposo el PC cuenta, no carga lo que haya en el bus D</td></tr><tr><td><input type="checkbox" data-id="pieza-R_F0" aria-label="R_F0 puesta"></td><td class="num">R_F0</td><td>Resistencia · 330 Ω</td><td class="ag">BB4-b12<br>BB4-a8</td><td class="que">serie del bit 0 del bus F hacia el Mega</td></tr><tr><td><input type="checkbox" data-id="pieza-R_F1" aria-label="R_F1 puesta"></td><td class="num">R_F1</td><td>Resistencia · 330 Ω</td><td class="ag">BB4-b13<br>BB4-a9</td><td class="que">serie del bit 1 del bus F hacia el Mega</td></tr><tr><td><input type="checkbox" data-id="pieza-R_F2" aria-label="R_F2 puesta"></td><td class="num">R_F2</td><td>Resistencia · 330 Ω</td><td class="ag">BB4-b16<br>BB4-a20</td><td class="que">serie del bit 2 del bus F hacia el Mega</td></tr><tr><td><input type="checkbox" data-id="pieza-R_F3" aria-label="R_F3 puesta"></td><td class="num">R_F3</td><td>Resistencia · 330 Ω</td><td class="ag">BB4-b17<br>BB4-a21</td><td class="que">serie del bit 3 del bus F hacia el Mega</td></tr><tr><td><input type="checkbox" data-id="pieza-R_F4" aria-label="R_F4 puesta"></td><td class="num">R_F4</td><td>Resistencia · 330 Ω</td><td class="ag">BB4-i17<br>BB4-j21</td><td class="que">serie del bit 4 del bus F hacia el Mega</td></tr><tr><td><input type="checkbox" data-id="pieza-R_F5" aria-label="R_F5 puesta"></td><td class="num">R_F5</td><td>Resistencia · 330 Ω</td><td class="ag">BB4-i16<br>BB4-j20</td><td class="que">serie del bit 5 del bus F hacia el Mega</td></tr><tr><td><input type="checkbox" data-id="pieza-R_F6" aria-label="R_F6 puesta"></td><td class="num">R_F6</td><td>Resistencia · 330 Ω</td><td class="ag">BB4-i13<br>BB4-j9</td><td class="que">serie del bit 6 del bus F hacia el Mega</td></tr><tr><td><input type="checkbox" data-id="pieza-R_F7" aria-label="R_F7 puesta"></td><td class="num">R_F7</td><td>Resistencia · 330 Ω</td><td class="ag">BB4-i12<br>BB4-j8</td><td class="que">serie del bit 7 del bus F hacia el Mega</td></tr></tbody></table></div></section>
+<section id="cables"><h2><span class="n">C</span>Cables</h2><p class="dek">En este orden: primero alimentación y tierras, luego las señales. El número (#) es el mismo que aparece en el plano. Cada agujero dice debajo qué pin de qué chip hay en esa tira.</p><h3 style="font-size:17px;margin:18px 0 4px"><span class="sw"><i style="background:#1d1d1d"></i>Negro</span> &nbsp;Tierra y habilitaciones a GND <span class="mono" style="font-size:13px;color:var(--ink-soft)">· 1</span></h3><div class="tabla"><table><thead><tr><th></th><th>#</th><th>Color</th><th>Desde</th><th>Hasta</th><th>Largo</th><th>Qué es</th></tr></thead><tbody><tr><td><input type="checkbox" data-id="cable-251" aria-label="Cable 251 puesto"></td><td class="num">#251</td><td><span class="sw"><i style="background:#1d1d1d"></i>Negro</span></td><td class="ag">Mega GND<small>cabecera del Arduino</small></td><td class="ag">BB3 riel − sup (fila 5)<small>BB3 riel − sup (fila 5)</small></td><td class="cm">8.0 cm</td><td class="que">GND común: Mega GND → riel − (sin esto nada funciona)</td></tr></tbody></table></div><h3 style="font-size:17px;margin:18px 0 4px"><span class="sw"><i style="background:#8a8a8a"></i>Gris</span> &nbsp;Salidas que se observan: REG SALIDA (Q) → 244 → LEDs y PC (Q de los 161) → Mega <span class="mono" style="font-size:13px;color:var(--ink-soft)">· 8</span></h3><div class="tabla"><table><thead><tr><th></th><th>#</th><th>Color</th><th>Desde</th><th>Hasta</th><th>Largo</th><th>Qué es</th></tr></thead><tbody><tr><td><input type="checkbox" data-id="cable-243" aria-label="Cable 243 puesto"></td><td class="num">#243</td><td><span class="sw"><i style="background:#8a8a8a"></i>Gris</span></td><td class="ag">BB1-j34<small>PC BAJO Q0 (pin 14)</small></td><td class="ag">Mega pin A8<small>cabecera del Arduino</small></td><td class="cm">29.0 cm</td><td class="que">PC0: PC BAJO Q0 → Mega pin A8</td></tr><tr><td><input type="checkbox" data-id="cable-244" aria-label="Cable 244 puesto"></td><td class="num">#244</td><td><span class="sw"><i style="background:#8a8a8a"></i>Gris</span></td><td class="ag">BB1-j35<small>PC BAJO Q1 (pin 13)</small></td><td class="ag">Mega pin A9<small>cabecera del Arduino</small></td><td class="cm">29.0 cm</td><td class="que">PC1: PC BAJO Q1 → Mega pin A9</td></tr><tr><td><input type="checkbox" data-id="cable-245" aria-label="Cable 245 puesto"></td><td class="num">#245</td><td><span class="sw"><i style="background:#8a8a8a"></i>Gris</span></td><td class="ag">BB1-j36<small>PC BAJO Q2 (pin 12)</small></td><td class="ag">Mega pin A10<small>cabecera del Arduino</small></td><td class="cm">29.0 cm</td><td class="que">PC2: PC BAJO Q2 → Mega pin A10</td></tr><tr><td><input type="checkbox" data-id="cable-246" aria-label="Cable 246 puesto"></td><td class="num">#246</td><td><span class="sw"><i style="background:#8a8a8a"></i>Gris</span></td><td class="ag">BB1-j37<small>PC BAJO Q3 (pin 11)</small></td><td class="ag">Mega pin A11<small>cabecera del Arduino</small></td><td class="cm">29.0 cm</td><td class="que">PC3: PC BAJO Q3 → Mega pin A11</td></tr><tr><td><input type="checkbox" data-id="cable-247" aria-label="Cable 247 puesto"></td><td class="num">#247</td><td><span class="sw"><i style="background:#8a8a8a"></i>Gris</span></td><td class="ag">BB1-j46<small>PC ALTO Q0 (pin 14)</small></td><td class="ag">Mega pin A12<small>cabecera del Arduino</small></td><td class="cm">31.0 cm</td><td class="que">PC4: PC ALTO Q0 → Mega pin A12</td></tr><tr><td><input type="checkbox" data-id="cable-248" aria-label="Cable 248 puesto"></td><td class="num">#248</td><td><span class="sw"><i style="background:#8a8a8a"></i>Gris</span></td><td class="ag">BB1-j47<small>PC ALTO Q1 (pin 13)</small></td><td class="ag">Mega pin A13<small>cabecera del Arduino</small></td><td class="cm">31.0 cm</td><td class="que">PC5: PC ALTO Q1 → Mega pin A13</td></tr><tr><td><input type="checkbox" data-id="cable-249" aria-label="Cable 249 puesto"></td><td class="num">#249</td><td><span class="sw"><i style="background:#8a8a8a"></i>Gris</span></td><td class="ag">BB1-j48<small>PC ALTO Q2 (pin 12)</small></td><td class="ag">Mega pin A14<small>cabecera del Arduino</small></td><td class="cm">31.0 cm</td><td class="que">PC6: PC ALTO Q2 → Mega pin A14</td></tr><tr><td><input type="checkbox" data-id="cable-250" aria-label="Cable 250 puesto"></td><td class="num">#250</td><td><span class="sw"><i style="background:#8a8a8a"></i>Gris</span></td><td class="ag">BB1-j49<small>PC ALTO Q3 (pin 11)</small></td><td class="ag">Mega pin A15<small>cabecera del Arduino</small></td><td class="cm">31.0 cm</td><td class="que">PC7: PC ALTO Q3 → Mega pin A15</td></tr></tbody></table></div><h3 style="font-size:17px;margin:18px 0 4px"><span class="sw"><i style="background:#7b3fb5"></i>Morado</span> &nbsp;Control de la ALU: S0–S3, M, C̄n y acarreos <span class="mono" style="font-size:13px;color:var(--ink-soft)">· 7</span></h3><div class="tabla"><table><thead><tr><th></th><th>#</th><th>Color</th><th>Desde</th><th>Hasta</th><th>Largo</th><th>Qué es</th></tr></thead><tbody><tr><td><input type="checkbox" data-id="cable-229" aria-label="Cable 229 puesto"></td><td class="num">#229</td><td><span class="sw"><i style="background:#7b3fb5"></i>Morado</span></td><td class="ag">Mega pin 49<small>cabecera del Arduino</small></td><td class="ag">BB3-b11<small>ALU BAJA S0 (pin 6)</small></td><td class="cm">12.0 cm</td><td class="que">S0: Mega pin 49 → ALU BAJA</td></tr><tr><td><input type="checkbox" data-id="cable-230" aria-label="Cable 230 puesto"></td><td class="num">#230</td><td><span class="sw"><i style="background:#7b3fb5"></i>Morado</span></td><td class="ag">Mega pin 48<small>cabecera del Arduino</small></td><td class="ag">BB3-b10<small>ALU BAJA S1 (pin 5)</small></td><td class="cm">12.0 cm</td><td class="que">S1: Mega pin 48 → ALU BAJA</td></tr><tr><td><input type="checkbox" data-id="cable-231" aria-label="Cable 231 puesto"></td><td class="num">#231</td><td><span class="sw"><i style="background:#7b3fb5"></i>Morado</span></td><td class="ag">Mega pin 47<small>cabecera del Arduino</small></td><td class="ag">BB3-b9<small>ALU BAJA S2 (pin 4)</small></td><td class="cm">11.5 cm</td><td class="que">S2: Mega pin 47 → ALU BAJA</td></tr><tr><td><input type="checkbox" data-id="cable-232" aria-label="Cable 232 puesto"></td><td class="num">#232</td><td><span class="sw"><i style="background:#7b3fb5"></i>Morado</span></td><td class="ag">Mega pin 46<small>cabecera del Arduino</small></td><td class="ag">BB3-b8<small>ALU BAJA S3 (pin 3)</small></td><td class="cm">11.5 cm</td><td class="que">S3: Mega pin 46 → ALU BAJA</td></tr><tr><td><input type="checkbox" data-id="cable-233" aria-label="Cable 233 puesto"></td><td class="num">#233</td><td><span class="sw"><i style="background:#7b3fb5"></i>Morado</span></td><td class="ag">Mega pin 45<small>cabecera del Arduino</small></td><td class="ag">BB3-b13<small>ALU BAJA M (pin 8)</small></td><td class="cm">13.0 cm</td><td class="que">M: Mega pin 45 → ALU BAJA</td></tr><tr><td><input type="checkbox" data-id="cable-234" aria-label="Cable 234 puesto"></td><td class="num">#234</td><td><span class="sw"><i style="background:#7b3fb5"></i>Morado</span></td><td class="ag">Mega pin 44<small>cabecera del Arduino</small></td><td class="ag">BB3-a12<small>ALU BAJA CN (pin 7)</small></td><td class="cm">13.0 cm</td><td class="que">CN: Mega pin 44 → ALU BAJA</td></tr><tr><td><input type="checkbox" data-id="cable-235" aria-label="Cable 235 puesto"></td><td class="num">#235</td><td><span class="sw"><i style="background:#7b3fb5"></i>Morado</span></td><td class="ag">BB3-j30<small>ALU ALTA CN4 (pin 16)</small></td><td class="ag">Mega pin 2<small>cabecera del Arduino</small></td><td class="cm">20.5 cm</td><td class="que">Acarreo final: C̄n+4 de ALU ALTA (pin 16) → Mega pin 2</td></tr></tbody></table></div><h3 style="font-size:17px;margin:18px 0 4px"><span class="sw"><i style="background:#1f5fd1"></i>Azul</span> &nbsp;Bus F: salida de la ALU → Arduino, mux B y registro de salida <span class="mono" style="font-size:13px;color:var(--ink-soft)">· 8</span></h3><div class="tabla"><table><thead><tr><th></th><th>#</th><th>Color</th><th>Desde</th><th>Hasta</th><th>Largo</th><th>Qué es</th></tr></thead><tbody><tr><td><input type="checkbox" data-id="cable-221" aria-label="Cable 221 puesto"></td><td class="num">#221</td><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="ag">BB4-b8<small>BB4-b8</small></td><td class="ag">Mega pin 37<small>cabecera del Arduino</small></td><td class="cm">18.0 cm</td><td class="que">F0: resistencia de serie del bit 0 → Mega pin 37</td></tr><tr><td><input type="checkbox" data-id="cable-222" aria-label="Cable 222 puesto"></td><td class="num">#222</td><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="ag">BB4-b9<small>BB4-b9</small></td><td class="ag">Mega pin 36<small>cabecera del Arduino</small></td><td class="cm">18.5 cm</td><td class="que">F1: resistencia de serie del bit 1 → Mega pin 36</td></tr><tr><td><input type="checkbox" data-id="cable-223" aria-label="Cable 223 puesto"></td><td class="num">#223</td><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="ag">BB4-b20<small>BB4-b20</small></td><td class="ag">Mega pin 35<small>cabecera del Arduino</small></td><td class="cm">21.5 cm</td><td class="que">F2: resistencia de serie del bit 2 → Mega pin 35</td></tr><tr><td><input type="checkbox" data-id="cable-224" aria-label="Cable 224 puesto"></td><td class="num">#224</td><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="ag">BB4-b21<small>BB4-b21</small></td><td class="ag">Mega pin 34<small>cabecera del Arduino</small></td><td class="cm">22.0 cm</td><td class="que">F3: resistencia de serie del bit 3 → Mega pin 34</td></tr><tr><td><input type="checkbox" data-id="cable-225" aria-label="Cable 225 puesto"></td><td class="num">#225</td><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="ag">BB4-i21<small>BB4-i21</small></td><td class="ag">Mega pin 33<small>cabecera del Arduino</small></td><td class="cm">19.5 cm</td><td class="que">F4: resistencia de serie del bit 4 → Mega pin 33</td></tr><tr><td><input type="checkbox" data-id="cable-226" aria-label="Cable 226 puesto"></td><td class="num">#226</td><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="ag">BB4-i20<small>BB4-i20</small></td><td class="ag">Mega pin 32<small>cabecera del Arduino</small></td><td class="cm">19.5 cm</td><td class="que">F5: resistencia de serie del bit 5 → Mega pin 32</td></tr><tr><td><input type="checkbox" data-id="cable-227" aria-label="Cable 227 puesto"></td><td class="num">#227</td><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="ag">BB4-i9<small>BB4-i9</small></td><td class="ag">Mega pin 31<small>cabecera del Arduino</small></td><td class="cm">17.0 cm</td><td class="que">F6: resistencia de serie del bit 6 → Mega pin 31</td></tr><tr><td><input type="checkbox" data-id="cable-228" aria-label="Cable 228 puesto"></td><td class="num">#228</td><td><span class="sw"><i style="background:#1f5fd1"></i>Azul</span></td><td class="ag">BB4-i8<small>BB4-i8</small></td><td class="ag">Mega pin 30<small>cabecera del Arduino</small></td><td class="cm">17.0 cm</td><td class="que">F7: resistencia de serie del bit 7 → Mega pin 30</td></tr></tbody></table></div><h3 style="font-size:17px;margin:18px 0 4px"><span class="sw"><i style="background:#8b5a2b"></i>Café</span> &nbsp;Control de registros y del PC: relojes, CLEAR, /LOAD, RCO y selección del mux <span class="mono" style="font-size:13px;color:var(--ink-soft)">· 7</span></h3><div class="tabla"><table><thead><tr><th></th><th>#</th><th>Color</th><th>Desde</th><th>Hasta</th><th>Largo</th><th>Qué es</th></tr></thead><tbody><tr><td><input type="checkbox" data-id="cable-236" aria-label="Cable 236 puesto"></td><td class="num">#236</td><td><span class="sw"><i style="background:#8b5a2b"></i>Café</span></td><td class="ag">Mega pin 41<small>cabecera del Arduino</small></td><td class="ag">BB2-i29<small>REG A CLK (pin 11)</small></td><td class="cm">17.0 cm</td><td class="que">CLK A: Mega pin 41 → REG A pin 11</td></tr><tr><td><input type="checkbox" data-id="cable-237" aria-label="Cable 237 puesto"></td><td class="num">#237</td><td><span class="sw"><i style="background:#8b5a2b"></i>Café</span></td><td class="ag">Mega pin 40<small>cabecera del Arduino</small></td><td class="ag">BB2-i15<small>REG B CLK (pin 11)</small></td><td class="cm">13.5 cm</td><td class="que">CLK B: Mega pin 40 → REG B pin 11</td></tr><tr><td><input type="checkbox" data-id="cable-238" aria-label="Cable 238 puesto"></td><td class="num">#238</td><td><span class="sw"><i style="background:#8b5a2b"></i>Café</span></td><td class="ag">Mega pin 7<small>cabecera del Arduino</small></td><td class="ag">BB4-i19<small>REG SALIDA CLK (pin 11)</small></td><td class="cm">25.0 cm</td><td class="que">CLK S: Mega pin 7 → REG SALIDA pin 11</td></tr><tr><td><input type="checkbox" data-id="cable-239" aria-label="Cable 239 puesto"></td><td class="num">#239</td><td><span class="sw"><i style="background:#8b5a2b"></i>Café</span></td><td class="ag">Mega pin 38<small>cabecera del Arduino</small></td><td class="ag">BB2-d20<small>REG A CLR (pin 1)</small></td><td class="cm">13.0 cm</td><td class="que">CLEAR: Mega pin 38 → REG A pin 1</td></tr><tr><td><input type="checkbox" data-id="cable-240" aria-label="Cable 240 puesto"></td><td class="num">#240</td><td><span class="sw"><i style="background:#8b5a2b"></i>Café</span></td><td class="ag">Mega pin 39<small>cabecera del Arduino</small></td><td class="ag">BB1-c8<small>MUX BAJO SEL (pin 1)</small></td><td class="cm">15.0 cm</td><td class="que">SEL: Mega pin 39 → MUX BAJO pin 1</td></tr><tr><td><input type="checkbox" data-id="cable-241" aria-label="Cable 241 puesto"></td><td class="num">#241</td><td><span class="sw"><i style="background:#8b5a2b"></i>Café</span></td><td class="ag">Mega pin 42<small>cabecera del Arduino</small></td><td class="ag">BB1-c33<small>PC BAJO CLK (pin 2)</small></td><td class="cm">22.0 cm</td><td class="que">CLK PC: Mega pin 42 → PC BAJO pin 2</td></tr><tr><td><input type="checkbox" data-id="cable-242" aria-label="Cable 242 puesto"></td><td class="num">#242</td><td><span class="sw"><i style="background:#8b5a2b"></i>Café</span></td><td class="ag">Mega pin 43<small>cabecera del Arduino</small></td><td class="ag">BB1-h39<small>PC BAJO LOAD (pin 9)</small></td><td class="cm">25.0 cm</td><td class="que">/LOAD PC: Mega pin 43 → PC BAJO pin 9</td></tr></tbody></table></div><h3 style="font-size:17px;margin:18px 0 4px"><span class="sw"><i style="background:#f2c200"></i>Amarillo</span> &nbsp;Bus D: Arduino → REG B y entradas A del mux <span class="mono" style="font-size:13px;color:var(--ink-soft)">· 8</span></h3><div class="tabla"><table><thead><tr><th></th><th>#</th><th>Color</th><th>Desde</th><th>Hasta</th><th>Largo</th><th>Qué es</th></tr></thead><tbody><tr><td><input type="checkbox" data-id="cable-213" aria-label="Cable 213 puesto"></td><td class="num">#213</td><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="ag">Mega pin 22<small>cabecera del Arduino</small></td><td class="ag">BB2-a8<small>REG B D0 (pin 3)</small></td><td class="cm">9.5 cm</td><td class="que">D0: Mega pin 22 → REG B D0</td></tr><tr><td><input type="checkbox" data-id="cable-214" aria-label="Cable 214 puesto"></td><td class="num">#214</td><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="ag">Mega pin 23<small>cabecera del Arduino</small></td><td class="ag">BB2-a9<small>REG B D1 (pin 4)</small></td><td class="cm">9.5 cm</td><td class="que">D1: Mega pin 23 → REG B D1</td></tr><tr><td><input type="checkbox" data-id="cable-215" aria-label="Cable 215 puesto"></td><td class="num">#215</td><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="ag">Mega pin 24<small>cabecera del Arduino</small></td><td class="ag">BB2-a12<small>REG B D2 (pin 7)</small></td><td class="cm">10.0 cm</td><td class="que">D2: Mega pin 24 → REG B D2</td></tr><tr><td><input type="checkbox" data-id="cable-216" aria-label="Cable 216 puesto"></td><td class="num">#216</td><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="ag">Mega pin 25<small>cabecera del Arduino</small></td><td class="ag">BB2-a13<small>REG B D3 (pin 8)</small></td><td class="cm">10.0 cm</td><td class="que">D3: Mega pin 25 → REG B D3</td></tr><tr><td><input type="checkbox" data-id="cable-217" aria-label="Cable 217 puesto"></td><td class="num">#217</td><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="ag">Mega pin 26<small>cabecera del Arduino</small></td><td class="ag">BB2-j13<small>REG B D4 (pin 13)</small></td><td class="cm">11.5 cm</td><td class="que">D4: Mega pin 26 → REG B D4</td></tr><tr><td><input type="checkbox" data-id="cable-218" aria-label="Cable 218 puesto"></td><td class="num">#218</td><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="ag">Mega pin 27<small>cabecera del Arduino</small></td><td class="ag">BB2-j12<small>REG B D5 (pin 14)</small></td><td class="cm">11.0 cm</td><td class="que">D5: Mega pin 27 → REG B D5</td></tr><tr><td><input type="checkbox" data-id="cable-219" aria-label="Cable 219 puesto"></td><td class="num">#219</td><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="ag">Mega pin 28<small>cabecera del Arduino</small></td><td class="ag">BB2-j9<small>REG B D6 (pin 17)</small></td><td class="cm">11.0 cm</td><td class="que">D6: Mega pin 28 → REG B D6</td></tr><tr><td><input type="checkbox" data-id="cable-220" aria-label="Cable 220 puesto"></td><td class="num">#220</td><td><span class="sw"><i style="background:#f2c200"></i>Amarillo</span></td><td class="ag">Mega pin 29<small>cabecera del Arduino</small></td><td class="ag">BB2-j8<small>REG B D7 (pin 18)</small></td><td class="cm">10.5 cm</td><td class="que">D7: Mega pin 29 → REG B D7</td></tr></tbody></table></div></section>
+<section id="prueba"><h2><span class="n">D</span>Prueba de la fase</h2><p class="dek">No pases a la siguiente fase hasta que todas estén marcadas. Escribe lo que viste en cada una: queda guardado y lo paso a la bitácora.</p><div class="tabla"><table><thead><tr><th>OK</th><th>#</th><th>Haz esto</th><th>Debe pasar</th><th>Resultado</th></tr></thead><tbody><tr><td><input type="checkbox" data-id="prueba-1" aria-label="Prueba 1 correcta"></td><td class="num">1</td><td>Monitor serial: <code>STATE</code></td><td>Responde el bloque de estado (PC=0x00)</td><td><input type="text" id="res-1" data-id="res-1" placeholder="lo que viste / mediste"></td></tr><tr><td><input type="checkbox" data-id="prueba-2" aria-label="Prueba 2 correcta"></td><td class="num">2</td><td><code>LOADB 0x00 0x30 0x55 0xB0 0xC0</code> y luego <code>RUN</code> (LDI A,#0x55 · OUT · HLT)</td><td>LEDs 01010101</td><td><input type="text" id="res-2" data-id="res-2" placeholder="lo que viste / mediste"></td></tr><tr><td><input type="checkbox" data-id="prueba-3" aria-label="Prueba 3 correcta"></td><td class="num">3</td><td><code>BORRAR</code>, pega las 5 líneas de <code>programas/referencia.load</code>, <code>RUN</code></td><td>LEDs <b>00001100</b> · traza 34 ciclos · A=0x0C · DETENIDO</td><td><input type="text" id="res-3" data-id="res-3" placeholder="lo que viste / mediste"></td></tr><tr><td><input type="checkbox" data-id="prueba-4" aria-label="Prueba 4 correcta"></td><td class="num">4</td><td><code>LOAD 0xCC 0x09</code> · <code>LOAD 0x05 0x07</code> · <code>RESET</code> · <code>RUN</code> (9 × 7)</td><td>LEDs 00111111 (63)</td><td><input type="text" id="res-4" data-id="res-4" placeholder="lo que viste / mediste"></td></tr><tr><td><input type="checkbox" data-id="prueba-5" aria-label="Prueba 5 correcta"></td><td class="num">5</td><td><code>RESET</code> y varios <code>STEP</code></td><td>Avanza un microciclo por comando, igual que el simulador</td><td><input type="text" id="res-5" data-id="res-5" placeholder="lo que viste / mediste"></td></tr><tr><td><input type="checkbox" data-id="prueba-6" aria-label="Prueba 6 correcta"></td><td class="num">6</td><td><code>STATE</code> tras cada instrucción, y el multímetro en las Q de los 161</td><td>El PC= del monitor es el mismo valor que marcan los 161</td><td><input type="text" id="res-6" data-id="res-6" placeholder="lo que viste / mediste"></td></tr></tbody></table></div></section>
+<section id="fallas"><h2><span class="n">E</span>Si algo falla</h2><div class="tabla"><table><thead><tr><th>Síntoma</th><th>Causa probable</th><th>Qué revisar</th></tr></thead><tbody><tr><td>Nada responde en la protoboard</td><td>Falta el GND común</td><td>Cable negro del GND del Mega al riel −</td></tr><tr><td>Resultados con bits al revés</td><td>Bus F cableado 30→37 en vez de 37→30</td><td>F0 = pin 37 … F7 = pin 30</td></tr><tr><td>Operaciones equivocadas</td><td>Control PORTL invertido</td><td>S0 = 49, S1 = 48, S2 = 47, S3 = 46, M = 45, C̄n = 44</td></tr><tr><td>STATE bien pero LEDs no cambian con OUT</td><td>Reloj de salida</td><td>Mega pin 7 → pin 11 del registro de salida</td></tr><tr><td>Monitor serial mudo</td><td>Velocidad o fin de línea</td><td>115200 baudios; cualquier fin de línea sirve</td></tr><tr><td>Bucle no termina / JNZ raro</td><td>Acarreo o C.5</td><td>Mega pin 2 ← pin 16 ALU ALTA; revisa CARRY_SUB_INVERTIDO</td></tr><tr><td>Los registros se borran solos, o cargan basura al subir firmware</td><td>Falta el pull-up de CLEAR (R_CLEAR) o un pull-down de reloj (R_CLK_A/B/S)</td><td>Sin fuente, mide de CLEAR al riel + y de cada CLK al riel −: 1 kΩ en cada uno</td></tr><tr><td>El programa se repite o salta a lo loco</td><td>Bits del PC cruzados hacia A8–A15, o CLK PC / /LOAD sin su resistencia</td><td>Q0 de PC BAJO = A8 … Q3 de PC ALTO = A15; CLK PC (pin 42) y /LOAD (pin 43) llegan a los pines 2 y 9 de PC BAJO</td></tr><tr><td>Un bit del bus F se lee siempre igual</td><td>Su resistencia de 330 Ω está en la tira equivocada</td><td>Continuidad entre el pin D del registro de salida y el pin del Mega: debe dar ~330 Ω, no 0 ni infinito</td></tr></tbody></table></div></section>
 <section id="cierre"><h2><span class="n">F</span>Al cerrar la fase</h2><ol class="manual"><li><input type="checkbox" data-id="cierre-1" aria-label="Hecho"><span>Guarda la traza completa del programa de referencia en la bitácora.</span></li><li><input type="checkbox" data-id="cierre-2" aria-label="Hecho"><span>Toma fotos: vista general y cada protoboard.</span></li></ol></section>
 <footer>Generado desde <code>montaje/netlist.py</code> (única fuente de verdad del montaje, verificada por
 <code>tests/test_montaje.py</code> contra <code>pines.h</code> y los datasheets de TI). Si cambia algo del montaje se

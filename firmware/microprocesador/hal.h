@@ -61,8 +61,25 @@ bool huboAcarreo();
 void pulsoClockA();
 void pulsoClockB();
 
-// CLEAR asíncrono de ambos 74LS273: los dos registros a 0x00.
+// CLEAR asíncrono compartido: los 74LS273 y el contador de programa
+// (2× 74LS161) a 0x00. Por eso el programa siempre arranca en 0x00.
 void limpiarRegistros();
+
+// ── Contador de programa: dos 74LS161 en cascada ─────────────────────────
+// El PC es hardware. El Arduino no suma: pulsa el reloj y el 161 cuenta.
+
+// Un flanco con /LOAD en alto: PC <- PC + 1 (lo cuenta el 161; 0xFF pasa a
+// 0x00 solo, por la cascada RCO -> ENT).
+void incrementarPC();
+
+// Carga paralela SÍNCRONA desde el bus D: pone `direccion` en el bus, baja
+// /LOAD y pulsa el reloj. Deja el bus con `direccion`, que no engancha nada
+// más porque ningún otro reloj se pulsa.
+void cargarPC(uint8_t direccion);
+
+// Valor actual del PC (Q0-Q7 de los 161, por PORTK). La RAM vive en el
+// Arduino, así que estas son sus líneas de dirección.
+uint8_t leerPC();
 
 // Engancha el resultado en la salida física (los 8 dígitos binarios).
 //

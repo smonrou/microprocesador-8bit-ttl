@@ -8,6 +8,9 @@ Fuentes (Texas Instruments):
   SN74LS157  pinout verificado contra el símbolo de Proteus en la guía
              "Mux 74LS157" (E = pin 15, igual que G del datasheet).
   SN74LS244  SDLS144D, sección 5 "Pin Configuration and Functions".
+  SN74LS161A SDLS060, "D, J OR N PACKAGE (TOP VIEW)". Las entradas de datos
+             A-D del datasheet se llaman P0-P3 aquí y QA-QD, Q0-Q3. CLR y
+             LOAD son activos en bajo (/CLR y /LOAD en el datasheet).
 
 Convención de datos: el proyecto usa lógica activa en alto en A/B/F del 181
 (la tabla de control de contexto_proyecto.md A.3 ya está escrita así), de modo
@@ -77,6 +80,13 @@ LS244 = Pinout('74LS244', 20, 3, {
     9: ('2Y1', 'out'), 10: ('GND', 'gnd'), 11: ('2A1', 'in'), 12: ('1Y4', 'out'),
     13: ('2A2', 'in'), 14: ('1Y3', 'out'), 15: ('2A3', 'in'), 16: ('1Y2', 'out'),
     17: ('2A4', 'in'), 18: ('1Y1', 'out'), 19: ('2G', 'in'),  20: ('VCC', 'vcc'),
+})
+
+LS161 = Pinout('74LS161', 16, 3, {
+    1: ('CLR', 'in'),  2: ('CLK', 'in'),   3: ('P0', 'in'),   4: ('P1', 'in'),
+    5: ('P2', 'in'),   6: ('P3', 'in'),   7: ('ENP', 'in'),  8: ('GND', 'gnd'),
+    9: ('LOAD', 'in'), 10: ('ENT', 'in'), 11: ('Q3', 'out'), 12: ('Q2', 'out'),
+    13: ('Q1', 'out'), 14: ('Q0', 'out'), 15: ('RCO', 'out'), 16: ('VCC', 'vcc'),
 })
 
 # Bit de salida de cada canal del 244: bits 0-3 por la mitad 1, 4-7 por la 2.

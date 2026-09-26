@@ -30,6 +30,7 @@ Proyecto individual del curso **Arquitectura de Computadoras y Ensambladores 1**
 | Registro A | 1× **74LS273** (8 bits) | Decidido |
 | Registro B | 1× **74LS273** (8 bits) | Decidido |
 | Mux de entrada a A | 2× **74LS157** | Decidido |
+| Contador de programa (PC) | 2× **74LS161** en cascada (8 bits, carga paralela síncrona desde el bus D, clear asíncrono compartido con los 273). Q0–Q7 → Mega A8–A15 (PORTK) | Decidido (2026-09-25, por orden del ingeniero). En existencia |
 | Unidad de control / memoria / reloj | **Arduino Mega** | Por comprar |
 | Registro de salida | 1× **74LS273** (engancha el bus F al ejecutar OUT) | Decidido (2026-09-04) |
 | Salida del procesador | **8 LEDs en binario**, uno por bit (bit 7 a la izquierda). Registro de salida → 1× **74LS244** (buffer de corriente) → 8 LEDs rojos/verdes/amarillos con 220 Ω a GND; LED encendido = bit en 1. Sin decodificación: el bit ya es la magnitud. El Arduino no convierte nada | Decidido (2026-09-17, reemplaza los 8 dígitos de 7 segmentos con 74LS151/74LS138) |
@@ -37,7 +38,7 @@ Proyecto individual del curso **Arquitectura de Computadoras y Ensambladores 1**
 
 **Camino de datos:** las salidas F de la ALU regresan a las entradas del registro A **a través del mux 74LS157**. El resultado nunca pasa por el Arduino. El mux selecciona entre "bus del Arduino" y "salida de la ALU".
 
-**PC, IR y MAR son variables en el Arduino**, no hardware.
+**El PC es hardware** (2× 74LS161): el Arduino no lo calcula, solo pulsa su reloj para contar o lo pulsa con /LOAD en bajo para cargar la dirección de un salto desde el bus D, y lee su valor por PORTK porque la RAM vive en el Arduino. **IR y MAR siguen siendo variables en el Arduino.** *(Cambio a la Parte A del 2026-09-25: el ingeniero no aceptó el PC simulado. Hasta esa fecha decía "PC, IR y MAR son variables en el Arduino". Ver §22 de `proyecto_microprocesador_8bits.md`.)*
 
 **Precaución con el 74LS273:** captura en cada flanco de subida, sin habilitación. A y B deben tener **líneas de reloj independientes**; nunca compartirlas.
 
@@ -399,7 +400,7 @@ La salida debe ser **legible por humanos y parseable por Processing** a la vez (
 - **Complemento a 2 vs. complemento a 1:** el complemento a 1 tiene doble representación del cero (`00000000` y `11111111`), lo que rompe la bandera Z y obliga a un acarreo de retorno (*end-around carry*). Además el 74LS181 implementa complemento a 2 de forma nativa.
 - **La resta en el 74LS181:** el datasheet (pág. 2) documenta que el chip genera internamente el complemento a 1 del sustraendo, produciendo A−B−1, y que se requiere un acarreo forzado para obtener A−B. Es decir, `A + (NOT B) + 1`. **Se puede citar el datasheet directamente.**
 - **Instrucción de longitud variable:** característica CISC. Contrastar con RISC (longitud fija, más opcodes desperdiciados o menos espacio de direcciones). Con 4 bits de opcode y 1 byte fijo solo habría 16 direcciones de memoria; la longitud variable da 256.
-- **Solo A y B en hardware:** separación entre ruta de datos (física) y unidad de control (software). PC, IR y MAR no necesitan existir físicamente porque el Arduino ya es la unidad de control.
+- **PC en hardware (2× 74LS161), IR y MAR en el Arduino:** incrementar el PC es una suma, y el Arduino no calcula; por eso el PC lo cuenta un contador físico. El Arduino hace de RAM, así que lee el PC por PORTK igual que una RAM recibe sus líneas de dirección. *(Hasta el 2026-09-25 el argumento era "solo A y B en hardware"; el ingeniero lo rechazó para el PC.)*
 - **El mux 74LS157:** el resultado de la ALU nunca pasa por el Arduino. Se puede señalar el cable físico. Responde directamente al requisito de que el Arduino no realice operaciones.
 - **`A XOR 0xFF` = complemento a 1:** cómo suplir la ausencia de una instrucción NOT, igual que hacen arquitecturas RISC reales que no tienen NOT dedicado.
 - **Por qué no se usa el pin A=B como bandera Z:** solo funciona en modo resta con C̄n=H, y es de colector abierto. Calcular `Z` leyendo el bus F es más confiable y funciona para todas las operaciones.

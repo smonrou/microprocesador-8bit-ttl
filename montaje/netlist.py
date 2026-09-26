@@ -21,7 +21,7 @@ Todo lo demás (dibujos, tablas, checklist, compras) se genera de aquí.
 
 from dataclasses import dataclass, field
 
-from montaje.pinouts import LS181, LS273, LS157, LS244, CANAL_244, CANAL_157
+from montaje.pinouts import LS181, LS273, LS157, LS244, LS161, CANAL_244, CANAL_157
 
 FILAS = 63
 COLS_INF = 'abcde'           # de afuera hacia el canal
@@ -37,7 +37,7 @@ FASES = {
     1: 'Etapa de salida: registro de salida, 74LS244 y 8 LEDs',
     2: 'ALU: dos 74LS181 en cascada',
     3: 'Registros A y B',
-    4: 'Multiplexor de entrada a A',
+    4: 'Multiplexor de entrada a A y contador de programa',
     5: 'Arduino Mega',
     6: 'Cierre y verificación final',
 }
@@ -51,9 +51,9 @@ COLORES = {
     'verde':    ('#2e9e44', 'REG A (Q) → ALU A'),
     'blanco':   ('#f4f4f4', 'REG B (Q) → ALU B'),
     'naranja':  ('#f07d19', 'Salida Y del mux → REG A (D)'),
-    'gris':     ('#8a8a8a', 'Etapa de salida: REG SALIDA (Q) → 244 → LEDs'),
+    'gris':     ('#8a8a8a', 'Salidas que se observan: REG SALIDA (Q) → 244 → LEDs y PC (Q de los 161) → Mega'),
     'morado':   ('#7b3fb5', 'Control de la ALU: S0–S3, M, C̄n y acarreos'),
-    'cafe':     ('#8b5a2b', 'Control de registros: relojes, CLEAR y selección del mux'),
+    'cafe':     ('#8b5a2b', 'Control de registros y del PC: relojes, CLEAR, /LOAD, RCO y selección del mux'),
 }
 COLOR_TEMPORAL = '#e0409a'   # dupont de prueba: se retira al cerrar la fase
 
@@ -209,6 +209,9 @@ COLOCACION = {
     'REG_B': (6, False), 'REG_A': (20, False),
     'ALU_BAJA': (6, False), 'ALU_ALTA': (22, False),
     'REG_S': (10, False), 'BUF': (25, False),
+    # Contador de programa: en las filas libres de BB1, a la derecha del mux,
+    # que ya recibe el bus D (sus P se cablean desde las entradas A del mux).
+    'PC_BAJO': (32, False), 'PC_ALTO': (44, False),
 }
 
 
@@ -273,10 +276,22 @@ def construir(colocacion=None):
         ag_b = punta(b, fase, fin, f'cable {n}')
         m.cables.append(Cable(n, ag_a, ag_b, color, fase, que, red, retirar, condicional))
 
+    def pieza_en(ref, tipo, valor, a, b, fase, retirar=None, nota=''):
+        """Pieza de dos patas dada por extremos lógicos, como cable().
+
+        pieza() pide agujeros ya concretos; esta busca el que quede libre en
+        la tira del pin o del riel, igual que hace un cable.
+        """
+        fin = retirar if retirar is not None else FIN
+        patas = (punta(a, fase, fin, ref), punta(b, fase, fin, ref))
+        m.piezas.append(Pieza(ref, tipo, valor, patas, fase, retirar, nota))
+
     # ── Colocación de chips ──────────────────────────────────────────────
-    # BB1: mux. BB2: registros A y B + zona de pruebas. BB3: ALU. BB4: salida.
+    # BB1: mux y PC. BB2: registros A y B + zona de pruebas. BB3: ALU. BB4: salida.
     chip('MUX_BAJO', 'MUX BAJO', LS157, 'BB1', 12, 4, 'mux 2:1 bits 0-3')
     chip('MUX_ALTO', 'MUX ALTO', LS157, 'BB1', 30, 4, 'mux 2:1 bits 4-7')
+    chip('PC_BAJO', 'PC BAJO', LS161, 'BB1', 32, 4, 'contador de programa bits 0-3')
+    chip('PC_ALTO', 'PC ALTO', LS161, 'BB1', 44, 4, 'contador de programa bits 4-7')
     chip('REG_A', 'REG A', LS273, 'BB2', 10, 3, 'registro A')
     chip('REG_B', 'REG B', LS273, 'BB2', 28, 3, 'registro B')
     chip('ALU_BAJA', 'ALU BAJA', LS181, 'BB3', 10, 2, 'ALU bits 0-3')
@@ -457,13 +472,103 @@ def construir(colocacion=None):
     cable(('pin', 'MUX_BAJO', 'SEL'), ('riel', 'BB1', 'B-', m.chips['MUX_BAJO'].fila1), 'temporal', 4,
           'PRUEBA: SEL a un riel (− = dip switch, + = resultado de la ALU)', 'SEL', retirar=4)
 
+    # ── Fase 4: contador de programa (2× 74LS161) ───────────────────────
+    # El PC es hardware: el Arduino solo pulsa su reloj (cuenta) o lo pulsa
+    # con /LOAD en bajo (carga el bus D, para los saltos). Las P se toman de
+    # las entradas A del mux, que ya son el bus D; así el dip switch las
+    # alimenta durante la prueba de esta fase sin cables extra.
+    for k in range(8):
+        mux = 'MUX_BAJO' if k < 4 else 'MUX_ALTO'
+        pc = 'PC_BAJO' if k < 4 else 'PC_ALTO'
+        ch = CANAL_157[k % 4]
+        cable(('pin', mux, f'{ch}A'), ('pin', pc, f'P{k % 4}'), 'amarillo', 4,
+              f'D{k}: {m.chips[mux].nombre} {ch}A → {m.chips[pc].nombre} P{k % 4}', f'D{k}')
+    for ref in ('PC_BAJO', 'PC_ALTO'):
+        c = m.chips[ref]
+        cable(('pin', ref, 'ENP'), ('riel', 'BB1', 'B+', c.agujero(7).fila), 'rojo', 4,
+              f'{c.nombre}: ENP (pin 7) a +5 V — cuenta en cada flanco', 'VCC')
+    cable(('pin', 'PC_BAJO', 'ENT'), ('riel', 'BB1', 'T+', m.chips['PC_BAJO'].agujero(10).fila), 'rojo', 4,
+          'PC BAJO: ENT (pin 10) a +5 V', 'VCC')
+    cable(('pin', 'PC_BAJO', 'RCO'), ('pin', 'PC_ALTO', 'ENT'), 'cafe', 4,
+          'Cascada: RCO de PC BAJO (pin 15) → ENT de PC ALTO (pin 10)', 'RCO_PC')
+    cable(('pin', 'PC_BAJO', 'CLK'), ('pin', 'PC_ALTO', 'CLK'), 'cafe', 4,
+          'CLK PC: PC BAJO → PC ALTO (reloj común)', 'CLK_PC')
+    cable(('pin', 'PC_BAJO', 'LOAD'), ('pin', 'PC_ALTO', 'LOAD'), 'cafe', 4,
+          '/LOAD: PC BAJO → PC ALTO', 'LOAD_PC')
+    cable(('pin', 'PC_BAJO', 'CLR'), ('pin', 'PC_ALTO', 'CLR'), 'cafe', 4,
+          'CLEAR: PC BAJO → PC ALTO', 'CLEAR')
+    cable(('pin', 'PC_BAJO', 'CLR'), ('pin', 'REG_A', 'CLR'), 'cafe', 4,
+          'CLEAR: PC BAJO → REG A (el mismo CLEAR de los registros)', 'CLEAR')
+    # Prueba: el pulsador es el reloj del PC y /LOAD va a un riel. La fila
+    # FILA_BOTON + 2 es la otra pata del mismo lado del pulsador (unida por
+    # dentro a la de la fila FILA_BOTON), porque la tira de la fila del
+    # pulsador ya tiene sus tres huecos libres ocupados.
+    BOTON_2 = ('tira', 'BB2', FILA_BOTON + 2, 'abcd')
+    cable(BOTON_2, ('pin', 'PC_BAJO', 'CLK'), 'temporal', 4,
+          'PRUEBA: pulsador → reloj del PC (conecta solo el reloj que vayas a pulsar)', 'CLK_PC', retirar=4)
+    cable(('pin', 'PC_BAJO', 'LOAD'), ('riel', 'BB1', 'T+', m.chips['PC_BAJO'].agujero(9).fila), 'temporal', 4,
+          'PRUEBA: /LOAD a un riel (+ = contar, − = cargar el dip)', 'LOAD_PC', retirar=4)
+
+    # ── Resistencias de reposo del control ──────────────────────────────
+    # CLEAR, SEL y los tres relojes los maneja el Mega, pero sus pines quedan
+    # en alta impedancia mientras el Mega resetea y durante cada carga de
+    # firmware. Una entrada TTL al aire no vale 0 ni 1: flota alto y conmuta
+    # con el ruido, y un CLEAR o un reloj espurio corrompe los registros. Cada
+    # resistencia fija el nivel de reposo; el Mega la vence sin problema.
+    def fila_de(ref, senal):
+        c = m.chips[ref]
+        return c.agujero(c.pinout.pin_de(senal)).fila
+
+    pieza_en('R_CLEAR', 'resistencia', '1 kΩ',
+             ('pin', 'REG_A', 'CLR'), ('riel', 'BB2', 'B+', fila_de('REG_A', 'CLR')), 5,
+             nota='pull-up de CLEAR: en reposo inactivo. Una sola basta, CLEAR '
+                  'es un nodo que ya encadena REG A, REG B, REG SALIDA y los dos 161')
+    pieza_en('R_SEL', 'resistencia', '1 kΩ',
+             ('pin', 'MUX_BAJO', 'SEL'), ('riel', 'BB1', 'B-', fila_de('MUX_BAJO', 'SEL')), 5,
+             nota='pull-down de SEL: en reposo el mux deja pasar el bus D')
+    for ref, riel_gnd in (('REG_A', 'T-'), ('REG_B', 'T-'), ('REG_S', 'T-')):
+        c = m.chips[ref]
+        pieza_en(f'R_CLK_{ref.split("_")[1]}', 'resistencia', '1 kΩ',
+                 ('pin', ref, 'CLK'), ('riel', c.bb, riel_gnd, fila_de(ref, 'CLK')), 5,
+                 nota=f'pull-down del reloj de {c.nombre}: el 273 carga en flanco '
+                      'de subida, así que el reposo es bajo')
+    pieza_en('R_CLK_PC', 'resistencia', '1 kΩ',
+             ('pin', 'PC_BAJO', 'CLK'), ('riel', 'BB1', 'B-', fila_de('PC_BAJO', 'CLK')), 5,
+             nota='pull-down del reloj del PC: el 161 cuenta en flanco de subida, '
+                  'así que el reposo es bajo')
+    pieza_en('R_LOAD_PC', 'resistencia', '1 kΩ',
+             ('pin', 'PC_BAJO', 'LOAD'), ('riel', 'BB1', 'T+', fila_de('PC_BAJO', 'LOAD')), 5,
+             nota='pull-up de /LOAD: en reposo el PC cuenta, no carga lo que haya en el bus D')
+
     # ── Fase 5: Arduino Mega ────────────────────────────────────────────
     for k in range(8):
         cable(('mega', str(22 + k)), ('pin', 'REG_B', f'D{k}'), 'amarillo', 5,
               f'D{k}: Mega pin {22 + k} → REG B D{k}', f'D{k}')
+    # Bus F hacia el Mega, con 330 Ω en serie en cada bit. El Mega lee F como
+    # entrada; si un pin quedara como salida (bug de firmware, pinMode mal) se
+    # pelearía contra la 74LS181 y se quemaría uno de los dos. La resistencia
+    # limita esa contención a ~15 mA y no estorba la lectura, porque la entrada
+    # del Mega es de alta impedancia.
+    # Cada resistencia salta 4 filas (10 mm, el largo natural de una de 1/4 W)
+    # desde el pin D hasta una tira libre; de ahí sale el cable azul al Mega.
+    # La fila destino se calcula, no se escribe a mano: si cayera sobre otro
+    # chip la tira quedaría en corto con uno de sus pines, y eso no lo detecta
+    # la reserva de agujeros, que es hueco por hueco.
+    ocupadas_bb4 = {f for c in m.chips.values() if c.bb == 'BB4' for f in c.filas()}
+    reg_s = m.chips['REG_S']
     for k in range(8):
-        cable(('pin', 'REG_S', f'D{k}'), ('mega', str(37 - k)), 'azul', 5,
-              f'F{k}: REG SALIDA D{k} (mismo nodo que F{k}) → Mega pin {37 - k}', f'F{k}')
+        fila_pin = reg_s.agujero(reg_s.pinout.pin_de(f'D{k}')).fila
+        for fila in (fila_pin - 4, fila_pin + 4):
+            if 1 <= fila <= FILAS and fila not in ocupadas_bb4:
+                break
+        else:
+            raise ValueError(f'sin fila libre a 4 de distancia para R_F{k} (pin en {fila_pin})')
+        cols = 'abcde' if k < 4 else 'jihgf'
+        pieza_en(f'R_F{k}', 'resistencia', '330 Ω',
+                 ('pin', 'REG_S', f'D{k}'), ('tira', 'BB4', fila, cols), 5,
+                 nota=f'serie del bit {k} del bus F hacia el Mega')
+        cable(('tira', 'BB4', fila, cols), ('mega', str(37 - k)), 'azul', 5,
+              f'F{k}: resistencia de serie del bit {k} → Mega pin {37 - k}', f'F_MEGA{k}')
     for s, p in (('S0', 49), ('S1', 48), ('S2', 47), ('S3', 46), ('M', 45), ('CN', 44)):
         cable(('mega', str(p)), ('pin', 'ALU_BAJA', s), 'morado', 5,
               f'{s}: Mega pin {p} → ALU BAJA', s)
@@ -474,6 +579,15 @@ def construir(colocacion=None):
     cable(('mega', '7'), ('pin', 'REG_S', 'CLK'), 'cafe', 5, 'CLK S: Mega pin 7 → REG SALIDA pin 11', 'CLK_S')
     cable(('mega', '38'), ('pin', 'REG_A', 'CLR'), 'cafe', 5, 'CLEAR: Mega pin 38 → REG A pin 1', 'CLEAR')
     cable(('mega', '39'), ('pin', 'MUX_BAJO', 'SEL'), 'cafe', 5, 'SEL: Mega pin 39 → MUX BAJO pin 1', 'SEL')
+    cable(('mega', '42'), ('pin', 'PC_BAJO', 'CLK'), 'cafe', 5, 'CLK PC: Mega pin 42 → PC BAJO pin 2', 'CLK_PC')
+    cable(('mega', '43'), ('pin', 'PC_BAJO', 'LOAD'), 'cafe', 5, '/LOAD PC: Mega pin 43 → PC BAJO pin 9', 'LOAD_PC')
+    # Q del PC → PORTK (A8-A15, ascendente): son las patas de dirección de la
+    # RAM, que vive en el Arduino. Sin resistencia en serie: PORTK solo se
+    # configura como entrada y el 161 no pelea con nadie más en esa red.
+    for k in range(8):
+        pc = 'PC_BAJO' if k < 4 else 'PC_ALTO'
+        cable(('pin', pc, f'Q{k % 4}'), ('mega', f'A{8 + k}'), 'gris', 5,
+              f'PC{k}: {m.chips[pc].nombre} Q{k % 4} → Mega pin A{8 + k}', f'PC{k}')
     cable(('mega', 'GND'), ('riel', 'BB3', 'T-', 4), 'negro', 5,
           'GND común: Mega GND → riel − (sin esto nada funciona)', 'GND')
 

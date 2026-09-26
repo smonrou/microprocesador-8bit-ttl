@@ -27,6 +27,11 @@ GUIAS = {
             ('note', '<b>La raya manda, no la posición.</b> En el plano el riel <b>+</b> (raya roja) es el '
                      'exterior y el <b>−</b> (raya azul) el interior. Si en tu protoboard la roja está adentro, '
                      'cablea siguiendo la raya de color, nunca la posición.'),
+            ('warn', '<b>Solo 5 V regulados.</b> Los 74LS piden 4.75–5.25 V (máximo absoluto 7 V) y el pull-up '
+                     'de CLEAR lleva el riel + a un pin del Mega, que no admite más de 5.5 V. Una fuente de '
+                     '<b>6 V no va directa</b>: pásala por un regulador LM2940-5 (un 7805 no sirve, pide ≥7 V) '
+                     'o, si es regulada, por un diodo 1N4001 en serie (ánodo a la fuente) y mide con carga. '
+                     'Un adaptador de "6 V" no regulado da 7–9 V en vacío: no lo uses.'),
             ('note', '<b>Cómo se corta y pela cada cable.</b> El largo de cada tabla ya incluye las dos puntas: '
                      'corta a ese largo, pela <b>8 mm</b> en cada extremo, dobla las puntas a 90° y deja el cable '
                      '<b>plano, pegado a la protoboard</b>. Si en el dibujo un cable cruza sobre un chip, en '
@@ -56,6 +61,7 @@ GUIAS = {
         'fallas': [
             ('0 V en medio riel', 'Riel partido sin puente', 'Puente del mismo color cruzando el corte'),
             ('Menos de 4.75 V', 'Fuente débil o conexión floja en la bornera', 'Aprieta la bornera; prueba otra fuente de ≥1 A'),
+            ('Más de 5.25 V', 'Fuente de 6 V o no regulada', 'Desconecta ya; regulador LM2940-5 o diodo 1N4001 en serie (ver aviso)'),
             ('+ y − pitan entre sí', 'Un cable rojo en riel − o al revés', 'Revisa los puentes uno por uno con la tabla'),
         ],
         'cierre': ['Desconecta la fuente antes de pasar a la fase 1.',
@@ -179,7 +185,9 @@ GUIAS = {
     4: {
         'objetivo': 'Montar los dos 74LS157. Su salida Y alimenta las D de REG A (naranja); la entrada A viene '
                     'del bus D (amarillo, que ya llega a REG B) y la B del bus F (azul). Con esto se cierra el '
-                    'lazo del acumulador: A ← A + B sin pasar por el Arduino.',
+                    'lazo del acumulador: A ← A + B sin pasar por el Arduino. En la misma protoboard van los dos '
+                    '<b>74LS161 del contador de programa (PC)</b>: sus entradas de carga P salen de las entradas A '
+                    'del mux (bus D, amarillo), así que el dip switch también los carga durante la prueba.',
         'antes': [
             ('warn', '<b>G̅ (pin 15) a GND en los dos chips.</b> Si queda suelto, las salidas Y se quedan en 0 '
                      'sin importar nada: síntoma "REG A siempre carga cero".'),
@@ -187,6 +195,17 @@ GUIAS = {
                      'canal 4 es 14 (A), 13 (B), 12 (Y): bajan en vez de subir. Sigue la tabla.'),
             ('note', DIP + ' El puente temporal de SEL: en <b>−</b> el mux deja pasar el bus D (dip switch); en '
                      '<b>+</b> deja pasar el resultado de la ALU.'),
+            ('warn', '<b>El PC es físico, no una variable del Arduino.</b> Dos 74LS161 en cascada: el <b>RCO</b> '
+                     '(pin 15) de PC BAJO va al <b>ENT</b> (pin 10) de PC ALTO. Si el ENT de PC ALTO va a +5 V, '
+                     'el PC ALTO cuenta en cada pulso en vez de cada 16. ENP (pin 7) de los dos y ENT de PC BAJO '
+                     'van a +5 V.'),
+            ('note', '<b>Cómo se lee el PC en esta fase:</b> con el multímetro en voltaje, en las Q de cada 161 '
+                     '(Q0 = pin 14, Q1 = 13, Q2 = 12, Q3 = 11). ~3.5 V es 1 y menos de 0.5 V es 0. En la fase 5 '
+                     'lo lee el Mega por A8–A15. El puente temporal de <b>/LOAD</b>: en <b>+</b> el PC cuenta, en '
+                     '<b>−</b> carga el dip switch en el siguiente pulso.'),
+            ('note', '<b>El pulsador rebota.</b> Un solo toque puede contar 2 o 3 en el 161 (los 273 no lo notan '
+                     'porque cargar dos veces lo mismo no cambia nada). Por eso las pruebas del PC cargan un valor '
+                     'y miran si cambia de nibble, no la cuenta exacta.'),
         ],
         'manual': [],
         'prueba': [
@@ -196,12 +215,21 @@ GUIAS = {
             ('SEL en + · pulsador en CLK A · pulsa una vez', 'A = A + B = 2'),
             ('Pulsador en CLK de salida · pulsa', 'LEDs 00000011'),
             ('Repite: CLK A, luego CLK de salida, tres veces más', 'LEDs 00000100, 00000101, 00000110: el acumulador suma'),
+            ('PC: pasa un momento el puente de CLEAR de REG A del riel + al − y regrésalo', 'Las 8 Q de los dos 161 en 0 V'),
+            ('PC: dip = 10100101 · /LOAD en − · pulsador solo en CLK PC · pulsa · /LOAD en +', 'PC = 10100101 (carga paralela)'),
+            ('PC: dip = 00001111 · /LOAD en − · pulsa · /LOAD en + · pulsa otra vez', 'Q0 de PC ALTO (pin 14) en 1: pasó a 0001xxxx, la cascada funciona'),
+            ('PC: dip = 11111111 · /LOAD en − · pulsa · /LOAD en + · pulsa otra vez', 'Q de PC ALTO todo en 0: 0xFF + 1 dio la vuelta a 0x00'),
         ],
         'fallas': [
             ('REG A siempre carga 0', 'G̅ (pin 15) del 157 sin GND', 'Cable negro del pin 15 al riel −'),
             ('SEL no cambia nada', 'SEL no llega a los dos chips', 'Cable café entre los pines 1 de los dos 157'),
             ('Bits 2-3 o 6-7 cruzados', 'Canales 3/4 cableados en orden ascendente', 'Canal 3 = 11/10/9, canal 4 = 14/13/12'),
             ('Con SEL en + A no suma', 'Cable azul F → B del mux mal', 'Revisa los 8 azules nuevos de esta fase'),
+            ('El PC no carga el dip', '/LOAD no llega a los dos 161, o las P no salen del bus D',
+             'Cable café entre los pines 9; amarillos de las A del mux a los pines 3-6'),
+            ('PC ALTO cuenta en cada pulso', 'ENT de PC ALTO a +5 V en vez de al RCO de PC BAJO', 'Pin 15 de PC BAJO → pin 10 de PC ALTO'),
+            ('PC ALTO nunca cambia', 'RCO → ENT suelto, o ENP (pin 7) de PC ALTO sin +5 V', 'Revisa el café de la cascada y el rojo del pin 7'),
+            ('El PC se queda en 0', 'CLEAR en bajo', 'El CLR (pin 1) de los 161 va al CLEAR de REG A, que en esta fase está en +'),
         ],
         'cierre': ['<b>Retira todo lo temporal:</b> dip switch, pulsador, sus 9 resistencias de 1 kΩ y todos los cables magenta que queden (lista abajo).',
                    'Desconecta la fuente. Desde aquí las entradas de control quedan al aire hasta conectar el Mega: no enciendas sin él.',
@@ -209,7 +237,7 @@ GUIAS = {
     },
     5: {
         'objetivo': 'Conectar el Arduino Mega: bus D, bus F, control de la ALU, relojes, CLEAR, selección del mux, '
-                    'acarreo y GND común. Cargar el firmware y correr el programa de referencia: 4 × 3 = 12 '
+                    'acarreo, reloj y /LOAD del PC, lectura del PC (A8–A15) y GND común. Cargar el firmware y correr el programa de referencia: 4 × 3 = 12 '
                     'tiene que aparecer en los LEDs.',
         'antes': [
             ('warn', '<b>Primero el firmware, con el Mega desconectado de la protoboard.</b> Si en la fase 2 '
@@ -218,8 +246,21 @@ GUIAS = {
                      'serial a <b>115200</b> y escribe <code>HELP</code>: debe responder la lista de comandos.'),
             ('warn', '<b>El pin 5V del Mega no se conecta a nada.</b> El Mega se alimenta por USB y la protoboard '
                      'por su fuente; solo se unen las tierras. Conecta el <b>GND primero</b>.'),
+            ('warn', '<b>Las 15 resistencias de esta fase van antes que los cables del Mega</b>, no después. '
+                     'Las 7 de <b>1 kΩ</b> fijan el nivel de reposo de CLEAR, SEL, los tres relojes, el reloj del PC '
+                     'y /LOAD del PC: esos pines '
+                     'del Mega quedan en alta impedancia mientras resetea y durante <b>cada carga de firmware</b>, '
+                     'y una entrada TTL al aire no vale 0 ni 1: flota alto y conmuta con el ruido. Sin ellas, un '
+                     'CLEAR o un reloj espurio corrompe los registros a media ejecución.'),
+            ('note', '<b>Las 8 de 330 Ω del bus F van en serie</b>, cada una entre un pin D del registro de salida '
+                     'y la tira de la que sale su cable azul al Mega. Saltan 4 filas: dobla las patas en L y déjala '
+                     'plana. Protegen contra contención si un pin del Mega quedara como <code>OUTPUT</code> por un '
+                     '<code>pinMode</code> mal puesto: limitan a ~15 mA en vez de quemar el pin del Mega o la salida '
+                     'de la ALU. No estorban la lectura, la entrada del Mega es de alta impedancia.'),
             ('warn', '<b>PORTC y PORTL van al revés.</b> F0 va al pin <b>37</b> (no al 30) y S0 al pin <b>49</b>. '
                      'Si lo inviertes, los resultados salen con los bits al revés sin ningún otro síntoma.'),
+            ('note', '<b>El PC va a la cabecera analógica, en orden normal:</b> Q0 de PC BAJO → <b>A8</b> … Q3 de '
+                     'PC ALTO → <b>A15</b> (PORTK asciende). El Arduino es la RAM: A8–A15 son sus patas de dirección.'),
             ('note', '<b>Orden de encendido:</b> fuente de la protoboard primero, luego el USB. Para apagar, al revés.'),
         ],
         'manual': [],
@@ -229,6 +270,7 @@ GUIAS = {
             ('<code>BORRAR</code>, pega las 5 líneas de <code>programas/referencia.load</code>, <code>RUN</code>', 'LEDs <b>00001100</b> · traza 34 ciclos · A=0x0C · DETENIDO'),
             ('<code>LOAD 0xCC 0x09</code> · <code>LOAD 0x05 0x07</code> · <code>RESET</code> · <code>RUN</code> (9 × 7)', 'LEDs 00111111 (63)'),
             ('<code>RESET</code> y varios <code>STEP</code>', 'Avanza un microciclo por comando, igual que el simulador'),
+            ('<code>STATE</code> tras cada instrucción, y el multímetro en las Q de los 161', 'El PC= del monitor es el mismo valor que marcan los 161'),
         ],
         'fallas': [
             ('Nada responde en la protoboard', 'Falta el GND común', 'Cable negro del GND del Mega al riel −'),
@@ -237,6 +279,13 @@ GUIAS = {
             ('STATE bien pero LEDs no cambian con OUT', 'Reloj de salida', 'Mega pin 7 → pin 11 del registro de salida'),
             ('Monitor serial mudo', 'Velocidad o fin de línea', '115200 baudios; cualquier fin de línea sirve'),
             ('Bucle no termina / JNZ raro', 'Acarreo o C.5', 'Mega pin 2 ← pin 16 ALU ALTA; revisa CARRY_SUB_INVERTIDO'),
+            ('Los registros se borran solos, o cargan basura al subir firmware',
+             'Falta el pull-up de CLEAR (R_CLEAR) o un pull-down de reloj (R_CLK_A/B/S)',
+             'Sin fuente, mide de CLEAR al riel + y de cada CLK al riel −: 1 kΩ en cada uno'),
+            ('El programa se repite o salta a lo loco', 'Bits del PC cruzados hacia A8–A15, o CLK PC / /LOAD sin su resistencia',
+             'Q0 de PC BAJO = A8 … Q3 de PC ALTO = A15; CLK PC (pin 42) y /LOAD (pin 43) llegan a los pines 2 y 9 de PC BAJO'),
+            ('Un bit del bus F se lee siempre igual', 'Su resistencia de 330 Ω está en la tira equivocada',
+             'Continuidad entre el pin D del registro de salida y el pin del Mega: debe dar ~330 Ω, no 0 ni infinito'),
         ],
         'cierre': ['Guarda la traza completa del programa de referencia en la bitácora.',
                    'Toma fotos: vista general y cada protoboard.'],
@@ -251,7 +300,11 @@ GUIAS = {
         ],
         'manual': [
             'Tirón suave a cada cable: ninguno debe salir.',
-            'Rotula cada chip con cinta de enmascarar (MUX BAJO, REG A, ALU ALTA…).',
+            'Resistencias, con la fuente desconectada y el multímetro en ohmios: las 8 del bus F miden ~330 Ω '
+            'entre el pin D del registro de salida y su pin del Mega; CLEAR y /LOAD del PC miden 1 kΩ contra el '
+            'riel +; SEL, los tres relojes y el reloj del PC miden 1 kΩ contra el riel −. Un 0 Ω significa que '
+            'la resistencia está puenteada.',
+            'Rotula cada chip con cinta de enmascarar (MUX BAJO, PC BAJO, REG A, ALU ALTA…).',
             'Revisa que no quede ningún cable de prueba (magenta) ni componente temporal.',
             'Fotos: vista general, cada protoboard de frente y un acercamiento por chip.',
         ],

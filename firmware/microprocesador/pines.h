@@ -24,18 +24,34 @@
 // ── PORTL bits 0-5 — control de la ALU. DESCENDENTE ──────────────────────
 //   PL0 = pin 49 = S0        PL4 = pin 45 = M
 //   PL1 = pin 48 = S1        PL5 = pin 44 = C̄n  (pin 7 del 181 bajo)
-//   PL2 = pin 47 = S2        PL6 = pin 43 = libre
-//   PL3 = pin 46 = S3        PL7 = pin 42 = libre
+//   PL2 = pin 47 = S2        PL6 = pin 43 = /LOAD PC (ver abajo)
+//   PL3 = pin 46 = S3        PL7 = pin 42 = CLK PC  (ver abajo)
 //
 // Los seis bits de control caben en un puerto, así que configurar la ALU
 // entera es UNA escritura: todas las líneas cambian a la vez, sin estados
-// intermedios que el 181 pudiera llegar a ver.
+// intermedios que el 181 pudiera llegar a ver. Esa escritura preserva PL6 y
+// PL7 (MASCARA_NO_ALU): son las líneas del contador de programa.
+//
+// ── PORTK — lectura del PC (2× 74LS161 → Arduino). ASCENDENTE ────────────
+//   PK0 = A8  = PC0          PK4 = A12 = PC4
+//   PK1 = A9  = PC1          PK5 = A13 = PC5
+//   PK2 = A10 = PC2          PK6 = A14 = PC6
+//   PK3 = A11 = PC3          PK7 = A15 = PC7
+//
+// El PC es HARDWARE: dos 74LS161 en cascada (RCO del bajo -> ENT del alto).
+// El Arduino no lo calcula; solo pulsa su reloj (cuenta) o lo pulsa con
+// /LOAD en bajo (carga desde el bus D, para los saltos). Lo lee por PORTK
+// porque la RAM está simulada en el Arduino: PORTK son las patas de
+// dirección de esa RAM.
+//   42  CLK PC  reloj de los dos 74LS161 (flanco de subida)
+//   43  /LOAD   carga paralela síncrona desde el bus D (activo en BAJO)
+//   /CLR de los 161 va al CLEAR del pin 38, igual que los 74LS273.
 //
 // ── Pines sueltos ────────────────────────────────────────────────────────
 //   41  CLK A   reloj del 74LS273 del registro A
 //   40  CLK B   reloj del 74LS273 del registro B  (línea INDEPENDIENTE)
 //   39  MUX     selección del 74LS157: LOW = bus, HIGH = salida de ALU
-//   38  CLEAR   clear asíncrono de ambos 74LS273 (activo en BAJO)
+//   38  CLEAR   clear asíncrono de los 74LS273 y de los 74LS161 (activo en BAJO)
 //    2  CARRY   C̄n+4, pin 16 del 181 alto. ENTRADA, invertida
 //
 // ── Salida física: 8 dígitos mostrando el byte en BINARIO ────────────────
@@ -66,7 +82,7 @@
 //    6   BLANK  habilitación del 74LS138 (E3, activo en ALTO): apaga todo
 //    7   CLK S  reloj del 74LS273 del registro de salida
 //
-// Total: 32 pines de los 54 del Mega.
+// Total: 42 pines de los 70 del Mega (32 + 2 de control y 8 de lectura del PC).
 // ---------------------------------------------------------------------------
 
 #ifndef PINES_H
@@ -89,6 +105,10 @@
 #define PIN_MUX     39
 #define PIN_CLEAR   38
 #define PIN_CARRY    2
+
+// Contador de programa (2× 74LS161)
+#define PIN_CLOCK_PC 42
+#define PIN_CARGA_PC 43   // /LOAD, activo en BAJO
 
 // Salida física (ver el bloque de arriba)
 #define PIN_SEL_0            3
