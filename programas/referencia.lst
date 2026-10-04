@@ -11,23 +11,23 @@ DIR  BYTES        LÍN  FUENTE
                     9  ; Resultado esperado: OUT muestra 12 (0x0C), luego HLT.
                    10  ; ─────────────────────────────────────────────────────────────────────────
                    11
-00   30 00         12        LDI A,#0
-02   50 C8         13        STA 200        ; resultado = 0
-04   30 03         14        LDI A,#3
-06   50 C9         15        STA 201        ; contador = 3
+00   30 00         12        MOV A,0
+02   50 C8         13        MOV [200],A    ; resultado = 0
+04   30 03         14        MOV A,3
+06   50 C9         15        MOV [201],A    ; contador = 3
                    16
-08   10 C8         17  LOOP: LDA 200
-0A   20 CC         18        LDB 204        ; el 4 vive en la dirección 204
+08   10 C8         17  LOOP: MOV A,[200]
+0A   20 CC         18        MOV B,[204]    ; el 4 vive en la dirección 204
 0C   60            19        ADD
-0D   50 C8         20        STA 200        ; resultado += 4
+0D   50 C8         20        MOV [200],A    ; resultado += 4
                    21
-0F   10 C9         22        LDA 201
-11   40 01         23        LDI B,#1
+0F   10 C9         22        MOV A,[201]
+11   40 01         23        MOV B,1
 13   70            24        SUB
-14   50 C9         25        STA 201        ; contador -= 1
+14   50 C9         25        MOV [201],A    ; contador -= 1
 16   F0 08         26        JNZ LOOP
                    27
-18   10 C8         28        LDA 200
+18   10 C8         28        MOV A,[200]
 1A   B0            29        OUT            ; muestra 12
 1B   C0            30        HLT
                    31

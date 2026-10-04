@@ -12,24 +12,24 @@
 ; Con los valores actuales (4 × 3) la salida esperada es 12.
 ; ─────────────────────────────────────────────────────────────────────────
 
-      LDI A,#0
-      STA RESULTADO         ; resultado = 0
+      MOV A,0
+      MOV [RESULTADO],A     ; resultado = 0
 
-      LDI A,#3              ; <<<< MULTIPLICADOR: cuántas veces sumar
-      STA CONTADOR
+      MOV A,3               ; <<<< MULTIPLICADOR: cuántas veces sumar
+      MOV [CONTADOR],A
 
-LOOP: LDA RESULTADO
-      LDB MULTIPLICANDO
+LOOP: MOV A,[RESULTADO]
+      MOV B,[MULTIPLICANDO]
       ADD
-      STA RESULTADO         ; resultado += multiplicando
+      MOV [RESULTADO],A     ; resultado += multiplicando
 
-      LDA CONTADOR
-      LDI B,#1
+      MOV A,[CONTADOR]
+      MOV B,1
       SUB
-      STA CONTADOR          ; contador -= 1
+      MOV [CONTADOR],A      ; contador -= 1
       JNZ LOOP              ; repetir mientras no llegue a cero
 
-      LDA RESULTADO
+      MOV A,[RESULTADO]
       OUT                   ; muestra el producto
       HLT
 

@@ -23,7 +23,7 @@ hal_falso::Estado g_estado;
 
 // ── SN74LS181, columna lógica (M = 1) ────────────────────────────────────
 // Las 16 funciones de la tabla 2. Las que usa el diseño (AND=1011, OR=1110,
-// XOR=0110, F=A 1111, F=B 1010, NOT A 0000) están verificadas contra la
+// XOR=0110, F=B 1010, NOT A 0000) están verificadas contra la
 // bitácora; el resto se incluyen porque son triviales y así una S equivocada
 // produce el valor que de verdad daría el chip, no un error inventado.
 uint8_t funcionLogica(uint8_t s, uint8_t a, uint8_t b) {

@@ -19,12 +19,15 @@ progra/
 ├── proyecto_microprocesador_8bits.md ← bitácora de decisiones
 ├── instrucciones.md                  ← este archivo
 ├── demo.py                           ← secuencia de demostración
-├── pytest.ini
+├── pytest.ini, requirements.txt, LICENSE
 ├── sim/          ← B.1: simulador del procesador
 ├── asm/          ← B.2: ensamblador de dos pasadas
-├── firmware/     ← B.3: código del Arduino
-├── programas/    ← programas fuente .asm y sus salidas
-└── tests/        ← 458 pruebas (54 de B.1 + 211 de B.2 + 193 de B.3)
+├── firmware/     ← B.3: código del Arduino y sketches de prueba del montaje
+├── depurador/    ← depurador gráfico Tkinter (ver depurador/LEEME.md)
+├── montaje/      ← netlist, planos, guías por fase y bitácora del montaje físico
+├── compañero/    ← sketch de un compañero, externo a este diseño
+├── programas/    ← programas fuente .asm y sus salidas (+ diagnostico/)
+└── tests/        ← 802 pruebas (sim 54, asm 265, firmware 189, depurador 270, montaje 24)
 ```
 
 **¿Con prisa?** Salta a la [secuencia de demostración](#secuencia-de-demostración): `python demo.py` recorre todo lo construido en ocho pasos.
@@ -35,7 +38,7 @@ progra/
 python -m pytest -q
 ```
 
-Debe terminar en `458 passed`. Si algo falla, no sigas: el resto de este documento asume una suite verde.
+Debe terminar sin fallos (`802 passed` a 2026-10-01). Si algo falla, no sigas: el resto de este documento asume una suite verde.
 
 > Las pruebas de B.3 compilan C++ con `g++`. Si no lo tienes en el `PATH`, esas pruebas se **saltan** con un aviso en vez de fallar, y el resto sigue funcionando.
 
@@ -111,8 +114,8 @@ from sim.cpu import CPU
 from sim.memory import Memory
 
 memoria = Memory()
-memoria.load_bytes([0x30, 0x05,   # LDI A,#5
-                    0x40, 0x07,   # LDI B,#7
+memoria.load_bytes([0x30, 0x05,   # MOV A,5
+                    0x40, 0x07,   # MOV B,7
                     0x60,          # ADD
                     0xB0,          # OUT
                     0xC0])         # HLT
@@ -156,7 +159,7 @@ Salida (primeras llamadas):
 FETCH   | instrucción completada: False
 DECODE  | instrucción completada: False
 FETCH2  | instrucción completada: False
-EXECUTE | instrucción completada: True     ← aquí terminó LDI A,#5
+EXECUTE | instrucción completada: True     ← aquí terminó MOV A,5
 FETCH   | instrucción completada: False
 ...
 ```
@@ -167,7 +170,7 @@ FETCH   | instrucción completada: False
 |---|---|---|
 | ALU, 1 byte | ADD, SUB, AND, OR, XOR | **5** — FETCH, DECODE, EXECUTE, WAIT, WRITE |
 | Control/salida, 1 byte | NOP, HLT, OUT | **3** — FETCH, DECODE, EXECUTE |
-| 2 bytes | LDA, LDB, LDI A, LDI B, STA, JMP, JZ, JNZ | **4** — FETCH, DECODE, FETCH2, EXECUTE |
+| 2 bytes | los cinco `MOV`, JMP, JZ, JNZ | **4** — FETCH, DECODE, FETCH2, EXECUTE |
 
 Las operaciones de ALU gastan dos pasos más porque el hardware real necesita esperar la propagación del 74LS181 (`WAIT`) y luego capturar el resultado por el mux (`WRITE`).
 
@@ -236,13 +239,13 @@ Todas devuelven `(resultado, z, c)`. Convención del carry:
 - **SUB** — `c=1` significa que **no** hubo préstamo (A ≥ B). `c=0` significa préstamo (A < B).
 - **AND / OR / XOR** — `c=0` siempre. En modo lógico (M=1) el acarreo no es significativo.
 
-> ⚠️ La semántica del carry en SUB está **pendiente de verificación experimental** con el 181 en protoboard (Parte C, punto 5). El simulador asume la convención de arriba; confírmala antes de darla por cierta.
+> ✅ La semántica del carry en SUB quedó **confirmada en el hardware** (Parte C, punto 5, resuelto el 2026-09-29): con los dos 74LS181 en protoboard, C̄n+4 salió en bajo para 5−3 y 5−5 y en alto para 3−5, tal como asume el simulador (bitácora del montaje, fase 2).
 
 ## Regla crítica de banderas
 
-**Solo las cinco operaciones de ALU (ADD, SUB, AND, OR, XOR) modifican Z y C.** `LDA`, `LDB`, `LDI`, `STA`, los saltos, `NOP`, `OUT` y `HLT` las dejan intactas.
+**Solo las cinco operaciones de ALU (ADD, SUB, AND, OR, XOR) modifican Z y C.** Los `MOV` (cargas y guardado), los saltos, `NOP`, `OUT` y `HLT` las dejan intactas.
 
-Esto es indispensable: el programa de referencia hace `SUB` → `STA` → `JNZ`, y si el `STA` borrara la bandera el bucle nunca terminaría. En el código está garantizado por estructura — solo la rama de ALU de `cpu.py` asigna `self.z` / `self.c`.
+Esto es indispensable: el programa de referencia hace `SUB` → `MOV [201],A` → `JNZ`, y si ese `MOV` borrara la bandera el bucle nunca terminaría. En el código está garantizado por estructura — solo la rama de ALU de `cpu.py` asigna `self.z` / `self.c`.
 
 ---
 
@@ -295,10 +298,10 @@ Es la demostración end-to-end más corta: fuente → bytes → ejecución → r
 ```asm
 ; los comentarios empiezan con punto y coma
 
-      LDI A,#0         ; inmediato: el # es obligatorio
-      STA 200          ; directo: dirección, sin #
-LOOP: LDA 200          ; etiqueta seguida de dos puntos
-      LDB CUATRO       ; una etiqueta también sirve como dirección de dato
+      MOV A,0          ; inmediato: valor suelto, sin #
+      MOV [200],A      ; directo: dirección, sin #
+LOOP: MOV A,[200]      ; etiqueta seguida de dos puntos
+      MOV B,[CUATRO]   ; una etiqueta también sirve como dirección de dato
       ADD              ; implícito: sin operandos
       JNZ LOOP         ; etiqueta como destino de salto
       HLT
@@ -314,30 +317,42 @@ CUATRO: .DB 4          ; emite bytes en la dirección actual
 | Mayúsculas | Indiferentes, tanto en nemónicos como en etiquetas |
 | Comentarios | Desde `;` hasta el final de la línea |
 | Etiquetas | `NOMBRE:` — letras, dígitos y `_`, no empiezan por dígito |
-| Espaciado | Libre. `LDI A,#12`, `LDI A , #12` y `LDI A #12` son equivalentes |
+| Espaciado | Libre. `MOV A,12`, `MOV A , 12` y `MOV A,[ 200 ]` son válidos |
+| Comas | Opcionales entre operandos (`MOV A 5` equivale a `MOV A,5`) |
+| Nombres reservados | Una etiqueta no puede llamarse como un mnemónico (`MOV:`) ni como un registro (`A:`): es error |
 
 ### Bases numéricas
 
 | Base | Formatos | Ejemplo |
 |---|---|---|
-| Decimal | `12` | `LDA 200` |
-| Hexadecimal | `0xFF` o `$FF` | `LDI A,#0xFF` |
-| Binario | `0b1010` | `LDI B,#0b1010` |
+| Decimal | `12` | `MOV A,[200]` |
+| Hexadecimal | `0xFF` o `$FF` | `MOV A,0xFF` |
+| Binario | `0b1010` | `MOV B,0b1010` |
 
 Rango válido: **0 a 255**. Fuera de ahí es error.
 
-### El `#` es estricto
+### `MOV` estilo x86: los operandos eligen el opcode
+
+Desde 2026-09-28 las cinco transferencias usan la sintaxis del 8086: una sola palabra, `MOV destino,origen`, y el **modo de direccionamiento se lee en el operando**. Corchetes = dirección de memoria; valor pelado = dato inmediato. No se usa `#`.
+
+| Forma | Opcode | Modo | Operación | Ejemplo |
+|---|---|---|---|---|
+| `MOV A,[dir]` | `0001` | Directo | Mem[dir] → A | `MOV A,[200]`, `MOV A,[DATO]` |
+| `MOV B,[dir]` | `0010` | Directo | Mem[dir] → B | `MOV B,[0xCC]` |
+| `MOV A,inm` | `0011` | Inmediato | n → A | `MOV A,12` |
+| `MOV B,inm` | `0100` | Inmediato | n → B | `MOV B,0xFF` |
+| `MOV [dir],A` | `0101` | Directo | A → Mem[dir] | `MOV [200],A` |
 
 | Modo | Instrucciones | Operando |
 |---|---|---|
-| Inmediato | `LDI A`, `LDI B` | **Requiere** `#` — el byte es el dato |
-| Directo | `LDA`, `LDB`, `STA`, `JMP`, `JZ`, `JNZ` | **Prohibido** `#` — el byte es una dirección |
+| Directo | los `MOV` con `[ ]` | la dirección va **entre corchetes** |
+| Salto | `JMP`, `JZ`, `JNZ` | dirección o etiqueta **sin** corchetes (`JNZ LOOP`) |
 | Implícito | `ADD`, `SUB`, `AND`, `OR`, `XOR`, `OUT` | Sin operando |
 | Sin operando | `NOP`, `HLT` | Sin operando |
 
-`LDI A,5` (falta `#`) y `LDA #5` (sobra `#`) son errores. Es deliberado: atrapa la confusión clásica entre inmediato y directo.
+`MOV A,[5]` y `MOV A,5` son **instrucciones distintas** (leer la celda 5 vs cargar el número 5): los corchetes son lo único que las separa, igual que en x86.
 
-> ⚠️ `LDI A` y `LDI B` son **opcodes distintos** (`0011` y `0100`). Escribir `LDI` a secas es error; el mensaje te recuerda las dos formas válidas.
+> ⚠️ Solo existen esas cinco formas. `MOV [200],B` (no hay "guardar B"), `MOV A,B` (no hay registro a registro), `MOV [200],5` o memoria a memoria son error; el mensaje lista las formas válidas. `#5` también es error, con una pista de cómo escribirlo ahora.
 
 ### Directivas
 
@@ -349,6 +364,8 @@ Rango válido: **0 a 255**. Fuera de ahí es error.
 
 Solo admite un literal numérico (no etiquetas, para evitar definiciones circulares). No puede llevar etiqueta delante.
 
+> Nota fechada 2026-09-28: antes de esa fecha el ISA usaba mnemónicos `LDA`/`LDB`/`LDI`/`STA` con `#` para el inmediato. Opcodes y bytes **no cambiaron**; solo la sintaxis del fuente. Los documentos anteriores a esa fecha que mencionan `LDA`, `LDB`, `LDI`, `STA` o `#n` son históricos.
+
 **`.DB <valor>[, <valor>...]`** — emite bytes en la dirección actual.
 
 ```asm
@@ -357,12 +374,14 @@ RESULTADO: .DB 0        ; una variable
 TABLA:     .DB 1, 2, 3, 0xFF
 ```
 
+`.DB` también acepta etiquetas como valor (se resuelven en la segunda pasada).
+
 ### Etiquetas para saltos y para datos
 
 Una sola tabla de símbolos sirve para ambas cosas:
 
 ```asm
-LOOP: LDA CONTADOR      ; CONTADOR es una dirección de dato
+LOOP: MOV A,[CONTADOR]  ; CONTADOR es una dirección de dato
       JNZ LOOP          ; LOOP es un destino de salto
 
 .ORG 201
@@ -377,14 +396,14 @@ Las **referencias hacia adelante funcionan** — usar una etiqueta antes de defi
 from asm import assemble
 
 resultado = assemble("""
-    LDI A,#5
-    LDI B,#7
+    MOV A,5
+    MOV B,7
     ADD
     OUT
     HLT
 """)
 
-print(list(resultado.binary[:5]))   # [48, 5, 64, 7, 96]
+print(list(resultado.binary[:7]))   # [48, 5, 64, 7, 96, 176, 192]
 print(resultado.symbols)             # {}
 ```
 
@@ -427,7 +446,7 @@ No hace falta escribir constantes a mano: la directiva `.DB` ya las puso en el b
 from asm import assemble, AssemblyFailed
 
 try:
-    assemble("LDX 5\nLDA 300\n")
+    assemble("LDX 5\nMOV A,[300]\n")
 except AssemblyFailed as fallo:
     for error in fallo.errors:
         print(f"línea {error.line_number}: {error.message}")
@@ -442,12 +461,14 @@ Todos se reportan **con número de línea** y eco de la línea culpable. Los err
 | Nemónico desconocido | `LDX 5` |
 | Etiqueta no definida | `JNZ NOEXISTE` |
 | Etiqueta duplicada | `LOOP:` dos veces |
-| Operando fuera de rango | `LDA 256`, `LDA -1` |
-| Instrucción de 2 bytes sin operando | `LDA` solo |
+| Operando fuera de rango | `MOV A,[256]`, `MOV A,[-1]` |
+| Instrucción de 2 bytes sin operando | `MOV` o `JMP` solos |
 | Instrucción de 1 byte con operando | `ADD 5` |
 | Excede la zona de programa | Instrucción por encima de `0xBF` |
-| Forma de operando incorrecta | `LDA #5`, `LDI A,5` |
-| Literal mal formado | `LDA 0xZZ` |
+| Forma de operando incorrecta | `MOV [200],B`, `MOV A,B`, `MOV A,#5`, `JMP [10]`, `MOV A,[A]` (el mensaje lista las formas válidas) |
+| Etiqueta con nombre reservado | `MOV:` (mnemónico) o `A:` (registro) |
+| `.ORG` mal usado | `.ORG LOOP` (no admite etiquetas) o `X: .ORG 5` (no admite etiqueta delante) |
+| Literal mal formado | `MOV A,[0xZZ]` |
 | Desborde de memoria | Pasarse de `0xFF` |
 | Solape | Dos sentencias escriben la misma dirección |
 
@@ -458,28 +479,32 @@ Ejemplo de salida:
 línea 1: nemónico desconocido: 'LDX'
     LDX 5
 línea 2: operando fuera de rango: 300 (válido 0–255)
-    LDA 300
+    MOV A,[300]
 ```
 
 ## Advertencias (no detienen el ensamblado)
 
-- **`.DB` en la zona de programa** — legal, pero probablemente no es lo que querías.
+- **`.DB` en la zona de programa** (por debajo de `0xC0`) — legal, pero probablemente no es lo que querías.
 - **Nada emitido en `0x00`** — la ejecución arranca ahí y encontrará `NOP`s.
 
 ## Formato del listado
 
+Fragmento real de `python -m asm programas/referencia.asm --listing-only` (las líneas de solo comentario o vacías salen sin dirección ni bytes):
+
 ```
 DIR  BYTES        LÍN  FUENTE
 ---  -----------  ---  --------------------------------------------
-00   30 00          1        LDI A,#0
-02   50 C8          2        STA 200        ; resultado = 0
-04   10 C8          3  LOOP: LDA 200
+00   30 00         12        MOV A,0
+02   50 C8         13        MOV [200],A    ; resultado = 0
+04   30 03         14        MOV A,3
+06   50 C9         15        MOV [201],A    ; contador = 3
+
+08   10 C8         17  LOOP: MOV A,[200]
 ...
-CC   04            10  CUATRO: .DB 4
+CC   04            34        .DB 4          ; precondición de A.7
 
 TABLA DE SÍMBOLOS
-LOOP   = 0x04 (4)
-CUATRO = 0xCC (204)
+LOOP = 0x08 (8)
 ```
 
 La columna `FUENTE` reproduce la línea **tal como se escribió**, con su sangría y sus comentarios. Un listado que embellece el fuente esconde lo que realmente tecleaste. La tabla de símbolos va ordenada por dirección, que es lo útil al leer un mapa de memoria.
@@ -507,7 +532,7 @@ Cada paso es independiente. Si el ingeniero pregunta por algo concreto, se lanza
 python -m pytest -q
 ```
 
-Debe decir `265 passed`. Es lo primero que conviene enseñar: la suite completa en verde antes de tocar nada.
+Debe terminar sin fallos (`802 passed`). Es lo primero que conviene enseñar: la suite completa en verde antes de tocar nada.
 
 ## Qué muestra cada paso
 
@@ -549,19 +574,19 @@ python demo.py 2
 ```
 DIR  BYTES        LÍN  FUENTE
 ---  -----------  ---  --------------------------------------------
-00   30 00         12        LDI A,#0
-02   50 C8         13        STA 200        ; resultado = 0
-04   30 03         14        LDI A,#3
-06   50 C9         15        STA 201        ; contador = 3
+00   30 00         12        MOV A,0
+02   50 C8         13        MOV [200],A    ; resultado = 0
+04   30 03         14        MOV A,3
+06   50 C9         15        MOV [201],A    ; contador = 3
                    16
-08   10 C8         17  LOOP: LDA 200
-0A   20 CC         18        LDB 204        ; el 4 vive en la dirección 204
+08   10 C8         17  LOOP: MOV A,[200]
+0A   20 CC         18        MOV B,[204]    ; el 4 vive en la dirección 204
 0C   60            19        ADD
 ...
 LOOP = 0x08 (8)
 ```
 
-**Qué señalar:** cada instrucción con su dirección y sus bytes. Se ve que `ADD` ocupa 1 byte (`60`) y `LDA` ocupa 2 (`10 C8`) — la longitud variable en acción. El nibble bajo del primer byte siempre es `0`, como manda el formato.
+**Qué señalar:** cada instrucción con su dirección y sus bytes. Se ve que `ADD` ocupa 1 byte (`60`) y `MOV A,[200]` ocupa 2 (`10 C8`) — la longitud variable en acción. El nibble bajo del primer byte siempre es `0`, como manda el formato.
 
 ---
 
@@ -653,10 +678,10 @@ Los dos operandos viven en direcciones fijas y conocidas:
 
 | Operando | Dirección | Qué es |
 |---|---|---|
-| Multiplicador | `0x05` | El byte inmediato de la instrucción `LDI A,#n` |
+| Multiplicador | `0x05` | El byte inmediato de la instrucción `MOV A,n` |
 | Multiplicando | `0xCC` | La constante declarada con `.DB` |
 
-Cambiar la multiplicación son **dos comandos `LOAD`**, sin reensamblar y sin recompilar nada. En el hardware será literalmente teclear esas dos líneas en el monitor serial y escribir `RUN`.
+Cambiar la multiplicación son **dos comandos `LOAD`**, sin reensamblar y sin recompilar nada. En el hardware es literalmente teclear esas dos líneas en el monitor serial y escribir `RUN`.
 
 El último caso es honesto a propósito: `16 × 16 = 256` no cabe en 8 bits, así que da `0` con el acarreo encendido. Conviene enseñarlo antes de que lo pregunten.
 
@@ -703,9 +728,9 @@ El script es **disperso** — solo las direcciones realmente escritas, no los 25
 
 ---
 
-## Demostración con el hardware (cuando B.3 exista)
+## Demostración con el hardware
 
-La secuencia de arriba es íntegramente software. Con el circuito montado, el guion se amplía:
+La secuencia de arriba es íntegramente software. Con el circuito montado (el programa de referencia ya corrió en la placa el 2026-10-01), el guion se amplía:
 
 ```
 1. python -m asm programas/demo_multiplicacion.asm --run
@@ -734,7 +759,7 @@ Y para los datos en vivo, sin reensamblar:
 
 # B.3 — Firmware del Arduino
 
-Es la unidad de control real: convierte los bytes que produce B.2 en señales sobre el 74LS181 físico. **El Arduino Mega todavía no se ha comprado**, así que el firmware está escrito y verificado en la PC, pero aún no probado en hardware.
+Es la unidad de control real: convierte los bytes que produce B.2 en señales sobre el 74LS181 físico. El Arduino Mega ya está comprado y conectado a las protoboards: `programas/referencia.load` corrió correctamente en el hardware el 2026-10-01, y desde el 2026-10-02 el procesador funciona completo (las 6 fases del montaje probadas). El firmware se desarrolla y verifica primero en la PC.
 
 ## Estructura
 
@@ -750,8 +775,11 @@ firmware/
     formato.h / formato.cpp bloque A.9 + líneas clave=valor
     consola.h / consola.cpp protocolo serial
     display.h / display.cpp salida: pulsa el reloj del registro de salida
+  prueba_fase4/             ← sketch de banco (mux y PC con relojes limpios del Mega)
+  prueba_fase5/             ← sketch de banco (cada línea Mega ↔ placa, comando T)
+  diagnostico_display/      ← sketch de la salida de 7 segmentos anterior (obsoleto)
   pruebas/                  ← NO sube al Arduino, solo verifica
-    hal_falso.*             emula el 74LS181, los 74LS273 y el 74LS157
+    hal_falso.*             emula el 74LS181, los 74LS273, el 74LS157 y los 74LS161 (PC)
     arnes.cpp               ejecuta el núcleo en la PC
     prueba_alu.cpp          barrido exhaustivo de la ALU
     stub_arduino/           Arduino.h mínimo, para comprobar que compila
@@ -764,7 +792,7 @@ El ciclo fetch–decode–execute vive en `nucleo.cpp`, que **no toca ni un pin*
 | Build | HAL | Para qué |
 |---|---|---|
 | Sketch de Arduino | `hal_arduino.cpp` | Puertos reales del Mega |
-| Pruebas en la PC | `pruebas/hal_falso.cpp` | Emula los tres integrados |
+| Pruebas en la PC | `pruebas/hal_falso.cpp` | Emula los cuatro tipos de integrado (181, 273, 157, 161) |
 
 Así el **mismo código de control** corre en la placa y en la PC, y se puede contrastar contra el simulador antes de tener el circuito.
 
@@ -774,7 +802,7 @@ Así el **mismo código de control** corre en la placa y en la PC, y se puede co
 python -m pytest -k firmware -v
 ```
 
-Compila el firmware con `g++` y lo ejecuta contra el circuito emulado. Cinco archivos de prueba:
+Compila el firmware con `g++` y lo ejecuta contra el circuito emulado. Seis archivos de prueba:
 
 | Prueba | Qué comprueba |
 |---|---|
@@ -805,19 +833,24 @@ La tabla completa está en `firmware/microprocesador/pines.h`, comentada señal 
 | PORTC (**desc.**) | 37 → 30 | Lectura de F0 → F7 |
 | PORTL bits 0–5 (**desc.**) | 49 → 44 | S0, S1, S2, S3, M, C̄n |
 | Sueltos | 41, 40, 39, 38, 2 | CLK A, CLK B, MUX, CLEAR, C̄n+4 |
-| Salida | 7 | CLK del registro de salida (3–6 quedan sin conectar desde que la salida son LEDs) |
+| Salida | 7 | CLK del registro de salida (los pines 3–6 del antiguo display ya no se usan) |
+| PC (2× 74LS161) | 42, 43 | CLK del PC y /LOAD del PC (activo en bajo) |
+| PORTK (asc.) | A8 → A15 | Lectura del PC (Q0 → Q7 de los dos 161) |
 
-Total: 32 pines de los 54 del Mega.
+Total: 38 pines de los 70 del Mega (los pines 3–6 del antiguo display están comentados en `pines.h`). Los bits 6 y 7 de PORTL quedan reservados (`MASCARA_NO_ALU 0xC0`).
 
 ## La salida son 8 LEDs, uno por bit
 
-El Arduino **no toca** el resultado. El byte va del bus F a un tercer 74LS273 (registro de salida), que lo engancha cuando se ejecuta `OUT`, y de ahí a un 74LS244 que da la corriente a los 8 LEDs:
+El Arduino **no toca** el resultado. El byte va del bus F a un tercer 74LS273 (registro de salida), que lo engancha cuando se ejecuta `OUT`, y de ahí a un buffer que da la corriente a los 8 LEDs. El diseño original usaba un 74LS244; el **montaje real usa un 74LS240** (2026-09-28, es el chip que se tiene en físico):
 
-    bus F → 74LS273 (registro de salida) → 74LS244 → 220 Ω → LED → GND
+    montaje real:    bus F → 74LS273 (registro de salida) → 74LS240 → LED → 330 Ω → +5 V
+    diseño con 244:  bus F → 74LS273 (registro de salida) → 74LS244 → 220 Ω → LED → GND
 
-LED encendido = bit en 1, bit 7 a la izquierda. No hay decodificación: en binario el bit ya es la magnitud. El Arduino solo pulsa el reloj del registro de salida (pin 7).
+LED encendido = bit en 1, bit 7 a la izquierda. No hay decodificación: en binario el bit ya es la magnitud. El Arduino solo pulsa el reloj del registro de salida (pin 7). El 240 **invierte**, así que cada LED se cablea de +5 V a la salida del chip (+5 V → LED → 330 Ω → Y): el 240 hunde la corriente y el LED enciende con bit = 1. Sirve cualquier color de LED.
 
-| Bit | Q del 273 → 244 | 244 → 220 Ω → LED |
+El 240 tiene el mismo pinout que el 244, así que la tabla vale para ambos:
+
+| Bit | Q del 273 → buffer | buffer → resistencia → LED |
 |---|---|---|
 | 0 | pin 2 (1A1) | pin 18 (1Y1) |
 | 1 | pin 4 (1A2) | pin 16 (1Y2) |
@@ -830,21 +863,19 @@ LED encendido = bit en 1, bit 7 a la izquierda. No hay decodificación: en binar
 
 ## ⚠️ Tres cosas que hacen que los LEDs no enciendan
 
-1. **1G (pin 1) y 2G (pin 19) del 244 van a GND.** Son habilitaciones activas en bajo: sueltas se leen como alto y las salidas quedan desconectadas.
-2. **Sin el 244 no encienden.** El 273 solo entrega 0.4 mA en alto; el 244, hasta 15 mA.
-3. **LEDs rojos, verdes o amarillos.** En alto el 244 da 2.4–3.4 V; a un LED azul o blanco (~3 V) no le queda corriente. Si se ven tenues, 150 Ω en lugar de 220 Ω.
+1. **1G (pin 1) y 2G (pin 19) del buffer (240 o 244) van a GND.** Son habilitaciones activas en bajo: sueltas se leen como alto y las salidas quedan desconectadas.
+2. **Sin el buffer no encienden.** El 273 solo entrega 0.4 mA en alto; el 244/240 manejan hasta 15 mA.
+3. **Con un 74LS244 (no es el caso del montaje real), LEDs rojos, verdes o amarillos.** En alto el 244 da 2.4–3.4 V; a un LED azul o blanco (~3 V) no le queda corriente. Si se ven tenues, 150 Ω en lugar de 220 Ω. Con el 240 cableado desde +5 V no hay esa limitación.
 
-Si solo consigues **74LS240**: mismo pinout, pero invierte. Cablea cada LED al revés (5V → 330 Ω → LED → salida del 240) y enciende igual con bit = 1.
-
-Los pines 3–6 del Arduino (antes SEL0–SEL2 y BLANK del display) quedan **sin conectar**. El firmware los sigue manejando; no tiene efecto.
+Los pines 3–6 del Arduino (antes SEL0–SEL2 y BLANK del display) quedan **sin conectar**, y el firmware ya no los maneja (código comentado).
 
 ## Antes de subirlo a la placa
 
-| Pendiente | Dónde | Qué cambiar |
+| Punto | Dónde | Estado |
 |---|---|---|
-| ¿Carry en SUB? | `isa.h` | `#define CARRY_SUB_INVERTIDO 0` → `1` si la prueba lo contradice |
+| ¿Carry en SUB? | `isa.h` | ✅ Resuelto el 2026-09-29 (C.5): se midió el 181 en la fase 2 y coincide con el diseño; `#define CARRY_SUB_INVERTIDO 0` se queda en 0 |
 
-Depende de **ejecutar primero la caracterización de la ALU** (sección 7 de la bitácora) con un 181 aislado en protoboard. No subas el firmware antes de haberla hecho.
+Regla del montaje: **después de tocar la placa, sube `firmware/prueba_fase5/` y corre `T`** (debe responder TODO OK, idealmente dos veces seguidas) antes de cargar cualquier programa. Los sketches `prueba_fase4` y `prueba_fase5` están descritos en `montaje/bitacora_montaje.md`.
 
 ## Subirlo
 
@@ -861,15 +892,17 @@ El IDE compila todo lo que hay en la carpeta del sketch. `firmware/pruebas/` est
 | Comando | Función |
 |---|---|
 | `LOAD <dir> <byte>` | Escribe un byte. Responde `OK dir=0xCC val=0x04` |
-| `LOADB <dir> <hex...>` | Carga varios bytes en una línea |
-| `RUN` | Ejecuta hasta `HLT` |
-| `STEP` | Avanza **un microciclo** |
-| `RESET` | PC=0, banderas a 0. **Conserva la memoria** |
-| `BORRAR` | Borra toda la memoria |
-| `DUMP <ini> [fin]` | Vuelca memoria en filas de 16 |
+| `LOADB <dir> <hex...>` | Carga varios bytes en una línea. Responde `OK dir=0x.. n=N` (una confirmación **por línea**, no por byte) |
+| `RUN` | Ejecuta hasta `HLT` (límite de 10000 instrucciones: `ERR limite de instrucciones; posible bucle infinito`) |
+| `STEP` | Avanza **un microciclo**. Imprime `paso: <nombre>`; el bloque y `#paso=` salen al terminar la instrucción |
+| `RESET` | PC=0, banderas a 0. **Conserva la memoria**. Responde `OK reset` y el estado |
+| `BORRAR` | Borra toda la memoria. Responde `OK memoria borrada` |
+| `DUMP [ini [fin]]` | Vuelca memoria en filas de 16 |
 | `STATE` | Estado actual |
-| `VEL <ms>` | Retardo entre instrucciones en `RUN` |
+| `VEL <ms>` | Retardo entre instrucciones en `RUN`, 0–5000. Responde `OK vel=N` |
 | `HELP` | Lista los comandos |
+
+Cada línea termina en `\r` o `\n`. Errores típicos: `ERR comando desconocido: ...`, `ERR valor fuera de rango (0-255)`, `ERR byte invalido: ...`, `ERR el bloque excede la memoria`, `ERR la CPU esta detenida; usa RESET` y `linea demasiado larga` (más de 96 caracteres). Al arrancar, el firmware imprime un banner de 3 líneas.
 
 Cada `LOAD` y cada `LOADB` confirma. No es adorno: el buffer de recepción del Arduino son **64 bytes**, así que un pegado largo podría perder comandos **en silencio**. Si ves menos confirmaciones que líneas enviadas, faltan bytes.
 
@@ -880,7 +913,7 @@ Por eso el archivo `.load` usa `LOADB` con 8 bytes por línea: 5 líneas de 50 c
 ```
 1. python -m asm programas/referencia.asm
 2. Abrir programas/referencia.load
-3. Pegar sus 5 líneas en el Monitor Serie
+3. Pegar sus 5 líneas en el Monitor Serie (o cargar el `.load` con el depurador)
 4. Comprobar que salieron 5 respuestas "OK dir=... n=..."
 5. STATE      ← verificar PC=0x00
 6. RUN
@@ -905,11 +938,11 @@ PC → 0x0D
 
 El bloque es **idéntico byte a byte** al que produce el simulador — hay un test que lo verifica — así que los volcados de ambos se pueden comparar directamente al depurar.
 
-La línea `#clave=valor` es **ASCII puro** y es la que parseará Processing. El prefijo `#` deja filtrarla sin confundirla con el texto bonito.
+La línea `#clave=valor` es **ASCII puro** y es la que parsea el depurador Tkinter (y la que parsearía una interfaz en Processing). El prefijo `#` deja filtrarla sin confundirla con el texto bonito.
 
 ## Un detalle que conviene saber explicar
 
-El Arduino **no puede leer los registros A y B**: las salidas de los 74LS273 van al 181, no al Arduino. Para `STA`, `OUT` y el volcado de estado, el firmware hace pasar el registro por la ALU sin alterarlo (`F=A` con M=1, S=1111) y lee el bus F.
+El Arduino **no puede leer los registros A y B**: las salidas de los 74LS273 van al 181, no al Arduino. Para `MOV [dir],A`, `OUT` y el volcado de estado, el firmware hace pasar el registro por la ALU sin alterarlo (`F=A` con M=0, S=0000, C̄n=1: A más 0 en modo aritmético) y lee el bus F.
 
 Es decir: **los LEDs muestran lo que de verdad hay en el registro físico**, no una copia que el Arduino guarde aparte. Si una soldadura fría corrompe el registro, se ve al instante. Y el byte llega a los LEDs por el mismo camino físico: del bus F al registro de salida, sin entrar nunca al Arduino.
 
@@ -925,7 +958,7 @@ Es decir: **los LEDs muestran lo que de verdad hay en el registro físico**, no 
 3. ¿Da el resultado esperado?  → sigue
    ¿No?                        → depura con el modo STEP del simulador
 4. Abre programas/mi_programa.load
-5. Pega esas líneas en el monitor serial del Arduino  (cuando B.3 exista)
+5. Pega esas líneas en el monitor serial del Arduino
 6. Escribe RUN en el monitor serial
 7. Los 8 LEDs deben mostrar lo mismo que el simulador
 ```
@@ -940,6 +973,7 @@ Es decir: **los LEDs muestran lo que de verdad hay en el registro físico**, no 
 | `programas/referencia_etiquetas.asm` | El mismo, escrito con etiquetas de datos |
 | `programas/demo_alu.asm` | Las 6 funciones aprobadas, cada una con su `OUT` |
 | `programas/demo_multiplicacion.asm` | Multiplicación genérica, con los operandos marcados para cambiarlos en vivo |
+| `programas/diagnostico/diag1_salida.asm` … `diag4_acarreo.asm` | Diagnóstico del cableado en la protoboard (ver abajo) |
 
 Los dos primeros ensamblan a **bytes idénticos** — hay un test que lo verifica. Demuestra que las etiquetas son azúcar sintáctico puro, resuelto en la primera pasada.
 
@@ -951,11 +985,15 @@ Salidas esperadas:
 | `referencia_etiquetas.asm` | `[12]` |
 | `demo_alu.asm` | `[8, 2, 136, 238, 102, 240]` |
 | `demo_multiplicacion.asm` | `[12]` con los valores por defecto |
+| `diagnostico/diag1_salida.asm` | `[85]` (LEDs 01010101: etapa de salida) |
+| `diagnostico/diag2_bits_A.asm` | `[1, 2, 4, 8, 16, 32, 64, 128]` (un bit a la vez por A) |
+| `diagnostico/diag3_bits_B.asm` | `[1, 2, 4, 8, 16, 32, 64, 128]` (un bit a la vez por B) |
+| `diagnostico/diag4_acarreo.asm` | `[16]` (acarreo entre los dos 181; si sale 0 falla C̄n+4 → C̄n) |
 
 ## Ejecutar las pruebas
 
 ```
-python -m pytest -q                                  # todo (265)
+python -m pytest -q                                  # todo (802)
 python -m pytest tests/test_asm_errors.py -v         # un archivo, detallado
 python -m pytest -k "reference" -v                   # por nombre
 ```
@@ -967,7 +1005,7 @@ python -m pytest -k "reference" -v                   # por nombre
 | `test_step_mode.py`, `test_run_mode.py` | Microciclos, límite de ciclos |
 | `test_reference_program.py` | A.7 en el simulador → 12 |
 | `test_asm_mnemonics.py` | **Guardián**: que `asm/` no duplique la tabla de opcodes |
-| `test_asm_errors.py` | Las 11 categorías de error |
+| `test_asm_errors.py` | Las 10 categorías de error |
 | `test_asm_reference_program.py` | A.7 ensamblado → ejecutado → 12 |
 
 ---
@@ -996,20 +1034,21 @@ Todos los archivos de texto se leen y escriben con **UTF-8 explícito**, y el CL
 |---|---|
 | B.0 mapa de memoria | ✅ Congelado |
 | B.1 simulador | ✅ 54 pruebas en verde |
-| B.2 ensamblador | ✅ 211 pruebas en verde |
-| B.3 firmware del Arduino | ✅ 193 pruebas en verde — **sin probar en hardware** |
+| B.2 ensamblador | ✅ 265 pruebas en verde |
+| B.3 firmware del Arduino | ✅ 189 pruebas en verde — `referencia.load` ya corrió en hardware (2026-10-01) |
+| Depurador Tkinter | ✅ 270 pruebas en verde (entregado) |
+| Montaje (`montaje/`) | ✅ 24 pruebas en verde; montaje físico completo, las 6 fases probadas (2026-10-02) |
 | B.4 documentación | 🔄 En paralelo |
 
-**Total: 458 pruebas.**
+**Total: 802 pruebas** (sim 54, asm 265, firmware 189, depurador 270, montaje 24).
 
 ## Lo que bloquea el avance
 
 | Bloqueo | Consecuencia |
 |---|---|
-| **Comprar el Arduino Mega**, los 74LS273, los 74LS157, el 74LS244 y los LEDs | Sin la placa no hay nada que probar en hardware |
-| **Caracterizar la ALU en protoboard** (sección 7 de la bitácora) | Resuelve el pendiente C.5 del carry en `SUB` |
-| **¿La entrega en protoboard conserva la exoneración?** | El ingeniero ya aceptó la protoboard como entrega (C.1); falta confirmar si exonera |
+| ~~Terminar el montaje físico y sus pruebas~~ | ✅ Hecho (2026-10-02): fases 5 y 6 completas |
+| **¿La entrega en protoboard conserva la exoneración?** | El ingeniero ya aceptó la protoboard como entrega (C.1, 2026-09-17), lo que supera la duda A.1.5 de la exoneración; sin confirmar por escrito |
 
-El carry en `SUB` ya está aislado en el firmware tras un `#define`, así que resolverlo es un cambio de una línea.
+Ya resueltos: la compra del Arduino Mega y de los chips (el Mega ya corre el firmware) y el pendiente C.5 del carry en `SUB` (2026-09-29, `CARRY_SUB_INVERTIDO` queda en 0).
 
-**Siguiente tarea de software:** la interfaz de observación en Processing — pero es lo **último** que debe construirse (semanas 12–13). Llegar a la semana 12 con una interfaz preciosa y un circuito a medio soldar es el peor escenario posible.
+**Software de observación:** el depurador gráfico en Python/Tkinter ya está entregado (`depurador/`, ver `depurador/LEEME.md`; cierra C.6). Una interfaz en Processing queda solo como **extra opcional**.

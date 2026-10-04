@@ -30,37 +30,37 @@
 //     b y c van a nivel fijo, a/d/e/f a W, g a Y.
 // ---------------------------------------------------------------------------
 
-#include <Arduino.h>
+// #include <Arduino.h>
 
-#include "display.h"
-#include "pines.h"
+// #include "display.h"
+// #include "pines.h"
 
-const unsigned long MS_ENTRE_DIGITOS = 300;
-const unsigned long MS_ENTRE_ENGANCHES = 2000;
+// const unsigned long MS_ENTRE_DIGITOS = 300;
+// const unsigned long MS_ENTRE_ENGANCHES = 2000;
 
-unsigned long g_ultimoDigito = 0;
-unsigned long g_ultimoEnganche = 0;
+// unsigned long g_ultimoDigito = 0;
+// unsigned long g_ultimoEnganche = 0;
 
-void setup() {
-  Serial.begin(115200);
-  display::iniciar();
-  display::enganchar();   // captura lo que haya en las entradas D al arrancar
-  Serial.println(F("diagnostico: recorriendo los 8 digitos, uno cada 300 ms"));
-}
+// void setup() {
+//   Serial.begin(115200);
+//   display::iniciar();
+//   display::enganchar();   // captura lo que haya en las entradas D al arrancar
+//   Serial.println(F("diagnostico: recorriendo los 8 digitos, uno cada 300 ms"));
+// }
 
-void loop() {
-  unsigned long ahora = millis();
+// void loop() {
+//   unsigned long ahora = millis();
 
-  if (ahora - g_ultimoEnganche >= MS_ENTRE_ENGANCHES) {
-    display::enganchar();
-    g_ultimoEnganche = ahora;
-    Serial.println(F("enganche: valor capturado del bus F"));
-  }
+//   if (ahora - g_ultimoEnganche >= MS_ENTRE_ENGANCHES) {
+//     display::enganchar();
+//     g_ultimoEnganche = ahora;
+//     Serial.println(F("enganche: valor capturado del bus F"));
+//   }
 
   // Multiplexado deliberadamente LENTO: en el sketch real esto corre miles de
   // veces por segundo y los ocho digitos se ven a la vez.
-  if (ahora - g_ultimoDigito >= MS_ENTRE_DIGITOS) {
-    display::refrescar();
-    g_ultimoDigito = ahora;
-  }
-}
+//   if (ahora - g_ultimoDigito >= MS_ENTRE_DIGITOS) {
+//     display::refrescar();
+//     g_ultimoDigito = ahora;
+//   }
+// }

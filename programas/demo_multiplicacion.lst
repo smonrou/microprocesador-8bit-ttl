@@ -14,24 +14,24 @@ DIR  BYTES        LÍN  FUENTE
                    12  ; Con los valores actuales (4 × 3) la salida esperada es 12.
                    13  ; ─────────────────────────────────────────────────────────────────────────
                    14
-00   30 00         15        LDI A,#0
-02   50 C8         16        STA RESULTADO         ; resultado = 0
+00   30 00         15        MOV A,0
+02   50 C8         16        MOV [RESULTADO],A     ; resultado = 0
                    17
-04   30 03         18        LDI A,#3              ; <<<< MULTIPLICADOR: cuántas veces sumar
-06   50 C9         19        STA CONTADOR
+04   30 03         18        MOV A,3               ; <<<< MULTIPLICADOR: cuántas veces sumar
+06   50 C9         19        MOV [CONTADOR],A
                    20
-08   10 C8         21  LOOP: LDA RESULTADO
-0A   20 CC         22        LDB MULTIPLICANDO
+08   10 C8         21  LOOP: MOV A,[RESULTADO]
+0A   20 CC         22        MOV B,[MULTIPLICANDO]
 0C   60            23        ADD
-0D   50 C8         24        STA RESULTADO         ; resultado += multiplicando
+0D   50 C8         24        MOV [RESULTADO],A     ; resultado += multiplicando
                    25
-0F   10 C9         26        LDA CONTADOR
-11   40 01         27        LDI B,#1
+0F   10 C9         26        MOV A,[CONTADOR]
+11   40 01         27        MOV B,1
 13   70            28        SUB
-14   50 C9         29        STA CONTADOR          ; contador -= 1
+14   50 C9         29        MOV [CONTADOR],A      ; contador -= 1
 16   F0 08         30        JNZ LOOP              ; repetir mientras no llegue a cero
                    31
-18   10 C8         32        LDA RESULTADO
+18   10 C8         32        MOV A,[RESULTADO]
 1A   B0            33        OUT                   ; muestra el producto
 1B   C0            34        HLT
                    35

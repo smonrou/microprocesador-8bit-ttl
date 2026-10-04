@@ -99,10 +99,10 @@ class Nucleo {
   bool instruccionEnCurso() const { return pasosPendientes_ > 0; }
 
   // Valores REALES de los registros físicos, leídos a través de la ALU
-  // (F=A con M=1,S=1111; F=B con M=1,S=1010 — bitácora 6.2). No hay copia
-  // en software que pueda divergir del hardware.
-  uint8_t leerRegistroA();
-  uint8_t leerRegistroB();
+  // (F=A con M=0,S=0000,C̄n=1; F=B con M=1,S=1010 — bitácora 6.2). No hay
+  // copia en software que pueda divergir del hardware.
+  uint8_t registroA();
+  uint8_t registroB();
 
   const Traza& traza() const { return traza_; }
 
@@ -118,8 +118,8 @@ class Nucleo {
   void faseEscribir();
 
   // Primitivas del camino de datos.
-  void cargarRegistroDesdeBus(uint8_t valor, uint8_t registro);
-  uint8_t leerPorALU(uint8_t selector);
+  void engancharDesdeBus(uint8_t valor, uint8_t registro);
+  uint8_t muestrearALU(uint8_t m, uint8_t s, uint8_t cn);
   void configurarOperacion(uint8_t opcode);
 
   uint8_t memoria_[MEMORIA_TAM];

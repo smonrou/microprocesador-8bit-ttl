@@ -75,7 +75,7 @@ uint8_t Nucleo::leerMemoria(uint8_t direccion) const {
 
 // ── Primitivas del camino de datos ───────────────────────────────────────
 
-void Nucleo::cargarRegistroDesdeBus(uint8_t valor, uint8_t registro) {
+void Nucleo::engancharDesdeBus(uint8_t valor, uint8_t registro) {
   hal::ponerBus(valor);
   hal::seleccionarMux(MUX_BUS);
   // El 74LS273 no tiene habilitación: se elige el registro por cuál reloj se
@@ -87,16 +87,21 @@ void Nucleo::cargarRegistroDesdeBus(uint8_t valor, uint8_t registro) {
   }
 }
 
-uint8_t Nucleo::leerPorALU(uint8_t selector) {
+uint8_t Nucleo::muestrearALU(uint8_t m, uint8_t s, uint8_t cn) {
   // Las salidas del 74LS273 van al 181, no al Arduino. Para conocer el valor
-  // real de un registro se hace pasar por la ALU sin alterarlo y se lee F.
-  hal::configurarALU(ALU_LOGICO, selector, CN_LOGICO);
+  // real de un registro se configura una función identidad y se lee F.
+  hal::configurarALU(m, s, cn);
   hal::esperarPropagacion();
   return hal::leerF();
 }
 
-uint8_t Nucleo::leerRegistroA() { return leerPorALU(ALU_PASAR_A); }
-uint8_t Nucleo::leerRegistroB() { return leerPorALU(ALU_PASAR_B); }
+uint8_t Nucleo::registroA() {
+  return muestrearALU(ALU_ARITMETICO, ALU_IDENTIDAD_A, CN_IDENTIDAD);
+}
+
+uint8_t Nucleo::registroB() {
+  return muestrearALU(ALU_LOGICO, ALU_IDENTIDAD_B, CN_LOGICO);
+}
 
 void Nucleo::configurarOperacion(uint8_t opcode) {
   // Tabla A.3, verificada contra el datasheet TI SDLS136 pág. 4, TABLE 2.
@@ -228,14 +233,14 @@ void Nucleo::faseEjecutar() {
       // Se leen A y B para la traza ANTES de configurar la operación: el
       // volcado de estado debe mostrar los operandos, y estos valores salen
       // del registro físico, no de una copia.
-      traza_.aAntes = leerRegistroA();
-      traza_.bAntes = leerRegistroB();
+      traza_.aAntes = registroA();
+      traza_.bAntes = registroB();
       configurarOperacion(actual_->opcode);
       break;
 
     case CAT_CARGA_DIRECTA: {
       uint8_t valor = memoria_[operando_];
-      cargarRegistroDesdeBus(valor, actual_->registro);
+      engancharDesdeBus(valor, actual_->registro);
       if (actual_->registro == REG_A) {
         traza_.aDespues = valor;
       } else {
@@ -245,7 +250,7 @@ void Nucleo::faseEjecutar() {
     }
 
     case CAT_CARGA_INMEDIATA:
-      cargarRegistroDesdeBus(operando_, actual_->registro);
+      engancharDesdeBus(operando_, actual_->registro);
       if (actual_->registro == REG_A) {
         traza_.aDespues = operando_;
       } else {
@@ -254,7 +259,7 @@ void Nucleo::faseEjecutar() {
       break;
 
     case CAT_GUARDA_DIRECTA: {
-      uint8_t valorA = leerRegistroA();
+      uint8_t valorA = registroA();
       memoria_[operando_] = valorA;
       traza_.aAntes = valorA;
       traza_.aDespues = valorA;
@@ -276,7 +281,7 @@ void Nucleo::faseEjecutar() {
     }
 
     case CAT_SALIDA: {
-      uint8_t valorA = leerRegistroA();
+      uint8_t valorA = registroA();
       ultimaSalida_ = valorA;
       huboSalida_ = true;
       traza_.aAntes = valorA;

@@ -1,0 +1,41 @@
+DIR  BYTES        LÍN  FUENTE
+---  -----------  ---  --------------------------------------------
+                    1  ; ─────────────────────────────────────────────────────────────────────────
+                    2  ; 01_contador.asm — contador binario en los LEDs
+                    3  ;
+                    4  ; Cuenta 1, 2, 3, ... hasta LIMITE y muestra cada valor con OUT. En los
+                    5  ; 8 LEDs se ve contar en binario. La condición de salida compara la cuenta
+                    6  ; con el límite usando XOR: si son iguales todos los bits se anulan, el
+                    7  ; resultado es 0 y la bandera Z se enciende.
+                    8  ;
+                    9  ; Demuestra: bucle, comparación de igualdad con XOR + JNZ.
+                   10  ;
+                   11  ; PARA CAMBIAR EL LÍMITE: LOAD 0xC0 <n>   (LIMITE = 0 cuenta las 256 vueltas)
+                   12  ; En hardware: VEL 300 antes de RUN para ver la cuenta.
+                   13  ;
+                   14  ; Salida esperada: [1, 2, 3, ..., 15]
+                   15  ; ─────────────────────────────────────────────────────────────────────────
+                   16
+00   30 00         17         MOV A,0
+02   50 C1         18         MOV [CUENTA],A       ; cuenta = 0
+                   19
+04   10 C1         20  SIGUE: MOV A,[CUENTA]
+06   40 01         21         MOV B,1
+08   60            22         ADD
+09   50 C1         23         MOV [CUENTA],A       ; cuenta += 1
+0B   B0            24         OUT                  ; muestra la cuenta
+                   25
+0C   20 C0         26         MOV B,[LIMITE]
+0E   A0            27         XOR                  ; A = cuenta XOR limite → 0 solo si son iguales
+0F   F0 04         28         JNZ SIGUE            ; distintos: seguir contando
+11   C0            29         HLT
+                   30
+                   31  ; ── Zona de datos ────────────────────────────────────────────────────────
+                   32  .ORG 0xC0
+C0   0F            33  LIMITE: .DB 15              ; <<<< hasta dónde contar (0xC0)
+C1   00            34  CUENTA: .DB 0               ; 0xC1 — se inicializa desde el programa
+
+TABLA DE SÍMBOLOS
+SIGUE  = 0x04 (4)
+LIMITE = 0xC0 (192)
+CUENTA = 0xC1 (193)

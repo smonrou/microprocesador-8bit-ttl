@@ -38,6 +38,11 @@
 //   PK2 = A10 = PC2          PK6 = A14 = PC6
 //   PK3 = A11 = PC3          PK7 = A15 = PC7
 //
+// OJO, nombre repetido: aquí PC0..PC7 son los bits del CONTADOR DE PROGRAMA
+// (cables grises de los 161 a A8-A15). En el bloque de PORTC de arriba, PC0..PC7
+// son los bits del PUERTO C del Mega (F0-F7, pines 37 a 30). Mismo nombre,
+// cables distintos: el bit 4 del contador va a A12, y F4 va al pin 33.
+//
 // El PC es HARDWARE: dos 74LS161 en cascada (RCO del bajo -> ENT del alto).
 // El Arduino no lo calcula; solo pulsa su reloj (cuenta) o lo pulsa con
 // /LOAD en bajo (carga desde el bus D, para los saltos). Lo lee por PORTK
@@ -111,20 +116,21 @@
 #define PIN_CARGA_PC 43   // /LOAD, activo en BAJO
 
 // Salida física (ver el bloque de arriba)
-#define PIN_SEL_0            3
-#define PIN_SEL_1            4
-#define PIN_SEL_2            5
-#define PIN_HABILITA_DISPLAY 6
+// #define PIN_SEL_0            3
+// #define PIN_SEL_1            4
+// #define PIN_SEL_2            5
+// #define PIN_HABILITA_DISPLAY 6
 #define PIN_CLOCK_SALIDA     7
 
 // Cuántos dígitos tiene la salida: uno por bit del byte.
-#define DIGITOS_SALIDA 8
+// #define DIGITOS_SALIDA 8
 
 // Margen de propagación. El peor caso del datasheet ronda 80 ns entre los dos
 // 181 en cascada; 50 µs son tres órdenes de magnitud de sobra.
 #define MICROS_PROPAGACION 50
 
-// Ancho del pulso de reloj del 74LS273.
-#define MICROS_PULSO 5
+// Ancho del pulso de reloj del 74LS273 y del 74LS161. Los dos piden ~25 ns;
+// 3 µs es el mínimo que delayMicroseconds cumple con precisión.
+#define MICROS_PULSO 3
 
 #endif  // PINES_H

@@ -86,7 +86,7 @@ uint8_t leerPC();
 // En la placa real el byte llega al registro de salida DESDE EL BUS F, no
 // desde el Arduino: esta función solo pulsa el reloj que lo captura, y por
 // eso ignora `valor`. Hay que llamarla mientras la ALU siga configurada en
-// F=A, que es como la deja leerRegistroA().
+// F=A, que es como la deja registroA().
 //
 // El parámetro se mantiene porque el HAL falso lo registra: las pruebas
 // comprueban qué valor sacó cada OUT sin depender de pines.

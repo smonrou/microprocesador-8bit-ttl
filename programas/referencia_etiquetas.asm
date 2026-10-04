@@ -9,23 +9,23 @@
 ; Resultado esperado: OUT muestra 12 (0x0C), luego HLT.
 ; ─────────────────────────────────────────────────────────────────────────
 
-      LDI A,#0
-      STA RESULTADO      ; resultado = 0
-      LDI A,#3
-      STA CONTADOR       ; contador = 3
+      MOV A,0
+      MOV [RESULTADO],A  ; resultado = 0
+      MOV A,3
+      MOV [CONTADOR],A   ; contador = 3
 
-LOOP: LDA RESULTADO
-      LDB CUATRO
+LOOP: MOV A,[RESULTADO]
+      MOV B,[CUATRO]
       ADD
-      STA RESULTADO      ; resultado += 4
+      MOV [RESULTADO],A  ; resultado += 4
 
-      LDA CONTADOR
-      LDI B,#1
+      MOV A,[CONTADOR]
+      MOV B,1
       SUB
-      STA CONTADOR       ; contador -= 1
+      MOV [CONTADOR],A   ; contador -= 1
       JNZ LOOP
 
-      LDA RESULTADO
+      MOV A,[RESULTADO]
       OUT                ; muestra 12
       HLT
 

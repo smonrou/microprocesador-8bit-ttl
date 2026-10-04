@@ -12,6 +12,10 @@
 #include <stdint.h>
 
 // ── Opcodes (nibble alto del primer byte) ─────────────────────────────────
+// Los nombres OP_LDA/OP_LDB/OP_LDI_A/OP_LDI_B/OP_STA son identificadores
+// internos históricos; el nemónico que ve el usuario es el de TABLA_OPCODES
+// (sintaxis x86 desde 2026-09-28): MOV A,[dir] / MOV B,[dir] / MOV A,inm /
+// MOV B,inm / MOV [dir],A.
 #define OP_NOP    0x0
 #define OP_LDA    0x1
 #define OP_LDB    0x2
@@ -43,26 +47,27 @@
 #define ALU_OR    0b1110
 #define ALU_XOR   0b0110   // mismo S que SUB; los distingue M
 
-// Funciones extra del 181 disponibles sin costo (bitácora 6.2).
-// Se usan para leer los registros físicos a través de la ALU, ya que las
-// salidas del 74LS273 van al 181 y no al Arduino.
-#define ALU_PASAR_A  0b1111   // F = A   (con M = ALU_LOGICO)
-#define ALU_PASAR_B  0b1010   // F = B   (con M = ALU_LOGICO)
+// Funciones identidad del 181 (bitácora 6.2). Se usan para leer los
+// registros físicos a través de la ALU, ya que las salidas del 74LS273 van
+// al 181 y no al Arduino. A se lee en modo ARITMÉTICO: A PLUS 0 sin acarreo
+// de entrada, que no genera acarreo hacia la ALU alta. B solo tiene
+// identidad en modo lógico.
+#define ALU_IDENTIDAD_A  0b0000   // F = A   (con M = ALU_ARITMETICO, C̄n = CN_IDENTIDAD)
+#define ALU_IDENTIDAD_B  0b1010   // F = B   (con M = ALU_LOGICO)
 
 // Carry de entrada (pin 7, INVERTIDO en modo active-high)
 #define CN_ADD    1   // HIGH: sin acarreo de entrada
 #define CN_SUB    0   // LOW:  acarreo forzado -> el +1 del complemento a 2
 #define CN_LOGICO 1   // irrelevante en modo lógico; se fija para no dejarlo flotando
+#define CN_IDENTIDAD 1   // HIGH: sin acarreo, así M=0 S=0000 da F = A y no A PLUS 1
 
 // ---------------------------------------------------------------------------
-// PENDIENTE Parte C punto 5 — semántica del carry en SUB.
+// Parte C punto 5 — semántica del carry en SUB. RESUELTO (2026-09-29).
 //
-// El diseño asume que C̄n+4 en bajo durante una resta significa que NO hubo
-// préstamo (A >= B). Eso está sin verificar experimentalmente con el 181 en
-// protoboard (sección 7 de la bitácora).
-//
-// Si la prueba lo desmiente, cambiar este 0 por un 1: el núcleo negará C
-// únicamente en las restas. Es el único cambio necesario.
+// C̄n+4 en bajo durante una resta significa que NO hubo préstamo (A >= B).
+// Medido en protoboard, fase 2 del montaje (C̄n+4 de la ALU ALTA, C̄n = 0):
+// 5-3 -> bajo, 3-5 -> alto, 5-5 -> bajo. Coincide con el supuesto, así que
+// queda en 0. Con 1 el núcleo negaría C únicamente en las restas.
 // ---------------------------------------------------------------------------
 #define CARRY_SUB_INVERTIDO 0
 

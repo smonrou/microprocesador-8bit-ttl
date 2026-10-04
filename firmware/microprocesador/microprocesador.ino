@@ -53,5 +53,5 @@ void loop() {
   // Los cuatro digitos de cada display comparten las lineas de segmento: sin
   // refresco continuo solo se veria uno de los ocho. Aqui no se decodifica
   // nada, solo se avanza el selector; el patron lo dibuja el hardware.
-  display::refrescar();
+  // display::refrescar();
 }

@@ -20,7 +20,7 @@ Proyecto individual del curso **Arquitectura de Computadoras y Ensambladores 1**
 2. Arquitectura **von Neumann**: instrucciones y datos comparten el mismo espacio de direcciones.
 3. La entrada de datos es por **monitor serial**. Se descartaron botones físicos.
 4. En la defensa, el ingeniero elige en vivo qué datos ejecutar. El sistema debe ser genérico, no una demo pregrabada.
-5. Un proyecto entregado en protoboard **no es elegible para exoneración** del examen final. El entregable debe ser un circuito soldado.
+5. Un proyecto entregado en protoboard **no es elegible para exoneración** del examen final. El entregable debe ser un circuito soldado. *(Nota 2026-10: **superado por C.1 (2026-09-17)**: el ingeniero aceptó la entrega en protoboards. Si esa entrega conserva la exoneración sigue **sin confirmar**.)*
 
 ## A.2 Hardware
 
@@ -30,11 +30,11 @@ Proyecto individual del curso **Arquitectura de Computadoras y Ensambladores 1**
 | Registro A | 1× **74LS273** (8 bits) | Decidido |
 | Registro B | 1× **74LS273** (8 bits) | Decidido |
 | Mux de entrada a A | 2× **74LS157** | Decidido |
-| Contador de programa (PC) | 2× **74LS161** en cascada (8 bits, carga paralela síncrona desde el bus D, clear asíncrono compartido con los 273). Q0–Q7 → Mega A8–A15 (PORTK) | Decidido (2026-09-25, por orden del ingeniero). En existencia |
-| Unidad de control / memoria / reloj | **Arduino Mega** | Por comprar |
+| Contador de programa (PC) | 2× **74LS161** en cascada (8 bits, carga paralela síncrona desde el bus D, clear asíncrono compartido con los 273). Q0–Q7 → Mega A8–A15 (PORTK) | Decidido (2026-09-25, por orden del ingeniero). Montado y probado en la fase 4 del montaje (cuenta, carga paralela y vuelta de 0xFF a 0x00 verificados el 2026-09-30) |
+| Unidad de control / memoria / reloj | **Arduino Mega** | Comprado, conectado y funcionando: el procesador funciona completo en hardware (las 6 fases del montaje probadas, 2026-10-02) |
 | Registro de salida | 1× **74LS273** (engancha el bus F al ejecutar OUT) | Decidido (2026-09-04) |
-| Salida del procesador | **8 LEDs en binario**, uno por bit (bit 7 a la izquierda). Registro de salida → 1× **74LS244** (buffer de corriente) → 8 LEDs rojos/verdes/amarillos con 220 Ω a GND; LED encendido = bit en 1. Sin decodificación: el bit ya es la magnitud. El Arduino no convierte nada | Decidido (2026-09-17, reemplaza los 8 dígitos de 7 segmentos con 74LS151/74LS138) |
-| Interfaz de observación | Processing vía serial | Decidido |
+| Salida del procesador | **8 LEDs en binario**, uno por bit (bit 7 a la izquierda). Registro de salida → 1× buffer de corriente → 8 LEDs; LED encendido = bit en 1. Diseño: **74LS244** con LEDs rojos/verdes/amarillos y 220 Ω a GND. **Montaje real (2026-09-28): 74LS240**, que es el chip que se tiene en físico: mismo pinout pero invierte, así que cada LED va de +5 V a la salida (+5 V → LED → 330 Ω → Y) y enciende con bit = 1; sirve cualquier color. Sin decodificación: el bit ya es la magnitud. El Arduino no convierte nada | Decidido (2026-09-17, reemplaza los 8 dígitos de 7 segmentos con 74LS151/74LS138); buffer real 74LS240 (2026-09-28) |
+| Interfaz de observación | Depurador gráfico en Python/Tkinter vía serial (`depurador/`) | **Entregado** (cierra C.6). Processing queda como extra opcional |
 
 **Camino de datos:** las salidas F de la ALU regresan a las entradas del registro A **a través del mux 74LS157**. El resultado nunca pasa por el Arduino. El mux selecciona entre "bus del Arduino" y "salida de la ALU".
 
@@ -99,11 +99,11 @@ El tamaño de la memoria es **consecuencia directa** del formato: el operando de
 | Opcode | Nemónico | Bytes | Modo | Operación | Afecta banderas |
 |---|---|---|---|---|---|
 | `0000` | `NOP` | 1 | — | Ninguna | No |
-| `0001` | `LDA dir` | 2 | Directo | Mem[dir] → A | No |
-| `0010` | `LDB dir` | 2 | Directo | Mem[dir] → B | No |
-| `0011` | `LDI A,#n` | 2 | Inmediato | n → A | No |
-| `0100` | `LDI B,#n` | 2 | Inmediato | n → B | No |
-| `0101` | `STA dir` | 2 | Directo | A → Mem[dir] | No |
+| `0001` | `MOV A,[dir]` | 2 | Directo | Mem[dir] → A | No |
+| `0010` | `MOV B,[dir]` | 2 | Directo | Mem[dir] → B | No |
+| `0011` | `MOV A,inm` | 2 | Inmediato | n → A | No |
+| `0100` | `MOV B,inm` | 2 | Inmediato | n → B | No |
+| `0101` | `MOV [dir],A` | 2 | Directo | A → Mem[dir] | No |
 | `0110` | `ADD` | 1 | Implícito | A + B → A | **Sí** |
 | `0111` | `SUB` | 1 | Implícito | A − B → A | **Sí** |
 | `1000` | `AND` | 1 | Implícito | A & B → A | **Sí** |
@@ -115,9 +115,11 @@ El tamaño de la memoria es **consecuencia directa** del formato: el operando de
 | `1110` | `JZ dir` | 2 | Directo | Si Z=1: dir → PC | No |
 | `1111` | `JNZ dir` | 2 | Directo | Si Z=0: dir → PC | No |
 
+**Nemónicos estilo x86 (cambio de sintaxis, 2026-09-28):** las cinco instrucciones de transferencia comparten la palabra `MOV` y se distinguen por la forma de los operandos, como en el 8086: `[dir]` entre corchetes es direccionamiento directo, un valor pelado es inmediato (sin `#`), y `A`/`B` nombran el registro. Solo cambió el texto: opcodes, codificación, longitudes, microciclos y banderas son los mismos. Motivo: otro equipo usaba los mismos nemónicos (`LDA`, `LDB`, `LDI A`, `LDI B`, `STA`). Formas que no existen (`MOV [dir],B`, `MOV A,B`, memoria a memoria...) son error del ensamblador.
+
 **Las 6 funciones aprobadas por el ingeniero son:** ADD, SUB, AND, OR, XOR, OUT. Las demás son infraestructura (transferencia de datos y control de flujo).
 
-**Regla de banderas — crítica:** solo las cinco operaciones de ALU actualizan Z y C. `STA`, `LDA`, `LDB`, `LDI` **no las modifican**. Esto es indispensable: el programa de referencia hace `SUB` → `STA` → `JNZ`, y el `STA` intermedio no debe destruir la bandera.
+**Regla de banderas — crítica:** solo las cinco operaciones de ALU actualizan Z y C. Ningún `MOV` (cargas ni guardado) **las modifica**. Esto es indispensable: el programa de referencia hace `SUB` → `MOV [201],A` → `JNZ`, y ese guardado intermedio no debe destruir la bandera.
 
 **Semántica de banderas:**
 - `Z = 1` si el resultado de la última operación de ALU fue `0x00`.
@@ -150,23 +152,23 @@ Espacio único de 256 bytes (`0x00`–`0xFF`), von Neumann.
 Este programa es el **caso de prueba canónico**. Debe funcionar idénticamente en el simulador, el ensamblador y el hardware.
 
 ```asm
-      LDI A,#0
-      STA 200        ; resultado = 0
-      LDI A,#3
-      STA 201        ; contador = 3
+      MOV A,0
+      MOV [200],A    ; resultado = 0
+      MOV A,3
+      MOV [201],A    ; contador = 3
 
-LOOP: LDA 200
-      LDB 204        ; el 4 vive en la dirección 204
+LOOP: MOV A,[200]
+      MOV B,[204]    ; el 4 vive en la dirección 204
       ADD
-      STA 200        ; resultado += 4
+      MOV [200],A    ; resultado += 4
 
-      LDA 201
-      LDI B,#1
+      MOV A,[201]
+      MOV B,1
       SUB
-      STA 201        ; contador -= 1
+      MOV [201],A    ; contador -= 1
       JNZ LOOP
 
-      LDA 200
+      MOV A,[200]
       OUT            ; muestra 12
       HLT
 ```
@@ -178,7 +180,7 @@ LOOP: LDA 200
 
 | Fase | Acción | Dónde |
 |---|---|---|
-| FETCH | `IR ← Mem[PC]`; `PC++` | Arduino |
+| FETCH | `IR ← Mem[PC]`; `PC++` | Arduino (RAM, IR) + PC en hardware (74LS161) |
 | DECODE | `opcode = IR >> 4`; determinar longitud; si son 2 bytes: `operando ← Mem[PC]`, `PC++` | Arduino |
 | EXECUTE | Cargar registros, configurar la ALU, esperar propagación, capturar resultado vía mux | Arduino + hardware |
 
@@ -193,10 +195,10 @@ T4           Esperar propagación (50 µs)
 T5  WRITE    Mux → ALU;  pulso de clock en A;  leer F y C̄n+4 para banderas
 ```
 
-**Ejemplo, instrucción de 2 bytes (LDI A,#n):**
+**Ejemplo, instrucción de 2 bytes (MOV A,inm):**
 ```
 T1  FETCH    IR ← Mem[PC];  PC++
-T2  DECODE   opcode 0011 → LDI A, 2 bytes
+T2  DECODE   opcode 0011 → MOV A,inm, 2 bytes
 T3  FETCH2   dato ← Mem[PC];  PC++
 T4  EXECUTE  Bus ← dato;  Mux → bus;  pulso de clock en A
 ```
@@ -226,17 +228,19 @@ Orden recomendado: **B.0 → B.1 → B.2 → B.3**, con **B.4 en paralelo** dura
 
 Cada tarea indica sus dependencias. Las tareas sin dependencias entre sí pueden ejecutarse en conversaciones separadas.
 
-## Estado (2026-08-08)
+## Estado (actualizado 2026-10-01; la versión original de la tabla es del 2026-08-08)
 
 | Tarea | Estado | Dónde | Pruebas |
 |---|---|---|---|
 | B.0 Mapa de memoria | ✅ Congelado | A.6 de este documento | — |
 | B.1 Simulador | ✅ Implementado | `sim/` | 54 |
-| B.2 Ensamblador | ✅ Implementado | `asm/` | 211 |
-| B.3 Firmware del Arduino | ✅ Implementado, **sin probar en hardware** | `firmware/` | 193 |
-| B.4 Documentación | 🔄 En curso | los tres `.md` de la raíz | — |
+| B.2 Ensamblador | ✅ Implementado | `asm/` | 265 |
+| B.3 Firmware del Arduino | ✅ Implementado; `referencia.load` ya corrió en hardware (2026-10-01) | `firmware/` | 189 |
+| Depurador Tkinter | ✅ Entregado | `depurador/` | 270 |
+| Montaje físico | ✅ Las 6 fases probadas (2026-10-02) | `montaje/` | 24 |
+| B.4 Documentación | 🔄 En curso | los `.md` de la raíz (`contexto_proyecto`, `proyecto_microprocesador_8bits`, `instrucciones`, `simulacion_vs_fisico`, `contexto_montaje`; además `README`, `CLAUDE` y el histórico `progreso-simulacion`) | — |
 
-**Total: 458 pruebas en verde.** Cómo ejecutarlo todo: `instrucciones.md`.
+**Total: 802 pruebas en verde** (sim 54, asm 265, firmware 189, depurador 270, montaje 24). Cómo ejecutarlo todo: `instrucciones.md`. Las cifras anteriores (458 = 54 + 211 + 193, 2026-08-08) son históricas.
 
 Las descripciones de abajo se conservan como especificación de cada tarea: son lo que se pidió, y sirven para verificar que lo entregado lo cumple.
 
@@ -291,7 +295,7 @@ Las descripciones de abajo se conservan como especificación de cada tarea: son 
 | OR | A=0xCC, B=0xAA | A=0xEE |
 | XOR | A=0xCC, B=0xAA | A=0x66 |
 | NOT vía XOR | A=0x0F, B=0xFF, XOR | A=0xF0 |
-| STA no toca banderas | SUB (Z=1) → STA → JZ | El salto **sí** ocurre |
+| MOV [dir],A no toca banderas | SUB (Z=1) → MOV [dir],A → JZ | El salto **sí** ocurre |
 
 ---
 
@@ -306,9 +310,10 @@ Las descripciones de abajo se conservan como especificación de cada tarea: son 
 
 ```asm
 ; comentarios con punto y coma
-LOOP:  LDA 200          ; etiqueta + instrucción
-       LDI A,#12        ; inmediato con #
-       LDI B,#0xFF      ; hexadecimal
+LOOP:  MOV A,[200]      ; etiqueta + instrucción (directo: corchetes)
+       MOV A,12         ; inmediato: valor pelado, sin #
+       MOV B,0xFF       ; hexadecimal
+       MOV [200],A      ; guardar A en memoria
        JNZ LOOP         ; etiqueta como operando
        HLT
 ```
@@ -317,7 +322,7 @@ LOOP:  LDA 200          ; etiqueta + instrucción
 - **Primera pasada:** recorrer el fuente, calcular la dirección de cada instrucción (recordando que ocupan 1 o 2 bytes) y construir la tabla de símbolos con las etiquetas.
 - **Segunda pasada:** generar los bytes, resolviendo las etiquetas a direcciones.
 - Aceptar números en decimal (`12`), hexadecimal (`0xFF` o `$FF`) y binario (`0b1010`).
-- Distinguir `LDI A` de `LDI B` (opcodes distintos, `0011` y `0100`).
+- Elegir el opcode de `MOV` por la forma de los operandos (`MOV A,[dir]`=`0001` … `MOV [dir],A`=`0101`; 2026-09-28, antes `LDA`/`LDB`/`LDI A`/`LDI B`/`STA`).
 - Ignorar mayúsculas/minúsculas en nemónicos.
 - Directiva para datos iniciales (según lo decidido en B.0).
 
@@ -343,10 +348,10 @@ LOOP:  LDA 200          ; etiqueta + instrucción
 
 **Requisitos:**
 - Matriz de memoria de 256 bytes.
-- Variables PC, IR, MAR, banderas.
+- Variables IR, MAR y banderas (el PC es hardware: 2× 74LS161, el firmware lo cuenta con pulsos de reloj y /LOAD, y lo lee por PORTK).
 - Bucle fetch–decode–execute con microciclos variables (A.8).
 - `switch` sobre los 16 opcodes.
-- Control de los pines: bus de datos (8), lectura de F (8), clocks de A y B (2), select del mux (1), M, S3–S0, C̄n (6). **Total ~25 pines.**
+- Control de los pines: bus de datos (8), lectura de F (8), clocks de A y B (2), select del mux (1), M, S3–S0, C̄n (6). **Total ~25 pines** en el diseño original; con CLEAR, el reloj de salida, C̄n+4 y el PC (reloj, /LOAD y PORTK A8–A15) son 38 de los 70 pines del Mega (los pines 3–6 del antiguo display ya no se manejan).
 - Constantes de la ALU según A.3:
 
 ```cpp
@@ -362,19 +367,23 @@ LOOP:  LDA 200          ; etiqueta + instrucción
 ```
 
 - Modos RUN y STEP (A.9).
-- **Nunca** manejar la salida desde el Arduino. La salida física es binaria: bus F → 74LS273 → 74LS244 → LEDs, por cable; el firmware solo pulsa el reloj del registro de salida al ejecutar `OUT`. El depurador sí puede mostrar el valor en el formato que sea: es herramienta de observación, no la salida del procesador.
+- **Nunca** manejar la salida desde el Arduino. La salida física es binaria: bus F → 74LS273 → buffer (74LS244 en el diseño, 74LS240 en el montaje real) → LEDs, por cable; el firmware solo pulsa el reloj del registro de salida al ejecutar `OUT`. El depurador sí puede mostrar el valor en el formato que sea: es herramienta de observación, no la salida del procesador.
 - **Nunca** calcular una operación de ALU en software: siempre configurar el 181 y leer F. La única excepción permitida es `Z = (F == 0)`, que es una lectura del resultado, no un cálculo.
 
-**Protocolo serial a definir** (comandos mínimos):
+**Protocolo serial** (los seis comandos mínimos se pidieron así; el firmware implementa además `LOADB`, `BORRAR`, `VEL` y `HELP`):
 
 | Comando | Función |
 |---|---|
 | `LOAD <dir> <byte>` | Escribe un byte en memoria |
+| `LOADB <dir> <hex...>` | Escribe un bloque de bytes en una línea (lo que genera el `.load`) |
 | `RUN` | Ejecuta hasta HLT |
 | `STEP` | Avanza un microciclo |
-| `RESET` | PC=0, registros y banderas a 0 |
-| `DUMP <ini> <fin>` | Vuelca memoria |
+| `RESET` | PC=0, registros y banderas a 0 (conserva la memoria) |
+| `BORRAR` | Borra toda la memoria |
+| `DUMP [ini [fin]]` | Vuelca memoria |
 | `STATE` | Imprime el estado actual |
+| `VEL <ms>` | Retardo entre instrucciones en `RUN` (0–5000) |
+| `HELP` | Lista los comandos |
 
 La salida debe ser **legible por humanos y parseable por Processing** a la vez (por ejemplo, líneas `clave=valor` además del formato bonito).
 
@@ -423,11 +432,11 @@ Ninguna tarea debe asumir una respuesta a los puntos **abiertos**. Si una tarea 
 
 3. ~~**Mecanismo de carga de constantes iniciales**~~ ✅ **RESUELTO (2026-08-08, B.0).** Ambos mecanismos, no excluyentes: directiva `.DB` en el ensamblador para lo reproducible, y comando serial `LOAD`/`LOADB` para los datos que el ingeniero elija en vivo. Ver A.6.
 
-4. ~~**Display de 7 segmentos: ánodo o cátodo común**~~ ✅ **RESUELTO POR ELIMINACIÓN (2026-09-17).** La salida pasó a 8 LEDs (A.2); ya no hay display de 7 segmentos. El buffer queda fijo en **74LS244** con LEDs que encienden en alto. Único requisito heredado: LEDs rojos, verdes o amarillos (caída ~2 V), porque en alto el 244 entrega 2.4–3.4 V y no alcanza para azul o blanco (~3 V).
+4. ~~**Display de 7 segmentos: ánodo o cátodo común**~~ ✅ **RESUELTO POR ELIMINACIÓN (2026-09-17).** La salida pasó a 8 LEDs (A.2); ya no hay display de 7 segmentos. El buffer quedó fijo en **74LS244** con LEDs que encienden en alto. Único requisito heredado: LEDs rojos, verdes o amarillos (caída ~2 V), porque en alto el 244 entrega 2.4–3.4 V y no alcanza para azul o blanco (~3 V). *(Montaje real, 2026-09-28: se usó un **74LS240**, que invierte; con los LEDs de +5 V a la salida y 330 Ω enciende igual con bit = 1 y sirve cualquier color.)*
 
-5. **Semántica exacta del carry en SUB** 🔴 **ABIERTO.** El diseño asume que C̄n+4 en bajo indica que no hubo préstamo (A≥B). **Debe verificarse experimentalmente** con el 181 en protoboard antes de darlo por cierto. Aislado tras `#define CARRY_SUB_INVERTIDO` en `firmware/microprocesador/isa.h`.
+5. ~~**Semántica exacta del carry en SUB**~~ ✅ **RESUELTO (2026-09-29, fase 2 del montaje).** Medido en protoboard, C̄n+4 de la ALU ALTA (pin 16) con C̄n=0: 5−3 → 0.12 V (bajo), 3−5 → 4.26 V (alto), 5−5 → 0.12 V (bajo). Confirma el supuesto del diseño: C̄n+4 en bajo = no hubo préstamo (A≥B). `#define CARRY_SUB_INVERTIDO 0` en `firmware/microprocesador/isa.h` queda como está.
 
-6. **Interfaz Processing** 🔴 **ABIERTO.** Diseñada pero no especificada en detalle. Es la última prioridad (semanas 12–13); no debe adelantarse al hardware.
+6. ~~**Interfaz de observación**~~ ✅ **RESUELTO.** Se entregó como depurador gráfico en Python/Tkinter (`depurador/`, manual en `depurador/LEEME.md`): registros en cuatro formatos, banderas, líneas de control de la ALU, memoria, desensamblado y ejecución microciclo a microciclo, contra el Arduino real o contra un servidor serie de prueba. Una interfaz en **Processing** queda solo como extra opcional.
 
 ---
 

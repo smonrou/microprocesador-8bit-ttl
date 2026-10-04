@@ -1,0 +1,69 @@
+DIR  BYTES        LÍN  FUENTE
+---  -----------  ---  --------------------------------------------
+                    1  ; ─────────────────────────────────────────────────────────────────────────
+                    2  ; 08_comparador.asm — ordenar dos números (mayor y menor)
+                    3  ;
+                    4  ; Solo hay saltos por la bandera Z, así que no se puede saltar "si A < B".
+                    5  ; Se resuelve con una carrera: se restan 1 a copias de los dos números a la
+                    6  ; vez; el que llega primero a 0 es el menor.
+                    7  ;
+                    8  ; Demuestra: igualdad con XOR + JZ, comparación de magnitud solo con Z,
+                    9  ; ramas que terminan en HLT distintos.
+                   10  ;
+                   11  ; PARA CAMBIAR LOS DATOS: LOAD 0xC0 <x>   LOAD 0xC1 <y>
+                   12  ;
+                   13  ; Salida esperada (x=23, y=42): [42, 23]   → primero el mayor, luego el menor
+                   14  ; ─────────────────────────────────────────────────────────────────────────
+                   15
+00   10 C0         16           MOV A,[NUM_X]
+02   20 C1         17           MOV B,[NUM_Y]
+04   A0            18           XOR
+05   E0 27         19           JZ X_MAYOR           ; iguales: cualquier orden sirve
+                   20
+07   10 C0         21           MOV A,[NUM_X]
+09   50 C2         22           MOV [CX],A
+0B   10 C1         23           MOV A,[NUM_Y]
+0D   50 C3         24           MOV [CY],A
+                   25
+0F   10 C2         26  CARRERA: MOV A,[CX]
+11   40 00         27           MOV B,0
+13   90            28           OR
+14   E0 2E         29           JZ Y_MAYOR           ; x se agotó primero → y es mayor
+16   10 C3         30           MOV A,[CY]
+18   90            31           OR
+19   E0 27         32           JZ X_MAYOR           ; y se agotó primero → x es mayor
+1B   40 01         33           MOV B,1
+1D   70            34           SUB
+1E   50 C3         35           MOV [CY],A           ; cy -= 1
+20   10 C2         36           MOV A,[CX]
+22   70            37           SUB
+23   50 C2         38           MOV [CX],A           ; cx -= 1
+25   D0 0F         39           JMP CARRERA
+                   40
+27   10 C0         41  X_MAYOR: MOV A,[NUM_X]
+29   B0            42           OUT
+2A   10 C1         43           MOV A,[NUM_Y]
+2C   B0            44           OUT
+2D   C0            45           HLT
+                   46
+2E   10 C1         47  Y_MAYOR: MOV A,[NUM_Y]
+30   B0            48           OUT
+31   10 C0         49           MOV A,[NUM_X]
+33   B0            50           OUT
+34   C0            51           HLT
+                   52
+                   53  ; ── Zona de datos ────────────────────────────────────────────────────────
+                   54  .ORG 0xC0
+C0   17            55  NUM_X: .DB 23                ; <<<< primer número  (0xC0)
+C1   2A            56  NUM_Y: .DB 42                ; <<<< segundo número (0xC1)
+C2   00            57  CX:    .DB 0                 ; 0xC2
+C3   00            58  CY:    .DB 0                 ; 0xC3
+
+TABLA DE SÍMBOLOS
+CARRERA = 0x0F (15)
+X_MAYOR = 0x27 (39)
+Y_MAYOR = 0x2E (46)
+NUM_X   = 0xC0 (192)
+NUM_Y   = 0xC1 (193)
+CX      = 0xC2 (194)
+CY      = 0xC3 (195)

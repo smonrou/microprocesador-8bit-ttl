@@ -9,23 +9,23 @@
 ; Resultado esperado: OUT muestra 12 (0x0C), luego HLT.
 ; ─────────────────────────────────────────────────────────────────────────
 
-      LDI A,#0
-      STA 200        ; resultado = 0
-      LDI A,#3
-      STA 201        ; contador = 3
+      MOV A,0
+      MOV [200],A    ; resultado = 0
+      MOV A,3
+      MOV [201],A    ; contador = 3
 
-LOOP: LDA 200
-      LDB 204        ; el 4 vive en la dirección 204
+LOOP: MOV A,[200]
+      MOV B,[204]    ; el 4 vive en la dirección 204
       ADD
-      STA 200        ; resultado += 4
+      MOV [200],A    ; resultado += 4
 
-      LDA 201
-      LDI B,#1
+      MOV A,[201]
+      MOV B,1
       SUB
-      STA 201        ; contador -= 1
+      MOV [201],A    ; contador -= 1
       JNZ LOOP
 
-      LDA 200
+      MOV A,[200]
       OUT            ; muestra 12
       HLT
 

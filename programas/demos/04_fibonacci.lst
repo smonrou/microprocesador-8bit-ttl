@@ -1,0 +1,59 @@
+DIR  BYTES        LÍN  FUENTE
+---  -----------  ---  --------------------------------------------
+                    1  ; ─────────────────────────────────────────────────────────────────────────
+                    2  ; 04_fibonacci.asm — sucesión de Fibonacci
+                    3  ;
+                    4  ; Cada término es la suma de los dos anteriores: 1, 1, 2, 3, 5, 8, ...
+                    5  ; Como solo hay dos registros, los dos términos viven en memoria y se
+                    6  ; "corren" una posición en cada vuelta (anterior ← actual ← siguiente).
+                    7  ;
+                    8  ; Demuestra: recurrencia con variables en memoria, ADD, bucle con contador.
+                    9  ;
+                   10  ; PARA CAMBIAR CUÁNTOS TÉRMINOS: LOAD 0xC0 <n>
+                   11  ; Con 13 términos el último es 233; el 14.º (377) no cabe en 8 bits y
+                   12  ; saldría 121 (377 - 256) con el acarreo encendido.
+                   13  ; En hardware: VEL 400 antes de RUN.
+                   14  ;
+                   15  ; Salida esperada: [1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233]
+                   16  ; ─────────────────────────────────────────────────────────────────────────
+                   17
+00   30 00         18         MOV A,0
+02   50 C1         19         MOV [ANTERIOR],A     ; F(0) = 0
+04   30 01         20         MOV A,1
+06   50 C2         21         MOV [ACTUAL],A       ; F(1) = 1
+08   10 C0         22         MOV A,[TERMINOS]
+0A   50 C4         23         MOV [CONTADOR],A
+                   24
+0C   10 C2         25  OTRO:  MOV A,[ACTUAL]
+0E   B0            26         OUT                  ; muestra el término actual
+0F   20 C1         27         MOV B,[ANTERIOR]
+11   60            28         ADD
+12   50 C3         29         MOV [SIGUIENTE],A    ; siguiente = actual + anterior
+                   30
+14   10 C2         31         MOV A,[ACTUAL]
+16   50 C1         32         MOV [ANTERIOR],A     ; anterior = actual
+18   10 C3         33         MOV A,[SIGUIENTE]
+1A   50 C2         34         MOV [ACTUAL],A       ; actual = siguiente
+                   35
+1C   10 C4         36         MOV A,[CONTADOR]
+1E   40 01         37         MOV B,1
+20   70            38         SUB
+21   50 C4         39         MOV [CONTADOR],A     ; contador -= 1
+23   F0 0C         40         JNZ OTRO
+25   C0            41         HLT
+                   42
+                   43  ; ── Zona de datos ────────────────────────────────────────────────────────
+                   44  .ORG 0xC0
+C0   0D            45  TERMINOS:  .DB 13            ; <<<< cuántos términos mostrar (0xC0)
+C1   00            46  ANTERIOR:  .DB 0             ; 0xC1
+C2   00            47  ACTUAL:    .DB 0             ; 0xC2
+C3   00            48  SIGUIENTE: .DB 0             ; 0xC3
+C4   00            49  CONTADOR:  .DB 0             ; 0xC4
+
+TABLA DE SÍMBOLOS
+OTRO      = 0x0C (12)
+TERMINOS  = 0xC0 (192)
+ANTERIOR  = 0xC1 (193)
+ACTUAL    = 0xC2 (194)
+SIGUIENTE = 0xC3 (195)
+CONTADOR  = 0xC4 (196)

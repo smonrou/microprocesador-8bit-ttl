@@ -1,0 +1,70 @@
+DIR  BYTES        LÍN  FUENTE
+---  -----------  ---  --------------------------------------------
+                    1  ; ─────────────────────────────────────────────────────────────────────────
+                    2  ; 10_suma_arreglo.asm — sumar un arreglo con código automodificable
+                    3  ;
+                    4  ; El set no tiene direccionamiento indirecto ([A] no existe): una
+                    5  ; instrucción MOV B,[dir] siempre lee la misma dirección. Pero programa y
+                    6  ; datos comparten la misma memoria (von Neumann), así que el programa puede
+                    7  ; REESCRIBIR el byte de dirección de su propia instrucción y apuntarla al
+                    8  ; siguiente elemento en cada vuelta.
+                    9  ;
+                   10  ; Detalle del ensamblador: no admite ETIQUETA+1, así que la instrucción que
+                   11  ; se modifica se escribe byte a byte con .DB (opcode 0x20 = MOV B,[dir]) para
+                   12  ; poder etiquetar su operando. Por eso el ensamblador avisa ".DB en zona de
+                   13  ; programa": es intencional.
+                   14  ;
+                   15  ; Demuestra: arquitectura von Neumann, código automodificable, recorrido de
+                   16  ; arreglos. El programa reinicia el puntero al empezar, así que se puede
+                   17  ; repetir con RESET + RUN sin volver a cargar el .load.
+                   18  ;
+                   19  ; PARA CAMBIAR LOS DATOS: LOAD 0xD0..0xD7 <valor>   LONGITUD: LOAD 0xC0 <n>
+                   20  ; En hardware: VEL 400 antes de RUN (se ven las sumas parciales).
+                   21  ;
+                   22  ; Salida esperada (sumas parciales de 12,7,30,25,3,18,40,5):
+                   23  ;                  [12, 19, 49, 74, 77, 95, 135, 140]   → total 140
+                   24  ; ─────────────────────────────────────────────────────────────────────────
+                   25
+00   30 D0         26         MOV A,ARREGLO        ; dirección del primer elemento (inmediato)
+02   50 0F         27         MOV [PTR],A          ; reescribe el operando de LEER
+04   10 C0         28         MOV A,[LONGITUD]
+06   50 C1         29         MOV [CONTADOR],A
+08   30 00         30         MOV A,0
+0A   50 C2         31         MOV [SUMA],A
+                   32
+0C   10 C2         33  OTRO:  MOV A,[SUMA]
+0E   20            34  LEER:  .DB 0x20             ; MOV B,[...]  ← instrucción que se automodifica
+0F   D0            35  PTR:   .DB ARREGLO          ;   su byte de dirección
+10   60            36         ADD
+11   50 C2         37         MOV [SUMA],A         ; suma += elemento
+13   B0            38         OUT                  ; suma parcial
+                   39
+14   10 0F         40         MOV A,[PTR]
+16   40 01         41         MOV B,1
+18   60            42         ADD
+19   50 0F         43         MOV [PTR],A          ; apunta al siguiente elemento
+                   44
+1B   10 C1         45         MOV A,[CONTADOR]
+1D   70            46         SUB                  ; (B sigue valiendo 1)
+1E   50 C1         47         MOV [CONTADOR],A     ; contador -= 1
+20   F0 0C         48         JNZ OTRO
+22   C0            49         HLT
+                   50
+                   51  ; ── Zona de datos ────────────────────────────────────────────────────────
+                   52  .ORG 0xC0
+C0   08            53  LONGITUD: .DB 8              ; <<<< cuántos elementos sumar (0xC0)
+C1   00            54  CONTADOR: .DB 0              ; 0xC1
+C2   00            55  SUMA:     .DB 0              ; 0xC2
+                   56
+                   57  .ORG 0xD0
+D0   0C 07 1E 19   58  ARREGLO:  .DB 12, 7, 30, 25, 3, 18, 40, 5   ; <<<< 0xD0-0xD7
+D4   03 12 28 05
+
+TABLA DE SÍMBOLOS
+OTRO     = 0x0C (12)
+LEER     = 0x0E (14)
+PTR      = 0x0F (15)
+LONGITUD = 0xC0 (192)
+CONTADOR = 0xC1 (193)
+SUMA     = 0xC2 (194)
+ARREGLO  = 0xD0 (208)

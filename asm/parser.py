@@ -1,8 +1,9 @@
 """Source line -> ParsedLine.
 
-Handles comment stripping, label extraction, mnemonic resolution (longest
-match first, so the two-word "LDI A" / "LDI B" work), operand parsing, and
-validation that the operand FORM matches the instruction's Mode.
+Handles comment stripping, label extraction, mnemonic resolution, operand
+parsing, and choosing the opcode from the operand SHAPES (x86 style since
+2026-09-28: "MOV A,[200]", "MOV A,5" and "MOV [200],A" share the word MOV
+and differ only in their operands).
 
 ParsedLine.text keeps the raw source line untouched — the listing echoes it
 verbatim rather than re-rendering it.
@@ -13,7 +14,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import List, Optional, Tuple
 
-from sim.isa import InstructionSpec, Mode
+from sim.isa import InstructionSpec
 
 from .errors import (
     AssemblerError,
@@ -24,16 +25,22 @@ from .errors import (
     UnknownMnemonicError,
 )
 from .mnemonics import (
-    MAX_MNEMONIC_WORDS,
-    completion_hint,
+    REGISTERS,
+    SLOT_ADDRESS,
+    SLOT_IMMEDIATE,
+    SLOT_MEMORY,
+    base_of,
     is_directive,
     is_mnemonic,
     lookup,
+    operand_pattern,
+    valid_forms_text,
 )
 from .numbers import looks_like_label, looks_like_number, parse_and_check
 
 COMMENT_CHAR = ";"
 LABEL_SUFFIX = ":"
+IMMEDIATE_PREFIX = "#"     # old syntax, now rejected with a hint
 
 
 class LineKind(Enum):
@@ -43,14 +50,16 @@ class LineKind(Enum):
 
 
 class OperandForm(Enum):
-    NUMBER = auto()
-    LABEL = auto()
-    IMMEDIATE_NUMBER = auto()
-    IMMEDIATE_LABEL = auto()
+    NUMBER = auto()           # 200        (bare: immediate, jump target, .DB)
+    LABEL = auto()            # LOOP
+    MEMORY_NUMBER = auto()    # [200]      (direct address)
+    MEMORY_LABEL = auto()     # [DATO]
+    REGISTER = auto()         # A, B
 
 
-IMMEDIATE_FORMS = (OperandForm.IMMEDIATE_NUMBER, OperandForm.IMMEDIATE_LABEL)
-LABEL_FORMS = (OperandForm.LABEL, OperandForm.IMMEDIATE_LABEL)
+VALUE_FORMS = (OperandForm.NUMBER, OperandForm.LABEL)
+MEMORY_FORMS = (OperandForm.MEMORY_NUMBER, OperandForm.MEMORY_LABEL)
+LABEL_FORMS = (OperandForm.LABEL, OperandForm.MEMORY_LABEL)
 
 
 @dataclass(frozen=True)
@@ -58,7 +67,7 @@ class Operand:
     form: OperandForm
     text: str                  # as written, for error messages
     value: Optional[int] = None    # set for the NUMBER forms
-    name: Optional[str] = None     # normalized label, set for the LABEL forms
+    name: Optional[str] = None     # normalized label or register name
 
 
 @dataclass(frozen=True)
@@ -69,6 +78,8 @@ class ParsedLine:
     label: Optional[str] = None
     spec: Optional[InstructionSpec] = None
     directive: Optional[str] = None
+    # For instructions: only the operand that becomes the second byte (the
+    # register operands of MOV are encoded in the opcode and dropped here).
     operands: Tuple[Operand, ...] = ()
 
     @property
@@ -83,7 +94,8 @@ class ParsedLine:
 
 # ── Tokenizing ────────────────────────────────────────────────────────────
 
-TOKEN_RE = re.compile(r",|[^\s,]+")
+# A bracketed address is one token even with spaces inside ("[ 200 ]").
+TOKEN_RE = re.compile(r"\[[^\]]*\]|,|[^\s,]+")
 
 
 def strip_comment(line: str) -> str:
@@ -94,8 +106,8 @@ def strip_comment(line: str) -> str:
 def tokenize(line: str) -> List[str]:
     """Split into tokens, with commas as standalone tokens so every spacing
     variant collapses to one form:
-        "LDI A,#12"    -> ["LDI", "A", ",", "#12"]
-        "LDI A , #12"  -> ["LDI", "A", ",", "#12"]
+        "MOV A,[200]"     -> ["MOV", "A", ",", "[200]"]
+        "MOV A , [ 200 ]" -> ["MOV", "A", ",", "[ 200 ]"]
     """
     return TOKEN_RE.findall(strip_comment(line))
 
@@ -103,21 +115,37 @@ def tokenize(line: str) -> List[str]:
 # ── Operand parsing ───────────────────────────────────────────────────────
 
 def parse_operand(token: str, line_number: int, line_text: str) -> Operand:
-    immediate = token.startswith("#")
-    body = token[1:] if immediate else token
-
-    if not body:
-        raise InvalidLiteralError(
-            f"operando vacío tras '#'", line_number, line_text
+    if token.startswith(IMMEDIATE_PREFIX):
+        body = token[1:]
+        raise OperandFormError(
+            f"'#' ya no se usa (sintaxis x86): el inmediato se escribe tal cual "
+            f"('{body}') y una dirección entre corchetes ('[{body}]')",
+            line_number,
+            line_text,
         )
+
+    if token.upper() in REGISTERS:
+        return Operand(form=OperandForm.REGISTER, text=token, name=token.upper())
+
+    memory = token.startswith("[") and token.endswith("]") and len(token) >= 2
+    body = token[1:-1].strip() if memory else token
+
+    if memory and not body:
+        raise InvalidLiteralError("dirección vacía entre '[ ]'", line_number, line_text)
 
     if looks_like_number(body):
         value = parse_and_check(body, line_number, line_text)
-        form = OperandForm.IMMEDIATE_NUMBER if immediate else OperandForm.NUMBER
+        form = OperandForm.MEMORY_NUMBER if memory else OperandForm.NUMBER
         return Operand(form=form, text=token, value=value)
 
     if looks_like_label(body):
-        form = OperandForm.IMMEDIATE_LABEL if immediate else OperandForm.LABEL
+        if memory and body.upper() in REGISTERS:
+            raise OperandFormError(
+                f"direccionamiento indirecto por registro no existe: '{token}'",
+                line_number,
+                line_text,
+            )
+        form = OperandForm.MEMORY_LABEL if memory else OperandForm.LABEL
         return Operand(form=form, text=token, name=body.upper())
 
     raise InvalidLiteralError(
@@ -130,52 +158,66 @@ def _split_operand_tokens(tokens: List[str]) -> List[str]:
     return [token for token in tokens if token != ","]
 
 
-# ── Form <-> Mode validation ──────────────────────────────────────────────
+# ── Operand shapes -> opcode ──────────────────────────────────────────────
 
-def validate_instruction_operands(
-    spec: InstructionSpec,
+def _slot_accepts(slot: str, operand: Operand) -> bool:
+    if slot == SLOT_MEMORY:
+        return operand.form in MEMORY_FORMS
+    if slot in (SLOT_IMMEDIATE, SLOT_ADDRESS):
+        return operand.form in VALUE_FORMS
+    # Any other slot is a literal register name ("A", "B").
+    return operand.form == OperandForm.REGISTER and operand.name == slot
+
+
+def _matches(spec: InstructionSpec, operands: Tuple[Operand, ...]) -> bool:
+    pattern = operand_pattern(spec)
+    return len(pattern) == len(operands) and all(
+        _slot_accepts(slot, operand) for slot, operand in zip(pattern, operands)
+    )
+
+
+def select_form(
+    base: str,
+    forms: Tuple[InstructionSpec, ...],
     operands: Tuple[Operand, ...],
     line_number: int,
     line_text: str,
-) -> None:
-    """The only mapping asm/ adds on top of sim.isa: which operand shapes a
-    given addressing Mode accepts."""
-    if spec.mode in (Mode.NONE, Mode.IMPLICIT):
-        if operands:
-            raise OperandCountError(
-                f"instrucción de 1 byte con operando: '{spec.mnemonic}' no lleva operandos",
-                line_number,
-                line_text,
+) -> InstructionSpec:
+    """The one spec whose operand pattern the source operands fit.
+
+    This is the only mapping asm/ adds on top of sim.isa: which operand
+    shapes fill which pattern slot. The patterns themselves come from the
+    frozen table (asm.mnemonics.operand_pattern).
+    """
+    for spec in forms:
+        if _matches(spec, operands):
+            return spec
+
+    counts = sorted({len(operand_pattern(spec)) for spec in forms})
+    if len(operands) not in counts:
+        if counts == [0]:
+            message = f"instrucción de 1 byte con operando: '{base}' no lleva operandos"
+        elif not operands:
+            message = f"instrucción de 2 bytes sin operando: '{base}' requiere {counts[0]}"
+        else:
+            message = (
+                f"'{base}' admite {counts[0]} operando(s), se dieron {len(operands)}"
             )
-        return
+        if len(forms) > 1:
+            message += f"; formas válidas: {valid_forms_text(base)}"
+        raise OperandCountError(message, line_number, line_text)
 
-    # DIRECT and IMMEDIATE both take exactly one operand.
-    if not operands:
-        raise OperandCountError(
-            f"instrucción de 2 bytes sin operando: '{spec.mnemonic}' requiere uno",
-            line_number,
-            line_text,
+    if len(forms) > 1:
+        written = f"{base} " + ",".join(operand.text for operand in operands)
+        message = f"no existe '{written}'; formas válidas: {valid_forms_text(base)}"
+    elif operand_pattern(forms[0]) == (SLOT_ADDRESS,):
+        message = (
+            f"'{base}' espera una dirección sin corchetes ni registro "
+            f"(p. ej. '{base} LOOP')"
         )
-    if len(operands) > 1:
-        raise OperandCountError(
-            f"'{spec.mnemonic}' admite un solo operando, se dieron {len(operands)}",
-            line_number,
-            line_text,
-        )
-
-    operand = operands[0]
-    if spec.mode == Mode.IMMEDIATE and operand.form not in IMMEDIATE_FORMS:
-        raise OperandFormError(
-            f"el modo inmediato requiere '#': escriba '{spec.mnemonic},#{operand.text}'",
-            line_number,
-            line_text,
-        )
-    if spec.mode == Mode.DIRECT and operand.form in IMMEDIATE_FORMS:
-        raise OperandFormError(
-            f"el modo directo no admite '#': '{spec.mnemonic}' espera una dirección",
-            line_number,
-            line_text,
-        )
+    else:
+        message = f"operandos no válidos para '{forms[0].mnemonic}'"
+    raise OperandFormError(message, line_number, line_text)
 
 
 def validate_directive_operands(
@@ -191,7 +233,7 @@ def validate_directive_operands(
             )
         if operands[0].form != OperandForm.NUMBER:
             raise OperandFormError(
-                "'.ORG' requiere un literal numérico (no etiquetas ni '#')",
+                "'.ORG' requiere un literal numérico (sin etiquetas, corchetes ni registros)",
                 line_number,
                 line_text,
             )
@@ -203,9 +245,11 @@ def validate_directive_operands(
                 "'.DB' requiere al menos un valor", line_number, line_text
             )
         for operand in operands:
-            if operand.form in IMMEDIATE_FORMS:
+            if operand.form not in VALUE_FORMS:
                 raise OperandFormError(
-                    f"'.DB' no admite '#': '{operand.text}'", line_number, line_text
+                    f"'.DB' solo admite números o etiquetas: '{operand.text}'",
+                    line_number,
+                    line_text,
                 )
 
 
@@ -224,6 +268,12 @@ def parse_line(raw_line: str, line_number: int) -> ParsedLine:
         if is_mnemonic(label_text):
             raise AssemblerError(
                 f"la etiqueta '{label_text}' colisiona con un nemónico",
+                line_number,
+                raw_line,
+            )
+        if label_text.upper() in REGISTERS:
+            raise AssemblerError(
+                f"la etiqueta '{label_text}' colisiona con un registro",
                 line_number,
                 raw_line,
             )
@@ -259,28 +309,20 @@ def parse_line(raw_line: str, line_number: int) -> ParsedLine:
             operands=operands,
         )
 
-    # Mnemonic: longest match first, so "LDI A" wins over a bare "LDI".
-    spec = None
-    consumed = 0
-    non_comma = _split_operand_tokens(tokens)
-    for word_count in range(min(MAX_MNEMONIC_WORDS, len(non_comma)), 0, -1):
-        candidate = " ".join(non_comma[:word_count])
-        found = lookup(candidate)
-        if found is not None:
-            spec = found
-            consumed = word_count
-            break
+    forms = lookup(tokens[0])
+    if not forms:
+        raise UnknownMnemonicError(
+            f"nemónico desconocido: '{tokens[0]}'", line_number, raw_line
+        )
 
-    if spec is None:
-        hint = completion_hint(tokens[0])
-        message = hint if hint else f"nemónico desconocido: '{tokens[0]}'"
-        raise UnknownMnemonicError(message, line_number, raw_line)
-
-    operand_tokens = non_comma[consumed:]
-    operands = tuple(
-        parse_operand(token, line_number, raw_line) for token in operand_tokens
+    base = base_of(forms[0])
+    written = tuple(
+        parse_operand(token, line_number, raw_line)
+        for token in _split_operand_tokens(tokens[1:])
     )
-    validate_instruction_operands(spec, operands, line_number, raw_line)
+    spec = select_form(base, forms, written, line_number, raw_line)
+    # Registers live in the opcode; only the value/address becomes byte 2.
+    operands = tuple(op for op in written if op.form != OperandForm.REGISTER)
 
     return ParsedLine(
         line_number=line_number,

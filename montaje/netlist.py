@@ -21,7 +21,7 @@ Todo lo demás (dibujos, tablas, checklist, compras) se genera de aquí.
 
 from dataclasses import dataclass, field
 
-from montaje.pinouts import LS181, LS273, LS157, LS244, LS161, CANAL_244, CANAL_157
+from montaje.pinouts import LS181, LS273, LS157, LS240, LS161, CANAL_240, CANAL_157
 
 FILAS = 63
 COLS_INF = 'abcde'           # de afuera hacia el canal
@@ -34,7 +34,7 @@ X_RIEL = tuple(3 + 6 * g + k for g in range(10) for k in range(5))
 # ── Fases ────────────────────────────────────────────────────────────────
 FASES = {
     0: 'Preparación, base y alimentación',
-    1: 'Etapa de salida: registro de salida, 74LS244 y 8 LEDs',
+    1: 'Etapa de salida: registro de salida, 74LS240 y 8 LEDs',
     2: 'ALU: dos 74LS181 en cascada',
     3: 'Registros A y B',
     4: 'Multiplexor de entrada a A y contador de programa',
@@ -51,7 +51,7 @@ COLORES = {
     'verde':    ('#2e9e44', 'REG A (Q) → ALU A'),
     'blanco':   ('#f4f4f4', 'REG B (Q) → ALU B'),
     'naranja':  ('#f07d19', 'Salida Y del mux → REG A (D)'),
-    'gris':     ('#8a8a8a', 'Salidas que se observan: REG SALIDA (Q) → 244 → LEDs y PC (Q de los 161) → Mega'),
+    'gris':     ('#8a8a8a', 'Salidas que se observan: REG SALIDA (Q) → 240 → LEDs y PC (Q de los 161) → Mega'),
     'morado':   ('#7b3fb5', 'Control de la ALU: S0–S3, M, C̄n y acarreos'),
     'cafe':     ('#8b5a2b', 'Control de registros y del PC: relojes, CLEAR, /LOAD, RCO y selección del mux'),
 }
@@ -297,7 +297,7 @@ def construir(colocacion=None):
     chip('ALU_BAJA', 'ALU BAJA', LS181, 'BB3', 10, 2, 'ALU bits 0-3')
     chip('ALU_ALTA', 'ALU ALTA', LS181, 'BB3', 30, 2, 'ALU bits 4-7')
     chip('REG_S', 'REG SALIDA', LS273, 'BB4', 8, 1, 'registro de salida')
-    chip('BUF', '74LS244', LS244, 'BB4', 24, 1, 'buffer de los LEDs')
+    chip('BUF', '74LS240', LS240, 'BB4', 24, 1, 'buffer inversor de los LEDs')
 
     # ── Fase 0: alimentación ─────────────────────────────────────────────
     # Cada protoboard: + superior ↔ + inferior y − ↔ − en las dos puntas.
@@ -346,33 +346,36 @@ def construir(colocacion=None):
               f'{c.nombre}: G̅ (pin 15) a GND — mux siempre habilitado', 'GND')
     buf = m.chips['BUF']
     cable(('pin', 'BUF', '1G'), ('riel', 'BB4', 'B-', buf.agujero(1).fila), 'negro', 1,
-          '74LS244: 1G̅ (pin 1) a GND — bits 0-3 siempre habilitados', 'GND')
+          '74LS240: 1G̅ (pin 1) a GND — bits 0-3 siempre habilitados', 'GND')
     cable(('pin', 'BUF', '2G'), ('riel', 'BB4', 'T-', buf.agujero(19).fila), 'negro', 1,
-          '74LS244: 2G̅ (pin 19) a GND — bits 4-7 siempre habilitados', 'GND')
+          '74LS240: 2G̅ (pin 19) a GND — bits 4-7 siempre habilitados', 'GND')
 
     # ── Fase 1: salida ───────────────────────────────────────────────────
-    # LEDs: bit 7 a la izquierda. Cada bit usa dos filas: L (señal) y L+1
-    # (cátodo). La resistencia cruza el canal de d a g en la fila L; el LED va
-    # de h L (ánodo, pata larga) a h L+1 (cátodo); un puente negro de j L+1 al
-    # riel − superior.
+    # LEDs: bit 7 a la izquierda. El 74LS240 INVIERTE: con bit = 1 su salida
+    # queda en bajo y hunde la corriente (hasta 24 mA), así que cada LED va de
+    # +5 V a la salida: +5 V → LED → 330 Ω → Y del 240. LED encendido = bit 1,
+    # igual que con el 244, y sirve cualquier color.
+    # Cada bit usa dos filas: L (señal) y L+1 (ánodo). La resistencia cruza el
+    # canal de d a g en la fila L; el LED va de h L+1 (ánodo, pata larga) a h L
+    # (cátodo); un puente rojo de j L+1 al riel + superior.
     FILA_LED0 = 38
     filas_led = {}
     for i, bit in enumerate(range(7, -1, -1)):
         L = FILA_LED0 + 3 * i
         filas_led[bit] = L
-        pieza(f'R_LED{bit}', 'resistencia', '220 Ω',
+        pieza(f'R_LED{bit}', 'resistencia', '330 Ω',
               (Agujero('BB4', L, 'd'), Agujero('BB4', L, 'g')), 1,
               nota=f'bit {bit}: cruza el canal central')
-        pieza(f'LED{bit}', 'led', 'LED rojo/verde/amarillo',
-              (Agujero('BB4', L, 'h'), Agujero('BB4', L + 1, 'h')), 1,
-              nota=f'bit {bit}: pata larga (ánodo) en h{L}, pata corta (cátodo) en h{L + 1}')
-        cable(('tira', 'BB4', L + 1, 'ji'), ('riel', 'BB4', 'T-', L + 1), 'negro', 1,
-              f'LED bit {bit}: cátodo a GND', 'GND')
-        a_in, y_out = CANAL_244[bit]
+        pieza(f'LED{bit}', 'led', 'LED (cualquier color)',
+              (Agujero('BB4', L + 1, 'h'), Agujero('BB4', L, 'h')), 1,
+              nota=f'bit {bit}: pata larga (ánodo) en h{L + 1}, pata corta (cátodo) en h{L}')
+        cable(('tira', 'BB4', L + 1, 'ji'), ('riel', 'BB4', 'T+', L + 1), 'rojo', 1,
+              f'LED bit {bit}: ánodo a +5 V', 'VCC')
+        a_in, y_out = CANAL_240[bit]
         cable(('pin', 'REG_S', f'Q{bit}'), ('pin', 'BUF', a_in), 'gris', 1,
-              f'REG SALIDA Q{bit} → 74LS244 {a_in}', f'QS{bit}')
+              f'REG SALIDA Q{bit} → 74LS240 {a_in}', f'QS{bit}')
         cable(('pin', 'BUF', y_out), ('tira', 'BB4', L, 'abc'), 'gris', 1,
-              f'74LS244 {y_out} → resistencia del LED bit {bit}', f'LED{bit}')
+              f'74LS240 {y_out} → resistencia del LED bit {bit}', f'LED{bit}')
 
     # ── Zona de pruebas (temporal) en BB2, filas 44-60 ─────────────────
     # Dip switch de 8: interruptor k une e(R_k) con f(R_k). Lado f a GND,

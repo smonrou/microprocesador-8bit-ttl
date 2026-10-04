@@ -68,7 +68,7 @@ GUIAS = {
                    'Anota en la bitácora las 8 mediciones y qué rieles tuviste que puentear.'],
     },
     1: {
-        'objetivo': 'Montar el registro de salida, el 74LS244 y los 8 LEDs. Con el dip switch y el '
+        'objetivo': 'Montar el registro de salida, el 74LS240 y los 8 LEDs. Con el dip switch y el '
                     'pulsador (temporales, en BB2) se comprueba que un byte se engancha y se queda fijo. '
                     'Esta etapa se hace primero porque sus LEDs son la "pantalla" con la que se prueban '
                     'la ALU, los registros y el mux en las fases siguientes.',
@@ -79,8 +79,11 @@ GUIAS = {
                      'hasta que queden a 90°. La <b>muesca apunta hacia la fila 1</b> y el <b>pin 1</b> (el del '
                      'punto) cae en el agujero que indica la tabla. Presiona parejo con el pulgar hasta que el '
                      'cuerpo quede a ras. Comprueba que el último pin cae donde dice la tabla.'),
-            ('note', '<b>LEDs:</b> pata larga (ánodo) en la fila de arriba del par, pata corta (cátodo, lado '
-                     'plano) en la de abajo. Usa rojos, verdes o amarillos: con azules o blancos el 244 no alcanza.'),
+            ('note', '<b>El 74LS240 invierte.</b> Con bit = 1 su salida baja a ~0.3 V y <b>hunde</b> la '
+                     'corriente del LED, que se alimenta desde +5 V: +5 V → LED → 330 Ω → salida del 240. Así el LED '
+                     'enciende con bit = 1. Por eso aquí los LEDs van al revés que en un diseño con 74LS244: '
+                     'el <b>ánodo</b> (pata larga) va a la fila del <b>puente rojo a +5 V</b> y el <b>cátodo</b> '
+                     '(pata corta, lado plano) a la fila de la resistencia. Sirve cualquier color.'),
             ('note', DIP),
         ],
         'manual': [],
@@ -92,10 +95,12 @@ GUIAS = {
             ('Solo el interruptor 8 en OFF → pulsa', 'Solo el LED de la <b>izquierda</b> (bit 7)'),
             ('Recorre los interruptores 2 a 7 uno por uno, pulsando cada vez', 'Se enciende un solo LED que avanza de derecha a izquierda'),
             ('Cambia interruptores <b>sin</b> pulsar', 'Los LEDs <b>no cambian</b>: el registro retiene'),
-            ('Multímetro en la salida del 244 de un LED encendido', '≈ 3.0 – 3.4 V'),
+            ('Multímetro en la salida del 240 (pata Y) de un LED encendido, y luego de uno apagado',
+             'Encendido ≈ 0.2 – 0.5 V (la salida hunde la corriente); apagado ≈ 3 V o más'),
         ],
         'fallas': [
-            ('Ningún LED enciende', '1G̅/2G̅ del 244 sin GND, 244 sin VCC, o cátodos sin su puente a GND', 'Cables de habilitación y los 8 puentes negros de los cátodos'),
+            ('Ningún LED enciende', '1G̅/2G̅ del 240 sin GND, 240 sin VCC, o ánodos sin su puente a +5 V', 'Cables de habilitación y los 8 puentes rojos de los ánodos'),
+            ('Los LEDs muestran el byte al revés (encienden los bits en 0)', 'LEDs cableados como para un 74LS244: ánodo a la salida y cátodo a GND', 'Con el 240 el ánodo va a +5 V (puente rojo) y el cátodo a la resistencia'),
             ('Solo encienden los bits 0-3 (o solo 4-7)', 'Una de las dos habilitaciones (pin 1 o pin 19) suelta', 'Pin 1 = bits 0-3, pin 19 = bits 4-7'),
             ('Un LED nunca enciende', 'LED al revés o LED dañado', 'Gíralo; si sigue igual, cámbialo'),
             ('Los LEDs siguen al dip sin pulsar', 'Un cable gris sale de una D en lugar de una Q del 273', 'Revisa los grises contra la tabla: las Q son los pines 2,5,6,9,12,15,16,19'),
@@ -266,7 +271,7 @@ GUIAS = {
         'manual': [],
         'prueba': [
             ('Monitor serial: <code>STATE</code>', 'Responde el bloque de estado (PC=0x00)'),
-            ('<code>LOADB 0x00 0x30 0x55 0xB0 0xC0</code> y luego <code>RUN</code> (LDI A,#0x55 · OUT · HLT)', 'LEDs 01010101'),
+            ('<code>LOADB 0x00 0x30 0x55 0xB0 0xC0</code> y luego <code>RUN</code> (MOV A,0x55 · OUT · HLT)', 'LEDs 01010101'),
             ('<code>BORRAR</code>, pega las 5 líneas de <code>programas/referencia.load</code>, <code>RUN</code>', 'LEDs <b>00001100</b> · traza 34 ciclos · A=0x0C · DETENIDO'),
             ('<code>LOAD 0xCC 0x09</code> · <code>LOAD 0x05 0x07</code> · <code>RESET</code> · <code>RUN</code> (9 × 7)', 'LEDs 00111111 (63)'),
             ('<code>RESET</code> y varios <code>STEP</code>', 'Avanza un microciclo por comando, igual que el simulador'),

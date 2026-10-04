@@ -79,15 +79,16 @@ void iniciar();
 // engancha es A. No recibe el valor a propósito: el dato no pasa por aquí.
 void enganchar();
 
-// Avanza al siguiente dígito. Hay que llamarla a menudo desde loop(): los
-// cuatro dígitos de cada display comparten las líneas de segmento y es la
-// persistencia de la visión lo que hace que se vean los ocho encendidos.
-// Con 8 dígitos hacen falta ~480 llamadas por segundo para no ver parpadeo.
-void refrescar();
-
-// Apaga los ocho dígitos (deshabilita el 74LS138). No borra el registro de
-// salida: al volver a habilitar se ve el mismo valor.
-void apagar();
+// // Avanza al siguiente dígito. Hay que llamarla a menudo desde loop(): los
+// // cuatro dígitos de cada display comparten las líneas de segmento y es la
+// // persistencia de la visión lo que hace que se vean los ocho encendidos.
+// // Con 8 dígitos hacen falta ~480 llamadas por segundo para no ver parpadeo.
+// void refrescar();
+//
+// // Apaga los ocho dígitos (deshabilita el 74LS138). No borra el registro de
+// // salida: al volver a habilitar se ve el mismo valor.
+// void apagar();
+//
 
 }  // namespace display
 

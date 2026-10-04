@@ -28,7 +28,7 @@ uint16_t g_retardo = 200;   // ms entre instrucciones en modo RUN
 void esperarRefrescando(uint16_t milisegundos) {
   uint32_t fin = millis() + milisegundos;
   while (millis() < fin) {
-    display::refrescar();
+    // display::refrescar();
     delay(2);
   }
 }
@@ -59,9 +59,9 @@ void imprimirBloqueYClaves() {
 
 void imprimirEstado() {
   // Los valores de A y B se leen del registro FÍSICO a través de la ALU
-  // (F=A con M=1,S=1111). No hay copia en software que pueda mentir.
-  uint8_t a = g_nucleo->leerRegistroA();
-  uint8_t b = g_nucleo->leerRegistroB();
+  // (F=A con M=0,S=0000,C̄n=1). No hay copia en software que pueda mentir.
+  uint8_t a = g_nucleo->registroA();
+  uint8_t b = g_nucleo->registroB();
 
   Serial.print(F("PC=0x"));   if (g_nucleo->pc() < 16) Serial.print('0');
   Serial.print(g_nucleo->pc(), HEX);
@@ -166,7 +166,7 @@ void comandoRun() {
       }
       if (g_retardo > 0) esperarRefrescando(g_retardo);
     }
-    display::refrescar();
+    // display::refrescar();
   }
 
   Serial.println(F("--- HLT ---"));

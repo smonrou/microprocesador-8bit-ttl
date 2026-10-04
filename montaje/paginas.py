@@ -17,7 +17,7 @@ import os
 from collections import Counter, OrderedDict
 
 from montaje.netlist import MONTAJE, FASES, COLORES, COLOR_TEMPORAL, PinMega
-from montaje.generar import (SALIDA, escena, vista_chip, etiquetas_chip, largo_cm,
+from montaje.generar import (SALIDA, escena, vista_chip, cables_de_chip, largo_cm,
                              describir, datos)
 from montaje.guias import GUIAS
 
@@ -135,6 +135,8 @@ figcaption{font-size:13px;color:var(--ink-soft);margin-top:8px;max-width:80ch}
 .chipcard .datos{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:6px 18px;margin:10px 0;font-size:14px}
 .chipcard .datos b{font-family:'IBM Plex Mono',monospace}
 .chipcard .plano{max-height:none}
+ul.lista-cables{list-style:none;padding:0;margin:0 0 6px;display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:4px 18px;font-size:13.5px}
+ul.lista-cables li{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 ol.manual{padding-left:0;list-style:none;display:grid;gap:8px;max-width:80ch}
 ol.manual li{display:flex;gap:10px;align-items:flex-start}
 .material{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
@@ -314,7 +316,17 @@ def seccion_chips(fase):
     cards = []
     for c in chips:
         x, y, w, h = vista_chip(c)
-        svg = escena(fase, (x - 3, y, w + 6, h))
+        vista = (x - 3, y, w + 6, h)
+        svg = escena(fase, vista)
+        en_vista = cables_de_chip(c, fase, vista)
+        lista = ''
+        if en_vista:
+            filas_l = ''.join(
+                f'<li><b class="mono">#{cab.n}</b> {swatch(cab.color)} <span class="mono">{e(ag)}</span> → '
+                f'{e(describir(otro))}{" <span class=tag>prueba</span>" if cab.temporal else ""}</li>'
+                for cab, ag, otro in en_vista)
+            lista = (f'<p class="dek" style="margin:12px 0 6px">Cables de esta fase que llegan a este recorte '
+                     f'(el número está junto a cada extremo en el dibujo):</p><ul class="lista-cables">{filas_l}</ul>')
         filas_pin = []
         for pin in range(1, c.pinout.pines + 1):
             tira = c.agujero(pin).tira()
@@ -360,6 +372,7 @@ def seccion_chips(fase):
     <div>Muesca<br>hacia la <b>fila 1</b> (izquierda)</div>
   </div>
   <div class="plano">{svg}</div>
+  {lista}
   {tabla_pines}
 </div>''')
     return (f'<section id="chips"><h2><span class="n">A</span>Colocar los integrados</h2>'
@@ -468,11 +481,13 @@ def pagina_fase(fase, u):
 
 <section id="plano"><h2>Plano</h2>
   <p class="dek">Vista de arriba, fila 1 a la izquierda, letra j arriba. En color lo de esta fase; atenuado lo de fases
-  anteriores; en magenta punteado los cables de prueba. Los números en círculo son los de las tablas.</p>
+  anteriores; en magenta punteado los cables de prueba. Cada cable lleva su número junto a <b>los dos extremos</b>
+  (el mismo de las tablas), y el punto con borde blanco marca el agujero exacto donde entra.</p>
   <div class="leyenda">{leyenda}</div>
   <div class="botones"><button type="button" data-escala="plano-general">Ver a tamaño real</button></div>
   <figure><div class="plano" id="plano-general">{svg}</div>
-  <figcaption>Las líneas del dibujo van en recto de agujero a agujero; en físico cada cable va plano y rodea los chips.</figcaption></figure>
+  <figcaption>Cada cable sale en vertical de su agujero, corre por un carril propio (nunca encima de otro paralelo) y
+  rodea los chips en vez de pasarles por encima, como se tiende en físico: plano y pegado a la protoboard.</figcaption></figure>
 </section>
 {manual}
 {seccion_chips(fase)}
@@ -530,7 +545,7 @@ def pagina_indice(u):
   <div class="tabla"><table><thead><tr><th>#</th><th>Fase</th><th>Integrados</th><th>Cables</th><th>Prueba</th></tr></thead>
   <tbody>{"".join(filas)}</tbody></table></div>
   <div class="callout note"><span class="m">i</span><div><b>Por qué la salida va antes que la ALU:</b> sus 8 LEDs, con el
-  74LS244 detrás, son la pantalla con la que se prueban la ALU, los registros y el mux sin el Arduino. Así cada chip se
+  74LS240 detrás, son la pantalla con la que se prueban la ALU, los registros y el mux sin el Arduino. Así cada chip se
   verifica en cuanto se pone, y un error se encuentra en la fase en que se cometió.</div></div>
 </section>
 

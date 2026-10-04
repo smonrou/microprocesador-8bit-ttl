@@ -4,8 +4,9 @@ Lee la tabla de opcodes de ``sim.isa`` en vez de repetirla. Igual que
 ``asm/mnemonics.py``, este módulo no contiene ni un solo literal de opcode: si
 la tabla cambiara, el desensamblador la sigue sin tocarse.
 
-La sintaxis emitida es la misma que acepta el ensamblador (``LDI A,#0x04``,
-``LDA 0xC8``), así que lo desensamblado se puede volver a ensamblar.
+La sintaxis emitida es la misma que acepta el ensamblador (``MOV A,0x04``,
+``MOV A,[0xC8]``, ``JNZ 0x0A``), así que lo desensamblado se puede volver a
+ensamblar.
 
 Módulo puro: no toca sockets, hilos ni Tkinter.
 """
@@ -13,7 +14,7 @@ Módulo puro: no toca sockets, hilos ni Tkinter.
 from dataclasses import dataclass
 from typing import List, Optional, Sequence
 
-from sim.isa import OPCODE_TABLE, Mode
+from sim.isa import OPCODE_TABLE
 
 TAMANO_MEMORIA = 256
 
@@ -24,7 +25,7 @@ class LineaDesensamblada:
     bytes_crudos: List[int]
     mnemonico: str
     operando: Optional[int]
-    texto: str          # "LDA 0xC8" — listo para pintar
+    texto: str          # "MOV A,[0xC8]" — listo para pintar
 
     @property
     def longitud(self) -> int:
@@ -56,11 +57,13 @@ def desensamblar_en(memoria: Sequence[int], direccion: int) -> LineaDesensamblad
         )
 
     operando = _leer(memoria, direccion + 1)
-    if spec.mode == Mode.IMMEDIATE:
-        # "LDI A" + ",#0x04": la coma va pegada al registro, como en el .asm.
-        texto = f"{spec.mnemonic},#0x{operando:02X}"
-    else:
-        texto = f"{spec.mnemonic} 0x{operando:02X}"
+    valor = f"0x{operando:02X}"
+    if "[dir]" in spec.mnemonic:          # MOV A,[dir] / MOV [dir],A
+        texto = spec.mnemonic.replace("[dir]", f"[{valor}]")
+    elif spec.mnemonic.endswith(",inm"):  # MOV A,inm
+        texto = spec.mnemonic[: -len("inm")] + valor
+    else:                                 # JMP/JZ/JNZ: dirección pelada
+        texto = f"{spec.mnemonic} {valor}"
 
     return LineaDesensamblada(
         direccion=direccion,

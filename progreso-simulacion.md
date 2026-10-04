@@ -1,5 +1,7 @@
 # Progreso — Simulación física en Proteus
 
+> **Documento histórico (agosto–septiembre de 2026).** Registra la simulación en Proteus, no el estado actual. Desde entonces: la sintaxis de mnemónicos pasó a estilo x86 (2026-09-28), el PC pasó a hardware (2× 74LS161, 2026-09-25), el buffer de salida real es un 74LS240, el carry en SUB se midió en la placa (C.5, resuelto 2026-09-29) y el Mega ya corre en el hardware real (2026-10-01). Para el estado actual ver `montaje/bitacora_montaje.md`, `contexto_proyecto.md` y `CLAUDE.md`. Las menciones a PC/IR/MAR "como software", al display de 7 segmentos, a `DISPLAY_ANODO_COMUN` (que ya no existe) y a cifras de pruebas (713) describen el estado de aquel momento.
+
 **Guía de referencia (instructivo de cómo se conectó todo):** https://claude.ai/code/artifact/d5bff553-693d-4422-a440-39ba9a54d675
 
 ## Ya definido / avanzado
@@ -40,8 +42,8 @@
   - Mapeo completo de las 3 entradas: bus del Arduino → pines A, bus F de la ALU → pines B, salida Y → D0-D7 de REG A.
   - BOM de esta etapa (2× 74LS157, 2× capacitor 0.1 µF) y checklist acumulado (bloques 1, 2 y 3).
 - **[Guía de conexión del bloque 4 — unidad de control, reloj y RAM](https://claude.ai/code/artifact/85ad8879-d15f-47ea-b150-0e1d8b1c7523)** (artifact, aún no ejecutada) con:
-  - Veredicto: no hay chip nuevo — PC/IR/MAR/memoria de 256 B viven como software en el Arduino (`nucleo.h`), decisión confirmada contra `contexto_proyecto.md` A.1/A.2 y §3.3 de `proyecto_microprocesador_8bits.md`.
-  - Paso a paso: resolver `DISPLAY_ANODO_COMUN` y `CARRY_SUB_INVERTIDO`, compilar y cargar el `.hex` en la parte `ARDUINO MEGA2560`, tabla de verificación del pinout de control (bloques 1-3), Virtual Terminal a 115200 baudios para `LOAD`/`RUN`/`STEP`, alimentación de los 6 chips, prueba aislada de la ALU.
+  - Veredicto (*histórico*: el PC pasó luego a hardware con 2× 74LS161, 2026-09-25; IR, MAR y la memoria siguen en el Arduino): no hay chip nuevo — PC/IR/MAR/memoria de 256 B viven como software en el Arduino (`nucleo.h`), decisión confirmada contra `contexto_proyecto.md` A.1/A.2 y §3.3 de `proyecto_microprocesador_8bits.md`.
+  - Paso a paso: resolver `DISPLAY_ANODO_COMUN` (ya eliminado del firmware) y `CARRY_SUB_INVERTIDO`, compilar y cargar el `.hex` en la parte `ARDUINO MEGA2560`, tabla de verificación del pinout de control (bloques 1-3), Virtual Terminal a 115200 baudios para `LOAD`/`RUN`/`STEP`, alimentación de los 6 chips, prueba aislada de la ALU.
   - Checklist acumulado (bloques 1-4) y ejemplo de carga del programa de referencia 4×3=12.
 - **[Guía de conexión del display de 7 segmentos](https://claude.ai/code/artifact/57fd6ca5-5805-4eb8-98fa-0e4c54a9a9e1)** (artifact, aún no ejecutada) con:
   - Pinout fijo: segmentos a-g → Arduino 3-9, común dígito alto → pin 10, común dígito bajo → pin 11; 7 resistencias 220-330 Ω (no 14, compartidas entre dígitos).
@@ -74,5 +76,5 @@
   <!-- El registro A tiene el valor correcto confirmado por `STATE`, así que el problema está entre el registro y el display visible, no en el cómputo. Posibles causas a revisar primero: coincidencia entre la rama elegida (ánodo/cátodo) del `7SEG-MPX2-CA/CC` colocado y el `#define DISPLAY_ANODO_COMUN` del firmware; conexión de los transistores driver (polaridad, base, colector/emisor); que el multiplexado esté corriendo (`display::refrescar()` se llama en cada `loop()`, si la CPU quedó `DETENIDO` en un bucle raro antes esto no corría — ya no debería ser el caso tras el fix del ALU); pines 3-9/10/11 realmente conectados como dice la guía del display. -->
 - [x] ~~Tipo de display: ánodo o cátodo común~~ — **resuelto por eliminación (2026-09-17):** la salida pasó a 8 LEDs, ya no hay display.
 - [ ] **Bloque 5 v2 — salida en 8 LEDs (decidido 2026-09-17, sin ejecutar en Proteus).** Quitar 74LS151, 74LS138, buffer de segmentos y los dos `7SEG-MPX4`; el 74LS273 de salida se queda. Nuevo: 74LS244 (Q0..Q7 del 273 → pines 2,4,6,8,11,13,15,17; salidas 18,16,14,12,9,7,5,3 → 220 Ω → LED → GND; 1G pin 1 y 2G pin 19 a GND). Pines 3–6 del Mega sin conectar, `.hex` sin cambios. Resultado esperado del `RUN` de referencia: encendidos solo los LEDs de los bits 3 y 2. Pasos en `simulacion_vs_fisico.md` §5; decisión en `proyecto_microprocesador_8bits.md` §21.
-- [ ] Verificación en banco real: semántica de carry en SUB (`CARRY_SUB_INVERTIDO`, sigue abierta en `contexto_proyecto.md` Parte C).
+- [x] Verificación en banco real: semántica de carry en SUB (`CARRY_SUB_INVERTIDO`) — **resuelta el 2026-09-29 (C.5)**: se midió en la fase 2 del montaje, coincide con el diseño y `CARRY_SUB_INVERTIDO` queda en 0.
 - [x] Simulación end-to-end en Proteus corriendo el programa de referencia (4×3=12) — **completa**: cómputo (`A=0x0C`, 34 ciclos, `DETENIDO`) y salida física en binario (`0 0 0 0 1 1 0 0`) confirmados en la misma corrida. El sistema entero funciona en simulación.

@@ -53,8 +53,8 @@ void volcarInstruccion(Nucleo& nucleo) {
               static_cast<unsigned>(t.pcAntes),
               static_cast<unsigned>(t.ir),
               t.nemonico,
-              static_cast<unsigned>(nucleo.leerRegistroA()),
-              static_cast<unsigned>(nucleo.leerRegistroB()),
+              static_cast<unsigned>(nucleo.registroA()),
+              static_cast<unsigned>(nucleo.registroB()),
               static_cast<unsigned>(nucleo.z()),
               static_cast<unsigned>(nucleo.c()),
               static_cast<unsigned>(nucleo.pc()));

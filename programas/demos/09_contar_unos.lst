@@ -1,0 +1,56 @@
+DIR  BYTES        LÍN  FUENTE
+---  -----------  ---  --------------------------------------------
+                    1  ; ─────────────────────────────────────────────────────────────────────────
+                    2  ; 09_contar_unos.asm — cuántos bits en 1 tiene un byte
+                    3  ;
+                    4  ; Se recorre el byte con una máscara de un solo bit (1, 2, 4, ..., 128).
+                    5  ; DATO AND máscara da 0 si ese bit está apagado (Z = 1) y distinto de 0 si
+                    6  ; está encendido. La máscara avanza sumándose consigo misma (ADD = desplazar
+                    7  ; a la izquierda); tras el bit 7 se vuelve 0 y el bucle termina.
+                    8  ;
+                    9  ; Demuestra: AND para aislar bits (enmascarar), ADD como desplazamiento,
+                   10  ; JZ para saltarse el conteo.
+                   11  ;
+                   12  ; PARA CAMBIAR EL DATO: LOAD 0xC0 <byte>
+                   13  ;
+                   14  ; Salida esperada (0b10110110): [182, 5]   → primero el dato, luego cuántos 1
+                   15  ; ─────────────────────────────────────────────────────────────────────────
+                   16
+00   10 C0         17         MOV A,[DATO]
+02   B0            18         OUT                  ; muestra el byte analizado
+03   30 00         19         MOV A,0
+05   50 C1         20         MOV [UNOS],A
+07   30 01         21         MOV A,1
+09   50 C2         22         MOV [MASCARA],A      ; empieza por el bit 0
+                   23
+0B   10 C0         24  BIT:   MOV A,[DATO]
+0D   20 C2         25         MOV B,[MASCARA]
+0F   80            26         AND                  ; aísla un bit
+10   E0 19         27         JZ CERO              ; bit apagado: no cuenta
+12   10 C1         28         MOV A,[UNOS]
+14   40 01         29         MOV B,1
+16   60            30         ADD
+17   50 C1         31         MOV [UNOS],A         ; unos += 1
+                   32
+19   10 C2         33  CERO:  MOV A,[MASCARA]
+1B   20 C2         34         MOV B,[MASCARA]
+1D   60            35         ADD                  ; máscara <<= 1
+1E   50 C2         36         MOV [MASCARA],A
+20   F0 0B         37         JNZ BIT              ; 0 cuando ya pasó el bit 7
+                   38
+22   10 C1         39         MOV A,[UNOS]
+24   B0            40         OUT
+25   C0            41         HLT
+                   42
+                   43  ; ── Zona de datos ────────────────────────────────────────────────────────
+                   44  .ORG 0xC0
+C0   B6            45  DATO:    .DB 0b10110110      ; <<<< byte a analizar (0xC0)
+C1   00            46  UNOS:    .DB 0               ; 0xC1
+C2   00            47  MASCARA: .DB 0               ; 0xC2
+
+TABLA DE SÍMBOLOS
+BIT     = 0x0B (11)
+CERO    = 0x19 (25)
+DATO    = 0xC0 (192)
+UNOS    = 0xC1 (193)
+MASCARA = 0xC2 (194)

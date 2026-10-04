@@ -1,0 +1,24 @@
+DIR  BYTES        LÍN  FUENTE
+---  -----------  ---  --------------------------------------------
+                    1  ; diag2_bits_A.asm — un bit a la vez por el registro A y la ALU (F=A).
+                    2  ; Esperado: OUT = 1, 2, 4, 8, 16, 32, 64, 128 (usar STEP para verlo en LEDs).
+00   30 01          3        MOV A,1
+02   B0             4        OUT
+03   30 02          5        MOV A,2
+05   B0             6        OUT
+06   30 04          7        MOV A,4
+08   B0             8        OUT
+09   30 08          9        MOV A,8
+0B   B0            10        OUT
+0C   30 10         11        MOV A,16
+0E   B0            12        OUT
+0F   30 20         13        MOV A,32
+11   B0            14        OUT
+12   30 40         15        MOV A,64
+14   B0            16        OUT
+15   30 80         17        MOV A,128
+17   B0            18        OUT
+18   C0            19        HLT
+
+TABLA DE SÍMBOLOS
+(ninguno)

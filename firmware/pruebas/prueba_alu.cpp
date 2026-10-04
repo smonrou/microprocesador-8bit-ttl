@@ -50,19 +50,19 @@ int main() {
     }
   }
 
-  // Funciones extra del 181 que el núcleo usa para leer los registros.
+  // Funciones identidad del 181 que el núcleo usa para leer los registros.
   for (int a = 0; a < 256; a++) {
     hal_falso::forzarRegistros(static_cast<uint8_t>(a), 0x5A);
-    hal::configurarALU(ALU_LOGICO, ALU_PASAR_A, CN_LOGICO);
+    hal::configurarALU(ALU_ARITMETICO, ALU_IDENTIDAD_A, CN_IDENTIDAD);
     hal::esperarPropagacion();
-    std::printf("PASAR_A %d %d %d 0 0\n", a, 0x5A,
+    std::printf("IDENTIDAD_A %d %d %d 0 0\n", a, 0x5A,
                 static_cast<int>(hal::leerF()));
   }
   for (int b = 0; b < 256; b++) {
     hal_falso::forzarRegistros(0xA5, static_cast<uint8_t>(b));
-    hal::configurarALU(ALU_LOGICO, ALU_PASAR_B, CN_LOGICO);
+    hal::configurarALU(ALU_LOGICO, ALU_IDENTIDAD_B, CN_LOGICO);
     hal::esperarPropagacion();
-    std::printf("PASAR_B %d %d %d 0 0\n", 0xA5, b,
+    std::printf("IDENTIDAD_B %d %d %d 0 0\n", 0xA5, b,
                 static_cast<int>(hal::leerF()));
   }
 
