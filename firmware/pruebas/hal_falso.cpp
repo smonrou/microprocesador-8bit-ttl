@@ -14,8 +14,8 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "../microprocesador/hal.h"
-#include "../microprocesador/isa.h"
+#include "../unidad_control/hal.h"
+#include "../unidad_control/isa.h"
 
 namespace {
 

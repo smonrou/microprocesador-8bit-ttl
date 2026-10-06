@@ -2,7 +2,7 @@
 // diagnostico_display.ino — prueba aislada de la salida binaria de 8 digitos.
 //
 // No depende de nucleo.cpp/hal.h/consola.h: solo usa display.cpp/h y pines.h
-// (copias exactas de firmware/microprocesador/, mismo esquematico de Proteus).
+// (copias exactas de firmware/unidad_control/, mismo esquematico de Proteus).
 // Sirve para separar un problema de cableado de uno de la ruta
 // nucleo -> hal -> display.
 //

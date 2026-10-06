@@ -10,8 +10,8 @@
 
 #include <cstdio>
 
-#include "../microprocesador/hal.h"
-#include "../microprocesador/isa.h"
+#include "../unidad_control/hal.h"
+#include "../unidad_control/isa.h"
 #include "hal_falso.h"
 
 struct Operacion {

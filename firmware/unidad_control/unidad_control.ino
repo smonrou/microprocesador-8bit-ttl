@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// microprocesador.ino — unidad de control del microprocesador de 8 bits.
+// unidad_control.ino — unidad de control del microprocesador de 8 bits.
 //
 // Curso: Arquitectura de Computadoras y Ensambladores 1
 //

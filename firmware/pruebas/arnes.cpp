@@ -15,9 +15,9 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "../microprocesador/formato.h"
-#include "../microprocesador/hal.h"
-#include "../microprocesador/nucleo.h"
+#include "../unidad_control/formato.h"
+#include "../unidad_control/hal.h"
+#include "../unidad_control/nucleo.h"
 #include "hal_falso.h"
 
 namespace {

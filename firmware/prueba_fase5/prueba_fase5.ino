@@ -6,7 +6,7 @@
 // sospecha es el cableado: temporales de la fase 4 peleando con el Mega, o un
 // cable fuera de su sitio. Este sketch lo dice bit por bit.
 //
-// Los pines son los de firmware/microprocesador/pines.h (el IDE no deja
+// Los pines son los de firmware/unidad_control/pines.h (el IDE no deja
 // incluirlo desde otra carpeta de sketch; si cambia allá, cambia aquí). Las
 // secuencias copian hal_arduino.cpp, así que un OK aquí vale para el firmware.
 //
