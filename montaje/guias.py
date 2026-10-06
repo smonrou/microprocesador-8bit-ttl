@@ -247,7 +247,7 @@ GUIAS = {
         'antes': [
             ('warn', '<b>Primero el firmware, con el Mega desconectado de la protoboard.</b> Si en la fase 2 '
                      'C.5 salió invertido, cambia <code>CARRY_SUB_INVERTIDO</code> a 1 en <code>isa.h</code>. '
-                     'Sube <code>firmware/microprocesador/microprocesador.ino</code> desde el IDE, abre el monitor '
+                     'Sube <code>firmware/unidad_control/unidad_control.ino</code> desde el IDE, abre el monitor '
                      'serial a <b>115200</b> y escribe <code>HELP</code>: debe responder la lista de comandos.'),
             ('warn', '<b>El pin 5V del Mega no se conecta a nada.</b> El Mega se alimenta por USB y la protoboard '
                      'por su fuente; solo se unen las tierras. Conecta el <b>GND primero</b>.'),

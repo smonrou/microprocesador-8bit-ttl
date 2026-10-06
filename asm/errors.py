@@ -1,25 +1,34 @@
-"""Assembler error hierarchy.
+"""Jerarquía de errores del ensamblador.
 
-Mirrors sim/exceptions.py in shape: one base class carrying the shared
-context, one subclass per error category the B.2 spec requires.
+Misma forma que sim/exceptions.py: una clase base que guarda el contexto
+común y una subclase por cada categoría de error que exige el spec B.2.
 
-The line number lives in the base class, not in each call site — B.2 makes
-"reportar con número de línea" a hard requirement for every error.
+El número de línea vive en la clase base y no en cada sitio donde se lanza
+el error: B.2 exige "reportar con número de línea" en todos los errores, así
+que es imposible crear uno sin él.
+
+Cómo se usan juntos:
+    - Cada problema concreto es un AssemblerError (o subclase).
+    - Durante una fase, los errores se juntan en un ErrorCollector.
+    - Al terminar la fase, si hubo alguno, se lanza un único AssemblyFailed
+      que los contiene todos, ordenados por línea.
 """
 
 from typing import List, Optional
 
 
 class AssemblerError(Exception):
-    """Base for every assembly-time error. Always carries a source line."""
+    """Base de todos los errores de ensamblado. Siempre lleva una línea fuente."""
 
     def __init__(self, message: str, line_number: int, line_text: str = ""):
-        self.message = message
-        self.line_number = line_number
-        self.line_text = line_text
+        self.message = message          # descripción del problema
+        self.line_number = line_number  # línea del .asm (empieza en 1)
+        self.line_text = line_text      # texto original de esa línea
         super().__init__(str(self))
 
     def __str__(self) -> str:
+        # Formato: "línea N: mensaje" y, debajo, la línea fuente indentada
+        # para que el usuario vea exactamente qué escribió.
         text = f"línea {self.line_number}: {self.message}"
         if self.line_text.strip():
             text += f"\n    {self.line_text.strip()}"
@@ -27,6 +36,8 @@ class AssemblerError(Exception):
 
 
 # ── Categorías exigidas por el spec de B.2 ────────────────────────────────
+# Las subclases no añaden código: solo existen para que cada error tenga un
+# tipo propio (se pueden distinguir con isinstance / except).
 
 class UnknownMnemonicError(AssemblerError):
     """Nemónico desconocido."""
@@ -52,10 +63,11 @@ class ProgramZoneError(AssemblerError):
     """Instrucción emitida fuera de la zona de programa (0x00-0xBF)."""
 
 
-# ── Categorías adicionales (ver plan: necesarias por .ORG y por el parseo) ──
+# ── Categorías adicionales (necesarias por .ORG y por el parseo) ──────────
 
 class OperandFormError(AssemblerError):
-    """Forma de operando incompatible con el modo (# donde no va, o falta #)."""
+    """Forma de operando incompatible con la instrucción (p. ej. corchetes
+    donde no van, un '#' de la sintaxis antigua, o un registro mal puesto)."""
 
 
 class InvalidLiteralError(AssemblerError):
@@ -71,7 +83,11 @@ class OverlapError(AssemblerError):
 
 
 class AssemblyFailed(Exception):
-    """Aggregate raised at the end of a phase that collected errors."""
+    """Error agregado que se lanza al final de una fase que acumuló errores.
+
+    Es lo que recibe quien llama a assemble(): un solo error que contiene
+    la lista completa, ordenada por número de línea.
+    """
 
     def __init__(self, errors: List[AssemblerError]):
         self.errors = sorted(errors, key=lambda e: e.line_number)
@@ -80,16 +96,19 @@ class AssemblyFailed(Exception):
         super().__init__(f"{count} error{plural} de ensamblado")
 
     def __str__(self) -> str:
+        # Encabezado ("3 errores de ensamblado") + un error por línea.
         header = super().__str__()
         return header + "\n" + "\n".join(str(e) for e in self.errors)
 
 
 class ErrorCollector:
-    """Accumulates errors within one phase; raises at the phase boundary.
+    """Acumula los errores de una fase y los lanza al terminarla.
 
-    Rationale (plan): collect-all *within* a phase so five typos surface at
-    once, but abort *between* phases — an unknown mnemonic has unknown
-    length, so continuing into pass 1 would emit phantom address errors.
+    Por qué: *dentro* de una fase se juntan todos, para que cinco errores de
+    tipeo aparezcan de una vez y no de uno en uno. Pero *entre* fases se
+    aborta: un nemónico desconocido tiene un largo desconocido (1 o 2
+    bytes), así que seguir a la pasada 1 produciría errores de dirección
+    fantasma que solo confundirían.
     """
 
     def __init__(self):
@@ -99,8 +118,10 @@ class ErrorCollector:
         self.errors.append(error)
 
     def raise_if_any(self) -> None:
+        # Se llama en la frontera de la fase: si hubo errores, se corta aquí.
         if self.errors:
             raise AssemblyFailed(self.errors)
 
     def __bool__(self) -> bool:
+        # Permite escribir "if collector:" para saber si hubo errores.
         return bool(self.errors)

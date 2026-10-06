@@ -1,6 +1,6 @@
 # DEPURADOR — cómo levantarlo y cómo usarlo
 
-> Manual operativo del panel frontal en Python/Tkinter. Para las **especificaciones** (opcodes, tabla de la ALU, formato de instrucción) la fuente de verdad sigue siendo `contexto_proyecto.md`; para el **protocolo serial**, `firmware/microprocesador/consola.cpp` y `formato.cpp`.
+> Manual operativo del panel frontal en Python/Tkinter. Para las **especificaciones** (opcodes, tabla de la ALU, formato de instrucción) la fuente de verdad sigue siendo `contexto_proyecto.md`; para el **protocolo serial**, `firmware/unidad_control/consola.cpp` y `formato.cpp`.
 
 ---
 
@@ -59,7 +59,7 @@ Debe terminar sin fallos (`925 passed` a 2026-10-01). Si algo falla, no sigas: e
 2. **Cargar un programa.** Pulsa **Cargar .load** y elige `programas/referencia.load`
    (el programa canónico de A.7: multiplica 4 × 3 por sumas repetidas, `OUT` debe dar 12).
 
-   Las líneas se mandan **una a una, esperando el `OK` de cada una** antes de la siguiente. No es lentitud gratuita: el buffer de recepción del Arduino son 64 bytes y mandarlas de golpe perdería comandos **en silencio** (ver el comentario de `firmware/microprocesador/consola.h`).
+   Las líneas se mandan **una a una, esperando el `OK` de cada una** antes de la siguiente. No es lentitud gratuita: el buffer de recepción del Arduino son 64 bytes y mandarlas de golpe perdería comandos **en silencio** (ver el comentario de `firmware/unidad_control/consola.h`).
 
    Al terminar, la rejilla de memoria se llena y el desensamblado muestra `MOV A,0x00 / MOV [0xC8],A / MOV A,0x03 / ...`.
 
@@ -163,11 +163,11 @@ Luego se abre ese `.load` con el botón **Cargar .load**. Los que ya vienen hech
 ## Conectarse al Arduino real
 
 1. `python -m pip install -r requirements.txt` (instala pyserial — **solo hace falta para esto**).
-2. Sube `firmware/microprocesador/` a la placa con el IDE de Arduino.
+2. Sube `firmware/unidad_control/` a la placa con el IDE de Arduino.
 3. **Cierra el Monitor Serie del IDE.** El puerto es de un solo dueño: si el Monitor lo tiene abierto, el depurador no podrá abrirlo.
 4. En el depurador, deja **desmarcada** `servidor de prueba local` (así arranca), pulsa `↻` para refrescar la lista, elige el puerto (`COM3`, `/dev/ttyACM0`, …) y pulsa **Conectar**.
 
-La velocidad es 115200 baudios, la misma que fija `microprocesador.ino`. A partir de ahí, todos los paneles y botones funcionan **exactamente igual**: el depurador no sabe si está hablando con el simulador o con el hardware.
+La velocidad es 115200 baudios, la misma que fija `unidad_control.ino`. A partir de ahí, todos los paneles y botones funcionan **exactamente igual**: el depurador no sabe si está hablando con el simulador o con el hardware.
 
 ---
 

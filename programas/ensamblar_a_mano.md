@@ -3,7 +3,7 @@
 Hoja de referencia para traducir un programa a bytes con lápiz y papel y
 cargarlo en la placa directamente por el monitor serial. Todo lo que hay aquí
 sale del ISA congelado (`contexto_proyecto.md` A.4–A.6) y del firmware
-(`firmware/microprocesador/consola.cpp`).
+(`firmware/unidad_control/consola.cpp`).
 
 ---
 
@@ -14,25 +14,25 @@ Las instrucciones de 2 bytes llevan el operando en el segundo byte.
 
 | Hex (byte 1) | Binario | Instrucción | Bytes | Byte 2 | Operación | Toca Z/C |
 |---|---|---|---|---|---|---|
-| `00` | `0000 0000` | `NOP` | 1 | — | nada | No |
-| `10` | `0001 0000` | `MOV A,[dir]` | 2 | dirección | Mem[dir] → A | No |
-| `20` | `0010 0000` | `MOV B,[dir]` | 2 | dirección | Mem[dir] → B | No |
-| `30` | `0011 0000` | `MOV A,n` | 2 | valor | n → A | No |
-| `40` | `0100 0000` | `MOV B,n` | 2 | valor | n → B | No |
-| `50` | `0101 0000` | `MOV [dir],A` | 2 | dirección | A → Mem[dir] | No |
-| `60` | `0110 0000` | `ADD` | 1 | — | A + B → A | **Sí** |
-| `70` | `0111 0000` | `SUB` | 1 | — | A − B → A | **Sí** |
-| `80` | `1000 0000` | `AND` | 1 | — | A & B → A | **Sí** |
-| `90` | `1001 0000` | `OR` | 1 | — | A \| B → A | **Sí** |
-| `A0` | `1010 0000` | `XOR` | 1 | — | A ⊕ B → A | **Sí** |
-| `B0` | `1011 0000` | `OUT` | 1 | — | A → LEDs | No |
-| `C0` | `1100 0000` | `HLT` | 1 | — | detiene la CPU | No |
-| `D0` | `1101 0000` | `JMP dir` | 2 | dirección | dir → PC | No |
-| `E0` | `1110 0000` | `JZ dir` | 2 | dirección | si Z=1: dir → PC | No |
-| `F0` | `1111 0000` | `JNZ dir` | 2 | dirección | si Z=0: dir → PC | No |
+| `0x00` | `0000 0000` | `NOP` | 1 | — | nada | No |
+| `0x10` | `0001 0000` | `MOV A,[dir]` | 2 | dirección | Mem[dir] → A | No |
+| `0x20` | `0010 0000` | `MOV B,[dir]` | 2 | dirección | Mem[dir] → B | No |
+| `0x30` | `0011 0000` | `MOV A,n` | 2 | valor | n → A | No |
+| `0x40` | `0100 0000` | `MOV B,n` | 2 | valor | n → B | No |
+| `0x50` | `0101 0000` | `MOV [dir],A` | 2 | dirección | A → Mem[dir] | No |
+| `0x60` | `0110 0000` | `ADD` | 1 | — | A + B → A | **Sí** |
+| `0x70` | `0111 0000` | `SUB` | 1 | — | A − B → A | **Sí** |
+| `0x80` | `1000 0000` | `AND` | 1 | — | A & B → A | **Sí** |
+| `0x90` | `1001 0000` | `OR` | 1 | — | A \| B → A | **Sí** |
+| `0xA0` | `1010 0000` | `XOR` | 1 | — | A ⊕ B → A | **Sí** |
+| `0xB0` | `1011 0000` | `OUT` | 1 | — | A → LEDs | No |
+| `0xC0` | `1100 0000` | `HLT` | 1 | — | detiene la CPU | No |
+| `0xD0` | `1101 0000` | `JMP dir` | 2 | dirección | dir → PC | No |
+| `0xE0` | `1110 0000` | `JZ dir` | 2 | dirección | si Z=1: dir → PC | No |
+| `0xF0` | `1111 0000` | `JNZ dir` | 2 | dirección | si Z=0: dir → PC | No |
 
-Ejemplos: `MOV A,5` = `30 05` · `MOV B,[0xC1]` = `20 C1` · `ADD` = `60` ·
-`JNZ 0x08` = `F0 08`. **Una instrucción da siempre los mismos bytes**, esté donde
+Ejemplos: `MOV A,5` = `0x30 0x05` · `MOV B,[0xC1]` = `0x20 0xC1` · `ADD` = `0x60` ·
+`JNZ 0x08` = `0xF0 0x08`. **Una instrucción da siempre los mismos bytes**, esté donde
 esté; lo único que varía es el byte 2 cuando es una dirección que tú elegiste.
 
 ### Lo que NO existe

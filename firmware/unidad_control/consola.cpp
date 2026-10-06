@@ -1,17 +1,13 @@
-// ---------------------------------------------------------------------------
-// consola.cpp — implementación del protocolo serial.
-// ---------------------------------------------------------------------------
 
 #ifdef ARDUINO
 
 #include "consola.h"
 
 #include <Arduino.h>
-#include <ctype.h>    // toupper: no depender de que Arduino.h lo arrastre
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "display.h"
 #include "formato.h"
 
 namespace {
@@ -21,17 +17,7 @@ const uint8_t LINEA_MAX = 96;
 Nucleo* g_nucleo = 0;
 char g_linea[LINEA_MAX];
 uint8_t g_largo = 0;
-uint16_t g_retardo = 200;   // ms entre instrucciones en modo RUN
-
-// Espera manteniendo vivo el multiplexado del display: si se parara durante
-// el retardo, el dígito activo quedaría fijo y el otro apagado.
-void esperarRefrescando(uint16_t milisegundos) {
-  uint32_t fin = millis() + milisegundos;
-  while (millis() < fin) {
-    // display::refrescar();
-    delay(2);
-  }
-}
+uint16_t g_retardo = 200;
 
 bool leerNumero(const char* texto, long* destino) {
   if (texto == 0 || *texto == '\0') return false;
@@ -58,8 +44,7 @@ void imprimirBloqueYClaves() {
 }
 
 void imprimirEstado() {
-  // Los valores de A y B se leen del registro FÍSICO a través de la ALU
-  // (F=A con M=0,S=0000,C̄n=1). No hay copia en software que pueda mentir.
+  //Se lee A y B del registro físico mediante operaciones de identidad de ALU
   uint8_t a = g_nucleo->registroA();
   uint8_t b = g_nucleo->registroB();
 
@@ -164,9 +149,8 @@ void comandoRun() {
         Serial.println(F("ERR limite de instrucciones; posible bucle infinito"));
         return;
       }
-      if (g_retardo > 0) esperarRefrescando(g_retardo);
+      if (g_retardo > 0) delay(g_retardo);
     }
-    // display::refrescar();
   }
 
   Serial.println(F("--- HLT ---"));
@@ -188,7 +172,6 @@ void comandoStep() {
   Serial.print(F("paso: "));
   Serial.println(nombrePaso(paso.paso));
 
-  // El bloque de A.9 se imprime cuando la instruccion termina: "Ciclo N"
   // numera instrucciones completadas, no microciclos.
   if (paso.instruccionCompleta) {
     imprimirBloqueYClaves();
@@ -286,7 +269,7 @@ void ejecutarLinea(char* linea) {
   }
 }
 
-}  // namespace
+}
 
 namespace consola {
 
@@ -305,11 +288,7 @@ void atender() {
   while (Serial.available() > 0) {
     char caracter = (char)Serial.read();
 
-    // Algunos terminales (p.ej. la Virtual Terminal de Proteus) mandan solo
-    // \r al presionar Enter, sin \n. Tratar \r igual que \n evita que el
-    // comando se quede esperando un terminador que nunca llega. Si el
-    // terminal manda \r\n completo, el \n que sigue cae con g_largo=0 y no
-    // se re-ejecuta nada.
+    // /n y /r para proteus y serial de ard
     if (caracter == '\r' || caracter == '\n') {
       g_linea[g_largo] = '\0';
       if (g_largo > 0) ejecutarLinea(g_linea);
@@ -320,7 +299,7 @@ void atender() {
     if (g_largo < LINEA_MAX - 1) {
       g_linea[g_largo++] = caracter;
     } else {
-      // Línea demasiado larga: se descarta entera para no ejecutar un
+      // Línea demasiado larga que se descarta
       // comando truncado a medias.
       g_largo = 0;
       Serial.println(F("ERR linea demasiado larga"));
@@ -328,6 +307,6 @@ void atender() {
   }
 }
 
-}  // namespace consola
+} 
 
-#endif  // ARDUINO
+#endif 

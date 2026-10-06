@@ -765,8 +765,8 @@ Es la unidad de control real: convierte los bytes que produce B.2 en señales so
 
 ```
 firmware/
-  microprocesador/          ← la carpeta del sketch (esto sube al Arduino)
-    microprocesador.ino     setup() / loop(), delgado
+  unidad_control/           ← la carpeta del sketch (esto sube al Arduino)
+    unidad_control.ino      setup() / loop(), delgado
     isa.h / isa.cpp         opcodes y constantes de ALU (espeja sim/isa.py)
     pines.h                 asignación de pines y tablas de cableado
     hal.h                   interfaz de E/S — la frontera
@@ -823,7 +823,7 @@ Eso caza justo lo que de otro modo solo aparecería con el circuito soldado: la 
 
 ## Cableado
 
-La tabla completa está en `firmware/microprocesador/pines.h`, comentada señal por señal.
+La tabla completa está en `firmware/unidad_control/pines.h`, comentada señal por señal.
 
 > ⚠️ **El aviso que más importa.** En el Mega, **PORTA asciende** con el número de pin, pero **PORTC y PORTL DESCIENDEN**. Cablear F0 al pin 30 daría el bit 7 en vez del bit 0, y el procesador entregaría resultados con los bits invertidos **sin ningún síntoma evidente**.
 
@@ -879,7 +879,7 @@ Regla del montaje: **después de tocar la placa, sube `firmware/prueba_fase5/` y
 
 ## Subirlo
 
-1. Abrir `firmware/microprocesador/microprocesador.ino` en el IDE de Arduino.
+1. Abrir `firmware/unidad_control/unidad_control.ino` en el IDE de Arduino.
 2. Herramientas → Placa → **Arduino Mega or Mega 2560**.
 3. Seleccionar el puerto.
 4. Subir.

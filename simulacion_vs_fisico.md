@@ -28,7 +28,7 @@ Proteus es un simulador ideal: varias cosas que en físico son obligatorias, en 
 ## 2. Qué es idéntico entre simulación y físico
 
 - **Los 10 integrados TTL** (tabla completa en la sección 4) y su cableado punto a punto.
-- **El firmware** — el mismo `.hex` compilado de `firmware/microprocesador/` se carga en el Arduino de Proteus y en el Arduino real, sin cambios.
+- **El firmware** — el mismo `.hex` compilado de `firmware/unidad_control/` se carga en el Arduino de Proteus y en el Arduino real, sin cambios.
 - **El protocolo serial** (`LOAD`, `LOADB`, `RUN`, `STEP`, …) a 115200 baudios.
 - **El programa de referencia** (4×3=12) y el resultado esperado: los ocho LEDs deben mostrar `0 0 0 0 1 1 0 0` (encendidos solo los bits 3 y 2).
 

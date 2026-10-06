@@ -1,12 +1,18 @@
-"""CLI: python -m asm programa.asm
+"""Línea de comandos: python -m asm programa.asm
 
-Writes three artifacts next to the source (or into -o):
-  .bin   256 raw bytes, the memory image
-  .lst   assembly listing + symbol table, for the documentation
-  .load  LOAD <dir> <byte> commands for the Arduino serial monitor (B.3)
+Escribe tres archivos junto al fuente (o en la carpeta de -o):
+  .bin   256 bytes crudos, la imagen de memoria
+  .lst   listado de ensamblado + tabla de símbolos, para la documentación
+  .load  comandos LOADB <dir> <bytes...> para el monitor serie del Arduino (B.3)
 
-All text files are opened with an explicit utf-8 encoding: the Windows
-default is cp1252 and both sources and listings contain ó/í/á.
+Opciones:
+  -o CARPETA       dónde escribir los archivos
+  --listing-only   solo muestra el listado, no escribe nada
+  --run            además ejecuta el programa en el simulador (sim/)
+
+Todos los archivos de texto se abren con utf-8 explícito: en Windows el
+valor por defecto es cp1252, y tanto los fuentes como los listados llevan
+ó/í/á.
 """
 
 import argparse
@@ -20,6 +26,7 @@ ENCODING = "utf-8"
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Define los argumentos que acepta el comando."""
     parser = argparse.ArgumentParser(
         prog="python -m asm",
         description="Ensamblador de dos pasadas para el microprocesador de 8 bits.",
@@ -42,34 +49,39 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def _force_utf8_console() -> None:
-    """The Windows console defaults to cp1252, which mangles the accents and
-    dashes in our messages. Python 3.7+ can retarget the streams."""
+    """La consola de Windows usa cp1252 por defecto, que estropea los
+    acentos y guiones de nuestros mensajes. Desde Python 3.7 se puede
+    cambiar la codificación de los streams."""
     for stream in (sys.stdout, sys.stderr):
         reconfigure = getattr(stream, "reconfigure", None)
         if reconfigure is not None:
             try:
                 reconfigure(encoding=ENCODING)
             except (OSError, ValueError):
-                pass
+                pass   # si no se puede, se sigue con la codificación que haya
 
 
 def main(argv=None) -> int:
+    """Punto de entrada. Devuelve el código de salida: 0 = bien, 1 = error."""
     _force_utf8_console()
     args = build_parser().parse_args(argv)
     source_path = Path(args.source)
 
+    # 1. Leer el fuente.
     try:
         source_text = source_path.read_text(encoding=ENCODING)
     except OSError as error:
         print(f"no se pudo leer '{source_path}': {error}", file=sys.stderr)
         return 1
 
+    # 2. Ensamblar. Si hay errores se imprimen todos juntos y se termina.
     try:
         result = assemble(source_text)
     except AssemblyFailed as failure:
         print(str(failure), file=sys.stderr)
         return 1
 
+    # 3a. Modo --listing-only: mostrar el listado y no escribir archivos.
     if args.listing_only:
         print(result.listing)
         _print_warnings(result)
@@ -77,9 +89,10 @@ def main(argv=None) -> int:
             _run(result)
         return 0
 
+    # 3b. Modo normal: escribir .bin, .lst y .load.
     output_dir = Path(args.output_dir) if args.output_dir else source_path.parent
     output_dir.mkdir(parents=True, exist_ok=True)
-    stem = source_path.stem
+    stem = source_path.stem   # nombre del fuente sin extensión
 
     bin_path = output_dir / f"{stem}.bin"
     lst_path = output_dir / f"{stem}.lst"
@@ -91,6 +104,7 @@ def main(argv=None) -> int:
     # una cabe holgada en el buffer de recepción de 64 bytes del Arduino.
     load_path.write_text(result.load_script_bloques + "\n", encoding=ENCODING)
 
+    # Resumen: cuántos bytes se emitieron y en qué tramos de memoria.
     emitted = sum(end - start + 1 for start, end in result.spans)
     spans_text = ", ".join(f"0x{start:02X}–0x{end:02X}" for start, end in result.spans)
     print(f"{emitted} bytes emitidos ({spans_text})")
@@ -105,23 +119,27 @@ def main(argv=None) -> int:
 
 
 def _print_warnings(result) -> None:
+    """Los avisos van a stderr para no mezclarse con el listado."""
     for warning in result.warnings:
         print(f"aviso: {warning}", file=sys.stderr)
 
 
 def _run(result) -> None:
-    """Assemble-then-execute on the B.1 simulator — the cheapest possible
-    end-to-end demo."""
+    """Ensamblar y luego ejecutar en el simulador de B.1: la demo de punta a
+    punta más simple posible."""
+    # Imports aquí: el simulador solo se carga si se pidió --run.
     from sim.cpu import CPU
     from sim.exceptions import CycleLimitExceeded
     from sim.memory import Memory
 
+    # Cargar la imagen de 256 bytes en una memoria nueva y ejecutar.
     memory = Memory()
     memory.load_bytes(result.binary)
     cpu = CPU(memory)
     try:
         cpu.run()
     except CycleLimitExceeded as error:
+        # Protección contra bucles infinitos (programa sin HLT, por ejemplo).
         print(f"ejecución abortada: {error}", file=sys.stderr)
         return
 

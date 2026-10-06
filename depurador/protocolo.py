@@ -1,7 +1,7 @@
 """Protocolo serial: formato y parseo de lo que habla el firmware real.
 
-Espejo exacto de ``firmware/microprocesador/formato.cpp`` (líneas ``#clave=valor``)
-y de ``firmware/microprocesador/consola.cpp`` (``leerNumero``, que es un
+Espejo exacto de ``firmware/unidad_control/formato.cpp`` (líneas ``#clave=valor``)
+y de ``firmware/unidad_control/consola.cpp`` (``leerNumero``, que es un
 ``strtol`` con base 0).
 
 El bloque humano de A.9 NO se genera aquí: ya existe en ``sim.trace.format_cycle``

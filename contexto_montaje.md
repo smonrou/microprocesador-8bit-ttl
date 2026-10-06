@@ -49,7 +49,7 @@
 
 - [ ] **Exoneración:** preguntar al ingeniero si la entrega en protoboard conserva la elegibilidad para exonerar (antes había dicho que no; ver §14 del registro de diseño). La aceptación de la protoboard (C.1, 2026-09-17) supera la duda A.1.5, pero sin confirmar por escrito.
 - [ ] **Antes de la fase 0:** confirmar que las protoboards quedan con la fila 1 a la izquierda y la **j arriba**. Si queda la **a** arriba, hay que regenerar los planos en espejo (pedírselo a Claude).
-- [x] **C.5 (acarreo en SUB):** resuelto el 2026-09-29, coincide con el firmware (`CARRY_SUB_INVERTIDO 0`). Se midió en la fase 2 (C̄n+4 de la ALU ALTA en 5−3, 3−5, 5−5). Si sale al revés de lo que supone el firmware: `CARRY_SUB_INVERTIDO 1` en `firmware/microprocesador/isa.h` antes de la fase 5, y actualizar `contexto_proyecto.md` Parte C.
+- [x] **C.5 (acarreo en SUB):** resuelto el 2026-09-29, coincide con el firmware (`CARRY_SUB_INVERTIDO 0`). Se midió en la fase 2 (C̄n+4 de la ALU ALTA en 5−3, 3−5, 5−5). Si sale al revés de lo que supone el firmware: `CARRY_SUB_INVERTIDO 1` en `firmware/unidad_control/isa.h` antes de la fase 5, y actualizar `contexto_proyecto.md` Parte C.
 - [ ] **Proteus:** pasar la salida a LEDs (273 → 244/240 → LEDs). Pasos en `simulacion_vs_fisico.md` §5.
 - [x] **Firmware:** el manejo de los pines 3–6 (SEL0–SEL2, BLANK del diseño viejo) quedó comentado en `display.cpp` y `pines.h`; `display.h` y `firmware/diagnostico_display/` conservan la descripción del 74LS151/74LS138 como historia.
 

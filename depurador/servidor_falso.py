@@ -1,7 +1,7 @@
 """Arduino de mentira: servidor TCP que habla el protocolo serial del firmware.
 
 El Arduino Mega todavía no se ha comprado. Este servidor monta el mismo
-protocolo de ``firmware/microprocesador/consola.cpp`` sobre ``sim.cpu.CPU``,
+protocolo de ``firmware/unidad_control/consola.cpp`` sobre ``sim.cpu.CPU``,
 así el depurador se puede probar de punta a punta HOY. El día que llegue la
 placa solo cambia el transporte (TCP -> puerto serie), no la interfaz.
 

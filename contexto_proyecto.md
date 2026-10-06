@@ -424,7 +424,7 @@ La salida debe ser **legible por humanos y parseable por Processing** a la vez (
 
 Ninguna tarea debe asumir una respuesta a los puntos **abiertos**. Si una tarea los necesita, debe **reportarlo** en lugar de improvisar.
 
-> ⚠️ **La numeración de esta lista es estable.** Los puntos 4 y 5 se citan por número desde `firmware/microprocesador/display.h`, `isa.h`, `nucleo.cpp`, `instrucciones.md` y dos archivos de pruebas. Al resolver un punto se marca en su sitio; **nunca se renumera la lista**.
+> ⚠️ **La numeración de esta lista es estable.** Los puntos 4 y 5 se citan por número desde `firmware/unidad_control/display.h`, `isa.h`, `nucleo.cpp`, `instrucciones.md` y dos archivos de pruebas. Al resolver un punto se marca en su sitio; **nunca se renumera la lista**.
 
 1. ~~**¿PCB fabricado o basta placa perforada soldada?**~~ ✅ **RESUELTO (2026-09-17).** El ingeniero acepta la entrega **en protoboards**: no hace falta PCB ni placa perforada soldada. ⚠️ **Sin confirmar:** si la entrega en protoboard conserva la elegibilidad para exonerar el examen final (antes había dicho que no; ver §14 del registro de diseño). Preguntarlo explícitamente.
 
@@ -434,7 +434,7 @@ Ninguna tarea debe asumir una respuesta a los puntos **abiertos**. Si una tarea 
 
 4. ~~**Display de 7 segmentos: ánodo o cátodo común**~~ ✅ **RESUELTO POR ELIMINACIÓN (2026-09-17).** La salida pasó a 8 LEDs (A.2); ya no hay display de 7 segmentos. El buffer quedó fijo en **74LS244** con LEDs que encienden en alto. Único requisito heredado: LEDs rojos, verdes o amarillos (caída ~2 V), porque en alto el 244 entrega 2.4–3.4 V y no alcanza para azul o blanco (~3 V). *(Montaje real, 2026-09-28: se usó un **74LS240**, que invierte; con los LEDs de +5 V a la salida y 330 Ω enciende igual con bit = 1 y sirve cualquier color.)*
 
-5. ~~**Semántica exacta del carry en SUB**~~ ✅ **RESUELTO (2026-09-29, fase 2 del montaje).** Medido en protoboard, C̄n+4 de la ALU ALTA (pin 16) con C̄n=0: 5−3 → 0.12 V (bajo), 3−5 → 4.26 V (alto), 5−5 → 0.12 V (bajo). Confirma el supuesto del diseño: C̄n+4 en bajo = no hubo préstamo (A≥B). `#define CARRY_SUB_INVERTIDO 0` en `firmware/microprocesador/isa.h` queda como está.
+5. ~~**Semántica exacta del carry en SUB**~~ ✅ **RESUELTO (2026-09-29, fase 2 del montaje).** Medido en protoboard, C̄n+4 de la ALU ALTA (pin 16) con C̄n=0: 5−3 → 0.12 V (bajo), 3−5 → 4.26 V (alto), 5−5 → 0.12 V (bajo). Confirma el supuesto del diseño: C̄n+4 en bajo = no hubo préstamo (A≥B). `#define CARRY_SUB_INVERTIDO 0` en `firmware/unidad_control/isa.h` queda como está.
 
 6. ~~**Interfaz de observación**~~ ✅ **RESUELTO.** Se entregó como depurador gráfico en Python/Tkinter (`depurador/`, manual en `depurador/LEEME.md`): registros en cuatro formatos, banderas, líneas de control de la ALU, memoria, desensamblado y ejecución microciclo a microciclo, contra el Arduino real o contra un servidor serie de prueba. Una interfaz en **Processing** queda solo como extra opcional.
 

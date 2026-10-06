@@ -1,11 +1,3 @@
-// ---------------------------------------------------------------------------
-// formato.cpp — implementación del volcado de estado.
-//
-// El bloque de A.9 debe salir IDÉNTICO al de sim/trace.py: el simulador es la
-// referencia con la que se depurará el hardware, y comparar dos volcados que
-// difieren en el formato es perder el tiempo.
-// tests/test_firmware_formato.py compara ambas salidas byte a byte.
-// ---------------------------------------------------------------------------
 
 #include "formato.h"
 
@@ -63,7 +55,7 @@ const char* nombreRegistro(uint8_t registro) {
   return (registro == REG_A) ? "A" : "B";
 }
 
-}  // namespace
+}
 
 namespace formato {
 
@@ -116,7 +108,7 @@ size_t bloqueCiclo(const Traza& t, char* destino, size_t tam) {
 
     case CAT_CARGA_INMEDIATA: {
       uint8_t valor = (t.registro == REG_A) ? t.aDespues : t.bDespues;
-      salida.agregar("EXECUTE #0x%02X → %s\n",
+      salida.agregar("EXECUTE 0x%02X → %s\n",
                      static_cast<unsigned>(t.operando),
                      nombreRegistro(t.registro));
       salida.agregar("RESULT  %s=0x%02X\n", nombreRegistro(t.registro),
@@ -155,8 +147,6 @@ size_t bloqueCiclo(const Traza& t, char* destino, size_t tam) {
 
 size_t lineaClaveValor(const Traza& t, bool detenido, char* destino, size_t tam) {
   Escritor salida(destino, tam);
-  // ASCII puro y prefijo '#': Processing filtra estas líneas sin confundirlas
-  // con el texto bonito, y ningún acento puede romper el parseo.
   salida.agregar("#ciclo=%u pc=0x%02X ir=0x%02X op=%s a=0x%02X b=0x%02X "
                  "z=%u c=%u halted=%u",
                  static_cast<unsigned>(t.ciclo),
@@ -184,4 +174,4 @@ size_t lineaEstado(uint8_t pc, uint8_t ir, uint8_t a, uint8_t b,
   return salida.usado;
 }
 
-}  // namespace formato
+}

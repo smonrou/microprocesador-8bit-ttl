@@ -1,19 +1,14 @@
-// ---------------------------------------------------------------------------
-// nucleo.cpp — implementación de la unidad de control.
-// ---------------------------------------------------------------------------
 
 #include "nucleo.h"
 
 #include "hal.h"
 
-// El PC arranca donde lo deja el CLEAR de los 74LS161: 0x00. Si alguna vez
-// cambia la dirección de inicio, el reinicio tendría que cargarla.
-static_assert(DIRECCION_INICIO == 0x00,
-              "el CLEAR de los 74LS161 deja el PC en 0x00");
+// El PC arranca donde lo deja el CLEAR
+static_assert(DIRECCION_INICIO == 0x00, "el CLEAR de los 74LS161 deja el PC en 0x00");
 
 namespace {
 
-// Secuencia de microciclos según la forma de la instrucción (decisión B.1).
+// Secuencia de microciclos según la forma de la instrucción
 void secuenciaDePasos(uint8_t microciclos, uint8_t* destino) {
   if (microciclos == PASOS_ALU) {
     destino[0] = PASO_FETCH;
@@ -33,7 +28,7 @@ void secuenciaDePasos(uint8_t microciclos, uint8_t* destino) {
   }
 }
 
-}  // namespace
+}
 
 Nucleo::Nucleo() {
   borrarTodo();
@@ -41,7 +36,7 @@ Nucleo::Nucleo() {
 
 void Nucleo::borrarTodo() {
   for (uint16_t i = 0; i < MEMORIA_TAM; i++) {
-    memoria_[i] = 0x00;   // A.6: memoria vacía decodifica como NOP
+    memoria_[i] = 0x00;    //memoria vacía decodifica como NOP
   }
   reiniciar();
 }
@@ -61,7 +56,7 @@ void Nucleo::reiniciar() {
   huboSalida_ = false;
   traza_ = Traza();
 
-  // CLEAR asíncrono de los 74LS273 y de los 74LS161: PC = DIRECCION_INICIO.
+  //CLEAR asíncrono para que PC = DIRECCION_INICIO.
   hal::limpiarRegistros();
 }
 
@@ -73,13 +68,10 @@ uint8_t Nucleo::leerMemoria(uint8_t direccion) const {
   return memoria_[direccion];
 }
 
-// ── Primitivas del camino de datos ───────────────────────────────────────
-
 void Nucleo::engancharDesdeBus(uint8_t valor, uint8_t registro) {
   hal::ponerBus(valor);
   hal::seleccionarMux(MUX_BUS);
-  // El 74LS273 no tiene habilitación: se elige el registro por cuál reloj se
-  // pulsa. Nunca los dos, nunca la misma línea.
+  // Se elige el registro por cuál reloj se pulsa. Nunca los dos, nunca la misma línea.
   if (registro == REG_A) {
     hal::pulsoClockA();
   } else {
@@ -88,13 +80,12 @@ void Nucleo::engancharDesdeBus(uint8_t valor, uint8_t registro) {
 }
 
 uint8_t Nucleo::muestrearALU(uint8_t m, uint8_t s, uint8_t cn) {
-  // Las salidas del 74LS273 van al 181, no al Arduino. Para conocer el valor
-  // real de un registro se configura una función identidad y se lee F.
+  // Configurar operación de identidad
   hal::configurarALU(m, s, cn);
   hal::esperarPropagacion();
   return hal::leerF();
 }
-
+//Ver que hay en A y en B
 uint8_t Nucleo::registroA() {
   return muestrearALU(ALU_ARITMETICO, ALU_IDENTIDAD_A, CN_IDENTIDAD);
 }
@@ -104,8 +95,8 @@ uint8_t Nucleo::registroB() {
 }
 
 void Nucleo::configurarOperacion(uint8_t opcode) {
-  // Tabla A.3, verificada contra el datasheet TI SDLS136 pág. 4, TABLE 2.
-  // SUB y XOR comparten S=0110: los distingue M. Error frecuente.
+  
+  // SUB y XOR diferenciados por M
   uint8_t m, s, cn;
   switch (opcode) {
     case OP_ADD: m = ALU_ARITMETICO; s = ALU_ADD; cn = CN_ADD;    break;
@@ -123,16 +114,15 @@ void Nucleo::configurarOperacion(uint8_t opcode) {
   hal::configurarALU(m, s, cn);
 }
 
-// ── Máquina de microciclos ───────────────────────────────────────────────
 
 void Nucleo::empezarInstruccion() {
-  // FETCH: MAR <- PC; IR <- Mem[MAR]; PC++ (lo cuenta el 161)
+  // FETCH: MAR <- PC; IR <- Mem[MAR]; PC++
   mar_ = hal::leerPC();
   uint8_t pcAntes = mar_;
   ir_ = memoria_[mar_];
   hal::incrementarPC();
 
-  actual_ = &TABLA_OPCODES[ir_ >> 4];   // A.4: el opcode son siempre 4 bits
+  actual_ = &TABLA_OPCODES[ir_ >> 4];
   operando_ = 0;
 
   traza_ = Traza();
@@ -167,8 +157,6 @@ PasoResultado Nucleo::paso() {
   if (pasosPendientes_ == 0) {
     empezarInstruccion();
     resultado.paso = PASO_FETCH;
-    // Una instrucción de un solo microciclo no existe en este set, pero si
-    // existiera quedaría completa aquí.
     resultado.instruccionCompleta = (indicePaso_ >= pasosPendientes_);
     if (resultado.instruccionCompleta) {
       instrucciones_++;
@@ -198,8 +186,7 @@ PasoResultado Nucleo::paso() {
 void Nucleo::ejecutarMicrociclo(uint8_t paso) {
   switch (paso) {
     case PASO_DECODE:
-      // Informativo: el opcode ya se separó en el FETCH. Existe como
-      // microciclo propio porque A.8 lo describe así.
+      // Ya separado en actual_ >> 4
       break;
 
     case PASO_FETCH2:
@@ -230,9 +217,7 @@ void Nucleo::ejecutarMicrociclo(uint8_t paso) {
 void Nucleo::faseEjecutar() {
   switch (actual_->categoria) {
     case CAT_ALU:
-      // Se leen A y B para la traza ANTES de configurar la operación: el
-      // volcado de estado debe mostrar los operandos, y estos valores salen
-      // del registro físico, no de una copia.
+      // Se leen A y B para la traza ANTES de configurar la operación y salen del registro físico
       traza_.aAntes = registroA();
       traza_.bAntes = registroB();
       configurarOperacion(actual_->opcode);
@@ -267,12 +252,10 @@ void Nucleo::faseEjecutar() {
     }
 
     case CAT_SALTO_INCONDICIONAL:
-      // Carga paralela del 161 desde el bus D.
       hal::cargarPC(operando_);
       break;
 
     case CAT_SALTO_CONDICIONAL: {
-      // A.5: JZ salta con Z=1, JNZ con Z=0. Las banderas NO se tocan aquí.
       bool condicion = (actual_->opcode == OP_JZ) ? (z_ == 1) : (z_ == 0);
       if (condicion) {
         hal::cargarPC(operando_);
@@ -306,29 +289,20 @@ void Nucleo::faseEjecutar() {
 
 void Nucleo::faseEscribir() {
   // Solo llegan aquí las operaciones de ALU.
-  //
-  // ORDEN CRÍTICO: F se lee ANTES de pulsar el reloj. El 181 es
-  // combinacional, así que F siempre vale (A actual) OP B. En cuanto el
-  // pulso engancha F en el registro A, F pasa a valer (A nuevo) OP B, que es
-  // un valor distinto. Leerlo después daría basura.
+  // Leer antes de escribir porque cambia la configuración de la ALU la lectura
   uint8_t f = hal::leerF();
 
-  // Única operación en software que permite el spec: leer si el resultado
-  // es cero. No es un cálculo, es una comparación del bus F.
+  // Comparación del bus F
   z_ = (f == 0) ? 1 : 0;
 
   bool acarreo = hal::huboAcarreo();
 #if CARRY_SUB_INVERTIDO
-  // Pendiente Parte C punto 5: si la prueba en protoboard demuestra que la
-  // polaridad del acarreo en resta es la contraria, esto la corrige.
   if (actual_->opcode == OP_SUB) {
     acarreo = !acarreo;
   }
 #endif
   c_ = acarreo ? 1 : 0;
-
-  // Ahora sí: el resultado vuelve al registro A por el camino del mux, sin
-  // pasar por el Arduino.
+  // Resultado regresa por el mux sin tocar al arduino
   hal::seleccionarMux(MUX_ALU);
   hal::pulsoClockA();
 
@@ -339,8 +313,7 @@ void Nucleo::faseEscribir() {
 }
 
 uint8_t Nucleo::correr(uint16_t limiteInstrucciones) {
-  // RUN se construye sobre paso(): una sola implementación de la lógica, sin
-  // riesgo de que los dos modos discrepen.
+  // RUN
   while (!detenido_) {
     paso();
     if (instrucciones_ > limiteInstrucciones) {

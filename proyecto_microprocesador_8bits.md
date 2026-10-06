@@ -777,7 +777,7 @@ El test de aceptación compara los bytes del ensamblador contra los que se ensam
 
 ## 19. Firmware del Arduino (B.3) — implementado
 
-**Ubicación:** `firmware/microprocesador/` (el sketch) y `firmware/pruebas/` (lo que solo sirve para verificar). Los sketches de banco del montaje (`prueba_fase4/`, `prueba_fase5/`) se describen en §24.
+**Ubicación:** `firmware/unidad_control/` (el sketch) y `firmware/pruebas/` (lo que solo sirve para verificar). Los sketches de banco del montaje (`prueba_fase4/`, `prueba_fase5/`) se describen en §24.
 
 ### Restricción que dominó el diseño
 
@@ -852,7 +852,7 @@ En el Mega, **PORTA asciende** con el número de pin pero **PORTC y PORTL DESCIE
 | PC (§22) | 42, 43 | CLK del PC y /LOAD del PC (activo en bajo); PL7 y PL6, reservados con `MASCARA_NO_ALU 0xC0` |
 | PORTK (asc.) | A8–A15 | Lectura del PC (Q0–Q7 de los dos 74LS161) |
 
-Tabla completa y comentada en `firmware/microprocesador/pines.h`. Total: 38 pines de 70.
+Tabla completa y comentada en `firmware/unidad_control/pines.h`. Total: 38 pines de 70.
 
 Los seis bits de control de la ALU caben en un puerto, así que **configurarla entera es una sola escritura**: las seis líneas cambian a la vez, sin estados intermedios que el 181 pudiera llegar a ver.
 
@@ -1070,6 +1070,7 @@ Otro equipo usaba exactamente los mismos nemónicos (`LDA`, `LDB`, `LDI A`, `LDI
 - Formas que el hardware no tiene (`MOV [dir],B`, `MOV A,B`, memoria a memoria, `MOV [dir],5`) son error del ensamblador, y el mensaje lista las cinco válidas.
 - El desensamblador del depurador emite la sintaxis nueva, y hay una prueba que re-ensambla lo desensamblado para los 16 opcodes.
 - En el firmware los identificadores C `OP_LDA`…`OP_STA` se quedaron como están: son nombres internos, no lo que escribe el programador.
+  - *Actualización 2026-10-05:* se renombraron para seguir al nemónico, con la forma `OP_MOV_<destino>_<origen>`: `OP_MOV_A_DIR`, `OP_MOV_B_DIR`, `OP_MOV_A_INM`, `OP_MOV_B_INM`, `OP_MOV_DIR_A`. Los valores de opcode no cambiaron.
 
 ### Argumento para la defensa
 
