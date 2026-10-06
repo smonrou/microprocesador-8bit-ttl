@@ -1,26 +1,3 @@
-"""Índice inverso sobre la tabla congelada de la ISA.
-
-ES EL ÚNICO MÓDULO DE asm/ QUE LEE sim.isa.OPCODE_TABLE, y no contiene ni un
-solo literal de opcode. La relación nemónico -> opcode (y, desde la sintaxis
-estilo x86 del 2026-09-28, también la gramática de los operandos) se
-*deriva* de sim.isa.OPCODE_TABLE; nunca se vuelve a escribir a mano. "La
-Parte A es inmutable": dos tablas que pudieran desincronizarse violarían
-esa regla.
-
-Cada spec.mnemonic tiene la forma "<BASE> <patrón>", p. ej. "MOV A,[dir]":
-la palabra base es lo que escribe el programador, y el patrón (separado por
-comas) dice qué forma de operandos elige ese opcode. Varios opcodes
-comparten base (las cinco formas de MOV); los operandos deciden cuál es,
-igual que en x86.
-
-Ejemplo de cómo se distinguen las cinco formas de MOV:
-    MOV A,[200]   -> patrón ("A", "[DIR]")   cargar A desde memoria
-    MOV B,[200]   -> patrón ("B", "[DIR]")   cargar B desde memoria
-    MOV A,5       -> patrón ("A", "INM")     cargar A con un inmediato
-    MOV B,5       -> patrón ("B", "INM")     cargar B con un inmediato
-    MOV [200],A   -> patrón ("[DIR]", "A")   guardar A en memoria
-"""
-
 from typing import Dict, Tuple
 
 from sim.isa import OPCODE_TABLE, InstructionSpec, Mode
@@ -37,7 +14,6 @@ REGISTERS = frozenset(
     spec.register for spec in OPCODE_TABLE.values() if spec.register is not None
 )
 
-# Nemónico completo en mayúsculas -> spec: 16 claves únicas ("MOV A,[DIR]",
 # "ADD", ...), una por instrucción de la ISA.
 MNEMONIC_TABLE = {spec.mnemonic.upper(): spec for spec in OPCODE_TABLE.values()}
 
@@ -69,8 +45,6 @@ def operand_pattern(spec: InstructionSpec) -> Tuple[str, ...]:
     return ()
 
 
-# Base -> todos los specs que se escriben con esa palabra, en orden de
-# opcode. Ej.: "MOV" -> (las 5 formas), "ADD" -> (un solo spec).
 FORMS_BY_BASE: Dict[str, Tuple[InstructionSpec, ...]] = {}
 for _spec in OPCODE_TABLE.values():
     # Se va extendiendo la tupla de esa base con cada spec nuevo.
@@ -84,12 +58,12 @@ def lookup(base_text: str) -> Tuple[InstructionSpec, ...]:
 
 
 def is_mnemonic(text: str) -> bool:
-    """¿Es una palabra de instrucción (MOV, ADD, JNZ...)?"""
+    """Es una palabra de instrucción (MOV, ADD, JNZ...)?"""
     return text.upper() in FORMS_BY_BASE
 
 
 def is_directive(text: str) -> bool:
-    """¿Es .ORG o .DB?"""
+    """Es .ORG o .DB?"""
     return text.upper() in DIRECTIVES
 
 

@@ -1,22 +1,3 @@
-"""Ensamblador de dos pasadas.
-
-La pasada 1 recorre las líneas ya analizadas calculando la dirección de cada
-una (teniendo en cuenta instrucciones de 1 o 2 bytes) y arma la tabla de
-símbolos (etiqueta -> dirección). La pasada 2 emite los bytes, cambiando
-cada etiqueta por su dirección.
-
-¿Por qué hacen falta dos pasadas? Porque una etiqueta se puede usar antes de
-definirse (p. ej. "JZ FIN" con FIN más abajo): al llegar al JZ todavía no se
-sabe la dirección de FIN. La pasada 1 las descubre todas; la pasada 2 ya las
-puede usar.
-
-¿Por qué bastan dos? La pasada 1 solo necesita `spec.length`, que sale de la
-tabla congelada sim.isa.OPCODE_TABLE. Nuestros opcodes tienen ancho fijo
-(siempre 4 bits) y el largo de cada instrucción se conoce solo con el
-nemónico, así que la distribución en memoria es aritmética pura, sin
-heurísticas.
-"""
-
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
@@ -293,7 +274,7 @@ def _spans(written: Dict[int, int]) -> Tuple[Tuple[int, int], ...]:
     return tuple(spans)
 
 
-# ── API pública ───────────────────────────────────────────────────────────
+#  API pública 
 
 def assemble(source_text: str) -> AssemblyResult:
     """Ensambla el texto fuente en una imagen de 256 bytes. Lanza

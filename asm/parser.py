@@ -1,23 +1,3 @@
-"""Línea fuente -> ParsedLine (fase 1 del ensamblado).
-
-Se encarga de: quitar comentarios, extraer la etiqueta, reconocer el
-nemónico o la directiva, leer los operandos y elegir el opcode según la
-FORMA de los operandos (estilo x86 desde el 2026-09-28: "MOV A,[200]",
-"MOV A,5" y "MOV [200],A" usan la misma palabra MOV y solo se diferencian
-en sus operandos).
-
-Ejemplo de lo que produce para una línea:
-    "LOOP: MOV A,[DATO]   ; carga"
-    -> label="LOOP", kind=INSTRUCTION, spec=<MOV A,[dir]>,
-       operands=(Operand(MEMORY_LABEL, name="DATO"),)
-
-Esta fase todavía NO calcula direcciones ni resuelve etiquetas: eso lo hace
-assembler.py.
-
-ParsedLine.text guarda la línea original sin tocar: el listado la repite
-tal cual en vez de reescribirla.
-"""
-
 import re
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -109,10 +89,6 @@ class ParsedLine:
 # ── Separación en tokens ──────────────────────────────────────────────────
 
 # Una dirección entre corchetes es un solo token aunque tenga espacios
-# dentro ("[ 200 ]"). Las tres alternativas de la regex, en orden:
-#   \[[^\]]*\]   un bloque "[ ... ]" completo
-#   ,            una coma suelta
-#   [^\s,]+      cualquier palabra sin espacios ni comas
 TOKEN_RE = re.compile(r"\[[^\]]*\]|,|[^\s,]+")
 
 
@@ -131,7 +107,7 @@ def tokenize(line: str) -> List[str]:
     return TOKEN_RE.findall(strip_comment(line))
 
 
-# ── Análisis de operandos ─────────────────────────────────────────────────
+# Análisis de operandos
 
 def parse_operand(token: str, line_number: int, line_text: str) -> Operand:
     """Clasifica un token en una de las formas de OperandForm.
@@ -154,25 +130,24 @@ def parse_operand(token: str, line_number: int, line_text: str) -> Operand:
             line_text,
         )
 
-    # 2. Registro.
+    # Registro.
     if token.upper() in REGISTERS:
         return Operand(form=OperandForm.REGISTER, text=token, name=token.upper())
 
-    # 3. ¿Entre corchetes? Entonces es acceso a memoria; body = el interior.
+    # Si tiene corchetes entonces es acceso a memoria; body = el interior.
     memory = token.startswith("[") and token.endswith("]") and len(token) >= 2
     body = token[1:-1].strip() if memory else token
 
     if memory and not body:
         raise InvalidLiteralError("dirección vacía entre '[ ]'", line_number, line_text)
 
-    # 4. Número (en cualquier base admitida).
+    # Número (en cualquier base admitida).
     if looks_like_number(body):
         value = parse_and_check(body, line_number, line_text)
         form = OperandForm.MEMORY_NUMBER if memory else OperandForm.NUMBER
         return Operand(form=form, text=token, value=value)
 
-    # 5. Etiqueta. "[A]" tiene forma de etiqueta pero sería direccionamiento
-    #    indirecto por registro, que esta ISA no tiene.
+    # Etiqueta. "[A]" tiene forma de etiqueta pero sería direccionamiento indirecto por registro, que esta ISA no tiene.
     if looks_like_label(body):
         if memory and body.upper() in REGISTERS:
             raise OperandFormError(
@@ -183,7 +158,7 @@ def parse_operand(token: str, line_number: int, line_text: str) -> Operand:
         form = OperandForm.MEMORY_LABEL if memory else OperandForm.LABEL
         return Operand(form=form, text=token, name=body.upper())
 
-    # 6. Ni número ni etiqueta (p. ej. "12abc" o "fin-2").
+    # Ni número ni etiqueta.
     raise InvalidLiteralError(
         f"operando mal formado: '{token}'", line_number, line_text
     )

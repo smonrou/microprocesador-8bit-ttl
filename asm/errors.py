@@ -1,18 +1,3 @@
-"""Jerarquía de errores del ensamblador.
-
-Misma forma que sim/exceptions.py: una clase base que guarda el contexto
-común y una subclase por cada categoría de error que exige el spec B.2.
-
-El número de línea vive en la clase base y no en cada sitio donde se lanza
-el error: B.2 exige "reportar con número de línea" en todos los errores, así
-que es imposible crear uno sin él.
-
-Cómo se usan juntos:
-    - Cada problema concreto es un AssemblerError (o subclase).
-    - Durante una fase, los errores se juntan en un ErrorCollector.
-    - Al terminar la fase, si hubo alguno, se lanza un único AssemblyFailed
-      que los contiene todos, ordenados por línea.
-"""
 
 from typing import List, Optional
 
@@ -34,10 +19,6 @@ class AssemblerError(Exception):
             text += f"\n    {self.line_text.strip()}"
         return text
 
-
-# ── Categorías exigidas por el spec de B.2 ────────────────────────────────
-# Las subclases no añaden código: solo existen para que cada error tenga un
-# tipo propio (se pueden distinguir con isinstance / except).
 
 class UnknownMnemonicError(AssemblerError):
     """Nemónico desconocido."""

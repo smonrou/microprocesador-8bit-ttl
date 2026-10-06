@@ -1,19 +1,3 @@
-"""Formateo puro: listado de ensamblado, tabla de símbolos, script LOAD serie.
-
-Recibe dataclasses simples y devuelve strings — aquí no hay lógica de
-ensamblado.
-
-La columna FUENTE repite la línea original sin tocar. Un listado que
-"embellece" el fuente esconde lo que el usuario escribió de verdad.
-
-Ejemplo de listado:
-    DIR  BYTES        LÍN  FUENTE
-    ---  -----------  ---  --------------------------------------------
-    08   10 C8         17  LOOP: MOV A,[200]
-    0A   20 CC         18        MOV B,[204]
-    0C   60            19        ADD
-"""
-
 from typing import Dict, Iterable, Sequence
 
 # Bytes por línea LOADB. Ver format_load_script_bloques() para el porqué de 8.
@@ -92,7 +76,7 @@ def format_listing(rows: Iterable, symbols: Dict[str, int]) -> str:
 
 
 def format_load_script(rows: Iterable) -> str:
-    """Comandos LOAD del protocolo serie, un byte por línea (protocolo B.3).
+    """Comandos LOAD del protocolo serie, un byte por línea.
 
     Ej.: "LOAD 0x00 0x30".
 

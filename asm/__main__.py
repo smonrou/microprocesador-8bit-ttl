@@ -1,18 +1,10 @@
-"""Línea de comandos: python -m asm programa.asm
+"""
+python -m asm programa.asm
 
 Escribe tres archivos junto al fuente (o en la carpeta de -o):
   .bin   256 bytes crudos, la imagen de memoria
   .lst   listado de ensamblado + tabla de símbolos, para la documentación
   .load  comandos LOADB <dir> <bytes...> para el monitor serie del Arduino (B.3)
-
-Opciones:
-  -o CARPETA       dónde escribir los archivos
-  --listing-only   solo muestra el listado, no escribe nada
-  --run            además ejecuta el programa en el simulador (sim/)
-
-Todos los archivos de texto se abren con utf-8 explícito: en Windows el
-valor por defecto es cp1252, y tanto los fuentes como los listados llevan
-ó/í/á.
 """
 
 import argparse

@@ -1,5 +1,3 @@
-"""Acceso a los programas .asm canónicos que vienen con el proyecto."""
-
 from pathlib import Path
 
 # Carpeta programas/, un nivel por encima de asm/.
@@ -16,7 +14,7 @@ def read_source(path) -> str:
 
 
 def read_reference_source() -> str:
-    """A.7 literal, con direcciones numéricas como en el documento congelado."""
+    """Literal, con direcciones numéricas como en el documento congelado."""
     return read_source(REFERENCE_PATH)
 
 

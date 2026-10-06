@@ -1,14 +1,3 @@
-"""Lectura de literales numéricos. B.2 exige decimal, hexadecimal (0xFF y
-$FF) y binario (0b1010).
-
-Se usa una expresión regular explícita por cada base, y a propósito NO
-int(text, 0): esa función aceptaría en silencio octal (0o17) y guiones bajos
-(1_0), que no están en el spec, y su mensaje de error no sirve para
-reportarle nada útil al usuario.
-
-Todo valor debe caber en un byte: 0..255.
-"""
-
 import re
 from typing import Optional
 
@@ -19,9 +8,9 @@ MIN_VALUE = 0
 MAX_VALUE = 255
 
 # Una regex por formato. ^ y $ obligan a que coincida el texto completo.
-DECIMAL_RE = re.compile(r"^[+-]?[0-9]+$")        # 12, +12, -1 (el signo se acepta aquí y se rechaza en el rango)
-HEX_0X_RE = re.compile(r"^0[xX][0-9A-Fa-f]+$")   # 0xC8, 0Xff
-HEX_DOLLAR_RE = re.compile(r"^\$[0-9A-Fa-f]+$")  # $C8
+DECIMAL_RE = re.compile(r"^[+-]?[0-9]+$")        # Decimal
+HEX_0X_RE = re.compile(r"^0[xX][0-9A-Fa-f]+$")   # Hexa con 0x
+HEX_DOLLAR_RE = re.compile(r"^\$[0-9A-Fa-f]+$")  # Hexa con $
 BINARY_RE = re.compile(r"^0[bB][01]+$")          # 0b1010
 
 # Etiqueta: empieza con letra o '_', sigue con letras, dígitos o '_'.
