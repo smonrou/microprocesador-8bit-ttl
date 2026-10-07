@@ -1,26 +1,4 @@
-// Prueba de la fase 5: cada línea entre el Mega y la placa, una por una.
-//
-// Nace de una traza en la que el PC pasó de 0x00 a 0x11 en su primer conteo,
-// A se cargó con 0x40 y se leyó 0x50, y B apareció con 0x40 sin que nadie la
-// cargara. El firmware pasa sus pruebas contra el simulador, así que la
-// sospecha es el cableado: temporales de la fase 4 peleando con el Mega, o un
-// cable fuera de su sitio. Este sketch lo dice bit por bit.
-//
-// Los pines son los de firmware/unidad_control/pines.h (el IDE no deja
-// incluirlo desde otra carpeta de sketch; si cambia allá, cambia aquí). Las
-// secuencias copian hal_arduino.cpp, así que un OK aquí vale para el firmware.
-//
-// Comandos (mayúscula o minúscula) en el monitor serial a 115200:
-//   T = prueba completa      R = CLEAR y estado     H = ayuda
-//   C = cuenta el PC y lo muestra                    L = leer el PC
-//   A = leer A por la ALU    B = leer B por la ALU
-//   P = solo la prueba de pines de salida (contención)
-//   M = solo el mapa de entradas de los 181 y del PC (prueba 10)
-//
-// Cada renglón dice OK o FALLA. En las fallas, "bits malos" es esperado XOR
-// leído: un 1 marca el bit cuyo cable hay que revisar.
 
-// ── Pines (pines.h) ─────────────────────────────────────────────────────────
 const uint8_t PIN_CLOCK_A = 41;
 const uint8_t PIN_CLOCK_B = 40;
 const uint8_t PIN_MUX = 39;        // LOW = bus, HIGH = salida de ALU
@@ -121,7 +99,7 @@ void reposo() {
   configurarALU(1, S_PASAR_A, 1);
 }
 
-// ── Impresión ───────────────────────────────────────────────────────────────
+// Impresión
 
 void imprimirBin(uint8_t v) {
   for (int8_t b = 7; b >= 0; b--) {
@@ -172,12 +150,8 @@ void listarPines(const __FlashStringHelper* puerto, uint8_t mascara, int base, i
   }
 }
 
-// ── Pruebas ─────────────────────────────────────────────────────────────────
+//Pruebas
 
-// 1. En el AVR, PINx refleja el voltaje REAL del pin aunque sea salida. Si el
-// Mega pone ALTO y lee BAJO (o al revés), algo de fuera lo está forzando: un
-// temporal de la fase 4 al riel, el dip en ON, un puente a otra señal. El
-// choque dura unos microsegundos por pin.
 void pruebaPinesSalida() {
   titulo(F("1. Pines de salida del Mega (contencion con la placa)"));
   uint16_t antes = g_fallas;
@@ -213,8 +187,7 @@ void pruebaPinesSalida() {
   cierre(antes);
 }
 
-// 2. Una línea que nadie maneja lee distinto con y sin pull-up; una manejada
-// por un 181 o un 161 lee igual (totem-pole contra ~35 kΩ).
+// 2
 void pruebaEntradasFlotantes() {
   titulo(F("2. Entradas flotantes (F en PORTC, PC en PORTK)"));
   uint16_t antes = g_fallas;
@@ -234,8 +207,7 @@ void pruebaEntradasFlotantes() {
   cierre(antes);
 }
 
-// 3. Funciones constantes del 181: F no depende de A ni de B, así que esto
-// prueba solo el control de la ALU y los 8 cables de F, sin registros.
+// 3
 void pruebaLecturaF() {
   titulo(F("3. Lectura de F (M=1 S=0011 -> 0x00, M=1 S=1100 -> 0xFF)"));
   uint16_t antes = g_fallas;
@@ -248,7 +220,7 @@ void pruebaLecturaF() {
   cierre(antes);
 }
 
-// 4. CLEAR llega a los dos 273 y a los dos 161.
+// 4 CLEAR llega a los dos 273 y a los dos 161.
 void pruebaClear() {
   titulo(F("4. CLEAR (pin 38): PC, A y B en cero"));
   uint16_t antes = g_fallas;
@@ -301,7 +273,7 @@ void pruebaBusARegistro(bool aEsDestino) {
   cierre(antes);
 }
 
-// 7. El PC cuenta de uno en uno, incluido el paso 0x0F -> 0x10 (cascada RCO).
+// 7. El PC cuenta de uno en uno
 void pruebaPCCuenta() {
   titulo(F("7. PC cuenta (pin 42, /LOAD alto): 0x00 -> 0x14"));
   uint16_t antes = g_fallas;
@@ -314,7 +286,7 @@ void pruebaPCCuenta() {
   cierre(antes);
 }
 
-// 8. El PC carga el bus D con /LOAD bajo (los saltos) y sigue contando desde ahí.
+// 8. El PC carga el bus D con /LOAD bajo y sigue contando desde ahí.
 void pruebaPCCarga() {
   titulo(F("8. PC carga desde el bus D (/LOAD pin 43)"));
   uint16_t antes = g_fallas;
@@ -343,8 +315,7 @@ void pruebaPCCarga() {
   cierre(antes);
 }
 
-// 9. Lo que el programa de referencia necesita: SUB que da cero (si no, Z
-// nunca es 1 y el JNZ gira para siempre) y el resultado de vuelta en A.
+
 void pruebaALU() {
   titulo(F("9. ALU: control de las dos mitades, 0x40-0x40 = 0, y 5+3 de vuelta en A"));
   uint16_t antes = g_fallas;
