@@ -1,89 +1,74 @@
-─────────────────────────────────────────────────────
-; ── paso 1: A ← 0x05 ──
       MOV A,0x05
       OUT
 
-; ── paso 2: NOT A ──
-      MOV [0xF0],A  ; guarda A
+      MOV [0xF0],A
       MOV A,0
-      ADD           ; A = B (copia vía ALU)
-      MOV [0xF1],A  ; guarda B
+      ADD
+      MOV [0xF1],A
       MOV B,0xFF
       MOV A,[0xF0]
-      XOR           ; A = NOT A
-      MOV B,[0xF1]  ; restaura B
+      XOR
+      MOV B,[0xF1]
       OUT
 
-; ── paso 3: NOT A ──
-      MOV [0xF0],A  ; guarda A
+      MOV [0xF0],A
       MOV A,0
-      ADD           ; A = B (copia vía ALU)
-      MOV [0xF1],A  ; guarda B
+      ADD
+      MOV [0xF1],A
       MOV B,0xFF
       MOV A,[0xF0]
-      XOR           ; A = NOT A
-      MOV B,[0xF1]  ; restaura B
+      XOR
+      MOV B,[0xF1]
       OUT
 
-; ── paso 4: B ← 0x03 ──
       MOV B,0x03
       OUT
 
-; ── paso 5: NOT B ──
-      MOV [0xF0],A  ; guarda A
+      MOV [0xF0],A
       MOV A,0xFF
-      XOR           ; A = NOT B
+      XOR
       MOV [0xF1],A
-      MOV B,[0xF1]  ; B = NOT B
-      MOV A,[0xF0]  ; restaura A
+      MOV B,[0xF1]
+      MOV A,[0xF0]
       OUT
 
-; ── paso 6: ADD ──
-      ADD           ; A = A ADD B
+      ADD
       OUT
 
-; ── paso 7: NEG A ──
-      MOV [0xF0],A  ; guarda A
+      MOV [0xF0],A
       MOV A,0
-      ADD           ; A = B (copia vía ALU)
-      MOV [0xF1],A  ; guarda B
-      MOV B,[0xF0]  ; B = A original
+      ADD
+      MOV [0xF1],A
+      MOV B,[0xF0]
       MOV A,0
-      SUB           ; A = 0 - A
-      MOV B,[0xF1]  ; restaura B
+      SUB
+      MOV B,[0xF1]
       OUT
 
-; ── paso 8: B ← 0x0F ──
       MOV B,0x0F
       OUT
 
-; ── paso 9: AND ──
-      AND           ; A = A AND B
+      AND
       OUT
 
-; ── paso 10: NEG B ──
-      MOV [0xF0],A  ; guarda A
+      MOV [0xF0],A
       MOV A,0
-      SUB           ; A = 0 - B
+      SUB
       MOV [0xF1],A
-      MOV B,[0xF1]  ; B = -B
-      MOV A,[0xF0]  ; restaura A
+      MOV B,[0xF1]
+      MOV A,[0xF0]
       OUT
 
-; ── paso 11: OR ──
-      OR            ; A = A OR B
+      OR
       OUT
 
-; ── paso 12: XOR ──
-      XOR           ; A = A XOR B
+      XOR
       OUT
 
-; ── paso 13: B ← 0x0E ──
       MOV B,0x0E
       OUT
 
-; ── paso 14: SUB ──
-      SUB           ; A = A SUB B
+      SUB
       OUT
 
       HLT

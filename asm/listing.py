@@ -1,15 +1,13 @@
 from typing import Dict, Iterable, Sequence
 
-# Bytes por línea LOADB. Ver format_load_script_bloques() para el porqué de 8.
+# bytes por línea LOADB (ver format_load_script_bloques)
 BYTES_POR_BLOQUE = 8
 
-# Anchos de las columnas del listado.
-BYTES_PER_ROW = 4      # bytes por fila; un .DB más largo continúa en otra fila
-ADDRESS_WIDTH = 2      # la memoria es de 256 bytes; 4 dígitos hex no serían honestos
-BYTES_WIDTH = BYTES_PER_ROW * 3 - 1   # "XX XX XX XX" (2 dígitos + espacio por byte)
-LINE_WIDTH = 3         # número de línea del fuente
+BYTES_PER_ROW = 4
+ADDRESS_WIDTH = 2
+BYTES_WIDTH = BYTES_PER_ROW * 3 - 1   # "XX XX XX XX"
+LINE_WIDTH = 3
 
-# Encabezado y línea separadora, alineados con los anchos de arriba.
 HEADER = (
     f"{'DIR':<{ADDRESS_WIDTH + 1}}  {'BYTES':<{BYTES_WIDTH}}  "
     f"{'LÍN':>{LINE_WIDTH}}  FUENTE"
@@ -26,22 +24,16 @@ def _format_bytes(data: Sequence[int]) -> str:
 
 
 def format_listing(rows: Iterable, symbols: Dict[str, int]) -> str:
-    """Listado completo: una fila por línea del fuente y, al final, la
-    tabla de símbolos."""
     lines = [HEADER, SEPARATOR]
 
     for row in rows:
-        # Partir los bytes de la línea en trozos de BYTES_PER_ROW. Una
-        # instrucción da un solo trozo; un .DB largo puede dar varios.
-        # "or [()]": una línea sin bytes igual produce una fila (vacía).
+        # "or [()]" para que las líneas sin bytes también tengan fila
         chunks = [
             row.data[index : index + BYTES_PER_ROW]
             for index in range(0, len(row.data), BYTES_PER_ROW)
         ] or [()]
 
         for chunk_index, chunk in enumerate(chunks):
-            # Columna DIR: vacía si la línea no ocupa memoria; si no, la
-            # dirección del primer byte de este trozo.
             if row.address is None:
                 address_text = ""
             else:
@@ -51,7 +43,7 @@ def format_listing(rows: Iterable, symbols: Dict[str, int]) -> str:
                 line_text = f"{row.line_number:>{LINE_WIDTH}}"
                 source_text = row.source
             else:
-                # Fila de continuación de un .DB largo: solo se repite la dirección.
+                # continuación de un .DB largo
                 line_text = " " * LINE_WIDTH
                 source_text = ""
 
@@ -64,9 +56,7 @@ def format_listing(rows: Iterable, symbols: Dict[str, int]) -> str:
     lines.append("")
     lines.append("TABLA DE SÍMBOLOS")
     if symbols:
-        width = max(len(name) for name in symbols)   # para alinear los '='
-        # Ordenada por dirección: al leer un mapa de memoria es más útil que
-        # el orden alfabético.
+        width = max(len(name) for name in symbols)
         for name, address in sorted(symbols.items(), key=lambda item: item[1]):
             lines.append(f"{name:<{width}} = 0x{address:02X} ({address})")
     else:
@@ -76,27 +66,17 @@ def format_listing(rows: Iterable, symbols: Dict[str, int]) -> str:
 
 
 def format_load_script(rows: Iterable) -> str:
-    """Comandos LOAD del protocolo serie, un byte por línea.
-
-    Ej.: "LOAD 0x00 0x30".
-
-    Disperso: solo las direcciones que de verdad se escribieron, así que un
-    programa de 29 bytes son 29 líneas y no 256 pegadas en el monitor serie.
-
-    La forma por bloques de más abajo es la que escribe el CLI; esta sigue
-    disponible desde la API para revisar byte a byte o como respaldo.
-    """
+    """Un LOAD por byte escrito: "LOAD 0x00 0x30". El CLI usa la forma por bloques."""
     lines = []
     for row in rows:
         if row.address is None or not row.data:
-            continue   # líneas que no ocupan memoria
+            continue
         for offset, byte in enumerate(row.data):
             lines.append(f"LOAD 0x{row.address + offset:02X} 0x{byte:02X}")
     return "\n".join(lines)
 
 
 def _bytes_por_direccion(rows: Iterable) -> Dict[int, int]:
-    """Aplana las filas en un diccionario dirección -> byte."""
     escritos = {}
     for row in rows:
         if row.address is None or not row.data:
@@ -107,11 +87,7 @@ def _bytes_por_direccion(rows: Iterable) -> Dict[int, int]:
 
 
 def _rangos_contiguos(direcciones: Sequence[int]):
-    """Agrupa direcciones ordenadas en tramos consecutivos.
-
-    Es un generador (usa yield): va entregando (inicio, fin) de a uno.
-    Ej.: [0, 1, 2, 200, 201] -> (0, 2), (200, 201).
-    """
+    """[0, 1, 2, 200, 201] -> (0, 2), (200, 201)"""
     if not direcciones:
         return
     inicio = anterior = direcciones[0]
@@ -125,28 +101,18 @@ def _rangos_contiguos(direcciones: Sequence[int]):
 
 
 def format_load_script_bloques(rows: Iterable) -> str:
-    """Comandos LOADB, varios bytes por línea (protocolo B.3).
+    """LOADB (B.3): dirección inicial y hasta 8 bytes consecutivos.
 
-    Ej.: "LOADB 0x00 0x30 0x00 0x50 0xC8 ..." (dirección inicial y luego
-    hasta 8 bytes consecutivos).
-
-    Es lo que escribe el CLI en el archivo `.load`: el programa de referencia
-    baja de 29 líneas a 5.
-
-    BYTES_POR_BLOQUE está en 8 por una razón concreta: el buffer de recepción
-    del Arduino son 64 bytes, y `LOADB 0xNN ` más ocho `0xNN ` da 51
-    caracteres. Subirlo a 16 pasaría de 90 y podría perder bytes en silencio
-    al pegar el archivo de golpe en el monitor serie.
+    Con 8 bytes la línea mide 51 caracteres; con 16 pasaría el buffer de
+    64 bytes del Arduino y se perderían bytes al pegar.
     """
     escritos = _bytes_por_direccion(rows)
     direcciones = sorted(escritos)
 
     lines = []
-    # Un LOADB solo sirve para bytes consecutivos, así que primero se separa
-    # en tramos contiguos y luego cada tramo se corta en bloques de 8.
     for inicio, fin in _rangos_contiguos(direcciones):
         for base in range(inicio, fin + 1, BYTES_POR_BLOQUE):
-            ultimo = min(base + BYTES_POR_BLOQUE - 1, fin)   # el último bloque puede ser más corto
+            ultimo = min(base + BYTES_POR_BLOQUE - 1, fin)
             valores = " ".join(
                 f"0x{escritos[direccion]:02X}"
                 for direccion in range(base, ultimo + 1)
