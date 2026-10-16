@@ -2,8 +2,7 @@
 // prueba_alu.cpp — barrido exhaustivo del 74LS181 emulado.
 //
 // Recorre las 5 operaciones del diseño sobre los 65536 pares (A, B) y vuelca
-// el resultado. tests/test_firmware_alu.py compara cada línea contra
-// sim/alu.py, así que el emulador queda anclado al simulador.
+// el resultado.
 //
 // Se compila solo para pruebas nativas; no forma parte del sketch.
 // ---------------------------------------------------------------------------

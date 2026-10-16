@@ -2,16 +2,15 @@
 
 Microprocesador de 8 bits construido con lógica TTL discreta (ALU SN74LS181, registros 74LS273, multiplexores 74LS157), controlado por un Arduino Mega que actúa **únicamente** como unidad de control, RAM y reloj. El contador de programa (PC) también es hardware (2× 74LS161) y la salida son 8 LEDs a través de un 74LS240. Toda operación aritmética y lógica ocurre en el hardware TTL, nunca en el microcontrolador.
 
-Este repositorio contiene las tres implementaciones del mismo ISA (juego de instrucciones), mantenidas sincronizadas por una suite de pruebas compartida:
+Este repositorio contiene las implementaciones del mismo ISA (juego de instrucciones), mantenidas sincronizadas por una suite de pruebas compartida:
 
-- **`sim/`**: simulador de referencia en Python (CPU, ALU, memoria, ciclo fetch-decode-execute).
 - **`asm/`**: ensamblador de dos pasadas que traduce programas fuente `.asm` al binario de 256 bytes que carga la máquina.
 - **`firmware/`**: firmware en C++ para el Arduino Mega, con una capa HAL que separa el núcleo de control (probado en PC) de las implementaciones reales/simuladas de hardware.
-- **`depurador/`**: depurador gráfico (Tkinter) para inspeccionar y depurar la ejecución en el hardware real por puerto serie. No depende de `sim/` ni de `asm/`.
+- **`depurador/`**: depurador gráfico (Tkinter) para inspeccionar y depurar la ejecución en el hardware real por puerto serie. No depende de `asm/`.
 - **`montaje/`**: fuente de verdad del montaje físico en 4 protoboards (`netlist.py`), generador de planos SVG y guías por fase, y la bitácora de lo que realmente pasó (`bitacora_montaje.md`).
 - **`compañero/`**: sketch de un compañero, **externo** al diseño de este repositorio y no cubierto por las pruebas.
 - **`programas/`**: programas de ejemplo en ensamblador, incluido el programa de referencia (multiplicación por sumas repetidas) y `diagnostico/` (programas para diagnosticar el cableado).
-- **`tests/`**: suite de pruebas (802) que valida que las tres implementaciones (simulador, ensamblador, firmware compilado en PC) produzcan resultados idénticos. No ejercen el hardware físico: eso se prueba en la protoboard (ver `montaje/bitacora_montaje.md`).
+- **`tests/`**: suite de pruebas que valida que las implementaciones (ensamblador, firmware compilado en PC) produzcan resultados idénticos. No ejercen el hardware físico: eso se prueba en la protoboard (ver `montaje/bitacora_montaje.md`).
 
 ## Arquitectura
 
@@ -67,7 +66,6 @@ python -m pytest -k firmware -v                 # solo pruebas de firmware (comp
 
 ```
 .
-├── sim/          # simulador de referencia (Python)
 ├── asm/          # ensamblador de dos pasadas (Python)
 ├── firmware/     # firmware del Arduino Mega (C++), su capa HAL y los sketches de prueba (prueba_fase4/5)
 ├── depurador/    # depurador gráfico Tkinter
@@ -83,7 +81,7 @@ python -m pytest -k firmware -v                 # solo pruebas de firmware (comp
 
 ## Estado del proyecto
 
-El diseño lógico, el simulador, el ensamblador y el firmware están completos y validados por pruebas automatizadas. El circuito físico está terminado en 4 protoboards con el Arduino Mega y **funciona completo** (2026-10-02): las 6 fases del montaje pasaron sus pruebas, y cualquier programa da en los LEDs el mismo resultado que el simulador. El simulador sirve como referencia de comportamiento correcto para validar el hardware.
+El diseño lógico, el ensamblador y el firmware están completos y validados por pruebas automatizadas. El circuito físico está terminado en 4 protoboards con el Arduino Mega y **funciona completo** (2026-10-02): las 6 fases del montaje pasaron sus pruebas,.
 
 ## Licencia
 

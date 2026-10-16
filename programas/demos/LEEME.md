@@ -2,7 +2,7 @@
 
 Once programas que muestran qué aplicaciones permite el set de 16 instrucciones. Cada `.asm` trae su `.load` listo para pegar en el Monitor Serie o en **Cargar .load** del depurador, más su `.lst` (listado con direcciones) y `.bin` (imagen de 256 bytes).
 
-Todos están verificados en el simulador y en el núcleo del firmware, instrucción por instrucción (`tests/test_programas_demos.py`, `tests/test_firmware_nucleo.py`).
+Todos están verificados en el núcleo del firmware, instrucción por instrucción (`tests/test_firmware_nucleo.py`).
 
 ## Catálogo
 

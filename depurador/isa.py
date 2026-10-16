@@ -2,7 +2,7 @@
 
 Copia de lo que necesita del ISA (Parte A, congelada): el opcode son los 4 bits
 altos del primer byte. Si cambia el ISA, hay que cambiarlo aquí, en
-``firmware/unidad_control/isa.cpp`` y en ``sim/isa.py``.
+``firmware/unidad_control/isa.cpp`` y en ``asm/isa.py``.
 """
 
 from dataclasses import dataclass

@@ -4,9 +4,7 @@
 //   arnes <imagen.bin> [--microciclos] [--limite N]
 //
 // Carga una imagen de 256 bytes, la ejecuta contra el HAL falso y escribe una
-// línea ASCII por instrucción completada. tests/test_firmware_nucleo.py
-// recorre sim/cpu.py en paralelo y compara instrucción por instrucción, así
-// que cualquier divergencia se localiza exactamente donde empieza.
+// línea ASCII por instrucción completada.
 //
 // Solo pruebas nativas: no forma parte del sketch.
 // ---------------------------------------------------------------------------

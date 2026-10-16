@@ -8,7 +8,7 @@
 
 Un depurador gráfico que muestra **por dónde va pasando la información y qué información es**: los registros A y B en los cuatro formatos a la vez, las banderas Z y C de la unidad de control, las líneas de control de la ALU, la memoria completa con la celda del PC resaltada, el desensamblado con la instrucción actual marcada, y ejecución **microciclo a microciclo** para la demostración.
 
-El depurador es **autónomo**: no importa `sim/` ni `asm/`. Habla por puerto serie con el Arduino Mega que corre `firmware/unidad_control/`, así que **necesita la placa conectada** para ejecutar algo.
+El depurador es **autónomo**: no importa `asm/`. Habla por puerto serie con el Arduino Mega que corre `firmware/unidad_control/`, así que **necesita la placa conectada** para ejecutar algo.
 
 ---
 

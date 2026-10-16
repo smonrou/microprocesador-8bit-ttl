@@ -125,7 +125,7 @@ uint8_t leerPC() {
 }
 
 void mostrarByte(uint8_t valor) {
-  // El valor para el simulador, físico no lo ocupa
+  // El hardware físico no ocupa el valor
   (void)valor;
   display::enganchar();
 }
