@@ -1,4 +1,3 @@
-; diag3_bits_B.asm — un bit a la vez por el registro B (A=0, ADD => A=B).
 ; Esperado: OUT = 1, 2, 4, 8, 16, 32, 64, 128.
       MOV B,1
       MOV A,0

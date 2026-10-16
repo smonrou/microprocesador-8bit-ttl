@@ -3,23 +3,18 @@ from typing import Optional
 
 from .errors import InvalidLiteralError, OperandRangeError
 
-# Rango de un byte sin signo.
 MIN_VALUE = 0
 MAX_VALUE = 255
 
-# Una regex por formato. ^ y $ obligan a que coincida el texto completo.
-DECIMAL_RE = re.compile(r"^[+-]?[0-9]+$")        # Decimal
-HEX_0X_RE = re.compile(r"^0[xX][0-9A-Fa-f]+$")   # Hexa con 0x
-HEX_DOLLAR_RE = re.compile(r"^\$[0-9A-Fa-f]+$")  # Hexa con $
-BINARY_RE = re.compile(r"^0[bB][01]+$")          # 0b1010
+DECIMAL_RE = re.compile(r"^[+-]?[0-9]+$")
+HEX_0X_RE = re.compile(r"^0[xX][0-9A-Fa-f]+$")
+HEX_DOLLAR_RE = re.compile(r"^\$[0-9A-Fa-f]+$")
+BINARY_RE = re.compile(r"^0[bB][01]+$")
 
-# Etiqueta: empieza con letra o '_', sigue con letras, dígitos o '_'.
-# Ejemplos válidos: LOOP, dato_1, _fin. Inválidos: 1LOOP, fin-2.
 LABEL_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
 def looks_like_number(text: str) -> bool:
-    """¿El texto tiene forma de número en alguna de las bases admitidas?"""
     return bool(
         DECIMAL_RE.match(text)
         or HEX_0X_RE.match(text)
@@ -29,26 +24,19 @@ def looks_like_number(text: str) -> bool:
 
 
 def looks_like_label(text: str) -> bool:
-    """¿El texto tiene forma de nombre de etiqueta?"""
     return bool(LABEL_RE.match(text))
 
 
 def parse_number(text: str, line_number: int, line_text: str = "") -> int:
-    """Convierte un literal en cualquier base admitida a int. Lanza
-    InvalidLiteralError si no tiene ninguna forma válida.
-
-    Los decimales con signo se leen bien aquí y fallan después en el control
-    de rango, para que `-1` se reporte como "operando fuera de rango" (lo que
-    pide B.2) y no como un error de sintaxis.
-    """
+    # los decimales con signo pasan aquí y fallan en check_range (B.2)
     if DECIMAL_RE.match(text):
         return int(text, 10)
     if HEX_0X_RE.match(text):
-        return int(text[2:], 16)   # se quita el prefijo "0x"
+        return int(text[2:], 16)
     if HEX_DOLLAR_RE.match(text):
-        return int(text[1:], 16)   # se quita el prefijo "$"
+        return int(text[1:], 16)
     if BINARY_RE.match(text):
-        return int(text[2:], 2)    # se quita el prefijo "0b"
+        return int(text[2:], 2) 
     raise InvalidLiteralError(
         f"literal numérico mal formado: '{text}'", line_number, line_text
     )
@@ -57,8 +45,6 @@ def parse_number(text: str, line_number: int, line_text: str = "") -> int:
 def check_range(
     value: int, line_number: int, line_text: str = "", what: str = "operando"
 ) -> int:
-    """Devuelve el valor si cabe en un byte (0..255); si no, lanza
-    OperandRangeError. `what` solo cambia la palabra del mensaje."""
     if value < MIN_VALUE or value > MAX_VALUE:
         raise OperandRangeError(
             f"{what} fuera de rango: {value} (válido {MIN_VALUE}–{MAX_VALUE})",
@@ -71,5 +57,4 @@ def check_range(
 def parse_and_check(
     text: str, line_number: int, line_text: str = "", what: str = "operando"
 ) -> int:
-    """Atajo: leer el literal y comprobar su rango en un solo paso."""
     return check_range(parse_number(text, line_number, line_text), line_number, line_text, what)

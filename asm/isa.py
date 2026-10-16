@@ -2,27 +2,26 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Optional
 
-# Tamaño de la memoria en bytes.
 MEMORY_SIZE = 256
 
 
 class Mode(Enum):
-    IMPLICIT = auto()    # los operandos son A y/o B, sin byte de operando
-    DIRECT = auto()      # el byte de operando es una dirección
-    IMMEDIATE = auto()   # el byte de operando es el dato
-    NONE = auto()        # sin operandos (NOP, HLT)
+    IMPLICIT = auto()    # opera sobre A y/o B, sin byte de operando
+    DIRECT = auto()      # el operando es una dirección
+    IMMEDIATE = auto()   # el operando es el dato
+    NONE = auto()        # NOP, HLT
 
 
 @dataclass(frozen=True)
 class InstructionSpec:
     opcode: int
-    mnemonic: str            # único por opcode; la gramática del ensamblador sale de aquí
-    length: int              # 1 o 2 bytes
+    mnemonic: str            # único por opcode, el parser se arma a partir de esto
+    length: int
     mode: Mode
-    register: Optional[str] = None   # 'A' o 'B', cuando aplica
+    register: Optional[str] = None
 
 
-# Tabla de la ISA (A.5), una fila por instrucción.
+# Tabla de la ISA (A.5)
 OPCODE_TABLE = {
     0x0: InstructionSpec(0x0, "NOP", 1, Mode.NONE),
     0x1: InstructionSpec(0x1, "MOV A,[dir]", 2, Mode.DIRECT, register="A"),
