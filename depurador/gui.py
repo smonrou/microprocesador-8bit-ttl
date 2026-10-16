@@ -1,33 +1,7 @@
-"""Panel frontal en Tkinter: por dónde va la información y qué información es.
+"""Panel frontal en Tkinter del depurador.
 
-Este archivo es DELIBERADAMENTE delgado. Todo lo que se puede probar sin
-pantalla vive en los otros módulos del paquete (``protocolo``,
-``formato_numerico``, ``desensamblador``, ``cargador``, ``transporte``,
-``servidor_falso``); aquí solo se construyen widgets y se cablean botones.
-En este repo no hay convención de test headless de Tkinter y no se inventa
-una: esta es la única pieza de verificación manual, y por eso no debe tener
-lógica propia que se pueda equivocar en silencio.
-
-CONCURRENCIA — la regla que no se puede romper:
-
-    El hilo lector del transporte NUNCA toca un widget. Empuja líneas a una
-    ``queue.Queue``; este archivo la vacía desde ``root.after(50, ...)``, que
-    corre en el hilo principal. Todo widget se pinta ahí y solo ahí.
-    Tkinter no es seguro entre hilos: saltarse esto produce cuelgues que
-    aparecen semanas después y no se reproducen.
-
-Lo que se ve:
-
-- Registros A y B en binario, hexadecimal, con signo y sin signo A LA VEZ.
-- PC e IR con el nemónico ya decodificado.
-- Banderas Z y C de la unidad de control, siempre visibles.
-- Las líneas de control de la ALU (M / S3-S0 / Cn) de la última operación.
-- Los 256 bytes de memoria con la celda del PC resaltada.
-- El desensamblado con la instrucción actual marcada.
-- Los valores de OUT en los cuatro formatos.
-- El tráfico crudo, tal cual viaja por el cable.
-- Panel desplegable de pruebas rápidas: los pasos que dicta el ingeniero se
-  vuelven ensamblador en vivo (lógica en ``pruebas_rapidas``).
+Aquí solo se arman widgets y se cablean botones; la lógica que se puede
+probar sin pantalla está en los otros módulos del paquete.
 """
 
 import os
@@ -43,8 +17,6 @@ from .servidor_falso import RETARDO_POR_DEFECTO, ServidorFalso
 
 MONOESPACIADA = ("Consolas", 9)
 MONOESPACIADA_GRANDE = ("Consolas", 11, "bold")
-# Con el panel de pruebas abierto, memoria y desensamblado se encogen para
-# que la ventana quepa en pantallas de 1366 px.
 MONOESPACIADA_COMPACTA = ("Consolas", 7)
 TITULO_MEMORIA = "Memoria 256 B"
 ANCHO_DESENSAMBLADO = 28
@@ -65,21 +37,16 @@ COLUMNAS_MEMORIA = 16
 
 
 class Depurador:
-    """La ventana entera. Un solo objeto: no hay estado global."""
-
     def __init__(self, raiz: tk.Tk) -> None:
         self.raiz = raiz
         self.raiz.title("Depurador: microprocesador de 8 bits")
         self.raiz.configure(bg=COLOR_FONDO)
 
-        # ── Estado observado ───────────────────────────────────────────────
         self.canal: Optional[transporte.Transporte] = None
         self.servidor: Optional[ServidorFalso] = None
         self.ensamblador = protocolo.EnsambladorDeBloques()
         self.memoria: List[int] = [0] * 256
         self.pendientes_de_carga: List[str] = []
-        # Durante un RUN no se pide DUMP por instrucción (serían 16 líneas de
-        # tráfico por cada una); se pide una sola vez al llegar al HLT.
         self.corriendo = False
         self.registro_a = 0
         self.registro_b = 0
@@ -94,10 +61,6 @@ class Depurador:
         self._refrescar_puertos()
         self.raiz.after(MILISEGUNDOS_ENTRE_DRENAJES, self._drenar)
         self.raiz.protocol("WM_DELETE_WINDOW", self._al_cerrar)
-
-    # ══════════════════════════════════════════════════════════════════════
-    # Construcción de widgets
-    # ══════════════════════════════════════════════════════════════════════
 
     def _construir(self) -> None:
         self._construir_barra_conexion()
@@ -120,7 +83,7 @@ class Depurador:
         derecha.pack(side="left", fill="both")
         self._construir_desensamblado(derecha)
 
-        # Oculto hasta que se pulse «Pruebas rápidas» en la barra.
+        # oculto hasta pulsar Pruebas rápidas
         self.marco_pruebas = tk.Frame(cuerpo, bg=COLOR_FONDO)
         self._construir_pruebas_rapidas(self.marco_pruebas)
 
@@ -135,8 +98,6 @@ class Depurador:
                   fuente=MONOESPACIADA, **opciones) -> tk.Label:
         return tk.Label(padre, text=texto, bg=COLOR_PANEL, fg=color,
                         font=fuente, anchor="w", **opciones)
-
-    # ── Barra de conexión ──────────────────────────────────────────────────
 
     def _construir_barra_conexion(self) -> None:
         barra = tk.Frame(self.raiz, bg=COLOR_PANEL, pady=4, padx=6)
@@ -176,10 +137,7 @@ class Depurador:
                                        command=self._alternar_pruebas)
         self.boton_pruebas.pack(side="right")
 
-        # Habilita combo y ↻ según el estado inicial de la casilla.
         self._alternar_origen()
-
-    # ── Registros A y B ────────────────────────────────────────────────────
 
     def _construir_registros(self, padre) -> None:
         marco = self._marco(padre, "Registros (74LS273)")
@@ -200,7 +158,6 @@ class Depurador:
                 celda.grid(row=fila, column=columna, sticky="w", padx=4)
                 self.celdas_registro[nombre].append(celda)
 
-        # PC / IR: variables de la unidad de control, no del camino de datos.
         marco_control = self._marco(padre, "Unidad de control")
         marco_control.pack(fill="x", pady=2)
         self.etiqueta_pc = self._etiqueta(marco_control, "PC  = 0x00  (0)")
@@ -210,8 +167,6 @@ class Depurador:
         self.etiqueta_ciclo = self._etiqueta(marco_control, "ciclo -   paso -",
                                              COLOR_APAGADO)
         self.etiqueta_ciclo.pack(fill="x")
-
-    # ── Banderas ───────────────────────────────────────────────────────────
 
     def _construir_banderas(self, padre) -> None:
         marco = self._marco(padre, "Banderas")
@@ -233,8 +188,6 @@ class Depurador:
         self.etiqueta_detenido = self._etiqueta(marco, "CPU lista", COLOR_ACTIVO)
         self.etiqueta_detenido.grid(row=1, column=0, columnspan=2, sticky="w")
 
-    # ── Líneas de control de la ALU ────────────────────────────────────────
-
     def _construir_alu(self, padre) -> None:
         marco = self._marco(padre, "ALU 2x SN74LS181")
         marco.pack(fill="x", pady=2)
@@ -243,8 +196,6 @@ class Depurador:
         self.etiqueta_alu_nota = self._etiqueta(
             marco, "(sin operación de ALU todavía)", COLOR_APAGADO)
         self.etiqueta_alu_nota.pack(fill="x")
-
-    # ── Botonera ───────────────────────────────────────────────────────────
 
     def _construir_controles(self, padre) -> None:
         marco = self._marco(padre, "Ejecución")
@@ -278,7 +229,7 @@ class Depurador:
         self.boton_cargar.grid(row=1, column=2, columnspan=2, padx=2, pady=2)
         self.botones_comando["CARGAR"] = self.boton_cargar
 
-        # VEL: retardo entre instrucciones en RUN, 0-5000 ms (consola.cpp).
+        # VEL: retardo entre instrucciones en RUN, 0-5000 ms
         velocidad = tk.Frame(marco, bg=COLOR_PANEL)
         velocidad.pack(fill="x", pady=(6, 0))
         tk.Label(velocidad, text="VEL", bg=COLOR_PANEL, fg=COLOR_TEXTO,
@@ -294,8 +245,6 @@ class Depurador:
         self.boton_velocidad.pack(side="left")
         self.botones_comando["VEL"] = self.boton_velocidad
 
-    # ── Memoria ────────────────────────────────────────────────────────────
-
     def _construir_memoria(self, padre) -> None:
         marco = self._marco(padre, TITULO_MEMORIA)
         marco.pack(fill="both", expand=True)
@@ -304,7 +253,6 @@ class Depurador:
         rejilla = tk.Frame(marco, bg=COLOR_PANEL)
         rejilla.pack()
 
-        # Encabezados de fila y columna: se guardan para poder encogerlos.
         self.ejes_memoria = []
         for columna in range(COLUMNAS_MEMORIA):
             eje = self._etiqueta(rejilla, f"{columna:X}", COLOR_APAGADO)
@@ -322,8 +270,6 @@ class Depurador:
                 celda.grid(row=fila + 1, column=columna + 1, padx=1, pady=1)
                 self.celdas_memoria.append(celda)
 
-    # ── Desensamblado ──────────────────────────────────────────────────────
-
     def _construir_desensamblado(self, padre) -> None:
         marco = self._marco(padre, "Desensamblado")
         marco.pack(fill="both", expand=True)
@@ -336,8 +282,6 @@ class Depurador:
         barra = tk.Scrollbar(marco, command=self.lista_desensamblado.yview)
         barra.pack(side="right", fill="y")
         self.lista_desensamblado.config(yscrollcommand=barra.set)
-
-    # ── Pruebas rápidas ────────────────────────────────────────────────────
 
     def _construir_pruebas_rapidas(self, padre) -> None:
         marco = self._marco(padre, "Pruebas rápidas")
@@ -406,15 +350,12 @@ class Depurador:
 
         self._refrescar_prueba()
 
-    # ── Logs ───────────────────────────────────────────────────────────────
-
     def _construir_registros_de_texto(self) -> None:
         abajo = tk.Frame(self.raiz, bg=COLOR_FONDO)
         abajo.pack(fill="both", expand=True, padx=6, pady=(0, 6))
 
         marco_salida = self._marco(abajo, "Salidas (OUT)")
         marco_salida.pack(side="left", fill="both", expand=True, padx=(0, 3))
-        # El botón se empaqueta antes que la caja para que esta no lo tape.
         tk.Button(marco_salida, text="Limpiar", font=MONOESPACIADA,
                   command=lambda: self._limpiar(self.log_salidas)).pack(
             side="bottom", anchor="e", pady=(4, 0))
@@ -451,10 +392,6 @@ class Depurador:
         caja.delete("1.0", "end")
         caja.config(state="disabled")
 
-    # ══════════════════════════════════════════════════════════════════════
-    # Conexión
-    # ══════════════════════════════════════════════════════════════════════
-
     def _alternar_origen(self) -> None:
         local = self.usar_servidor_local.get()
         estado = "disabled" if local else "readonly"
@@ -478,8 +415,6 @@ class Depurador:
     def _conectar(self) -> None:
         try:
             if self.usar_servidor_local.get():
-                # El servidor falso vive dentro de este mismo proceso: es un
-                # Arduino de mentira, no un servicio aparte que haya que lanzar.
                 self.servidor = ServidorFalso(puerto=0,
                                               retardo=self.velocidad.get()).iniciar()
                 self.canal = transporte.TransporteSocket("127.0.0.1",
@@ -523,10 +458,6 @@ class Depurador:
         self._desconectar()
         self.raiz.destroy()
 
-    # ══════════════════════════════════════════════════════════════════════
-    # Envío
-    # ══════════════════════════════════════════════════════════════════════
-
     def _enviar(self, orden: str) -> None:
         if self.canal is None:
             return
@@ -567,14 +498,7 @@ class Depurador:
 
     def _cargar_lineas(self, lineas: List[str], nombre: str,
                        ejecutar: bool = False) -> None:
-        # Una línea a la vez, esperando el OK/ERR de cada una: el buffer de
-        # recepción del Arduino son 64 bytes y mandarlas de golpe perdería
-        # comandos EN SILENCIO (consola.h).
         if ejecutar:
-            # BORRAR para que la memoria muestre solo esta prueba; DUMP para
-            # pintar memoria y desensamblado ANTES de correr (durante el RUN
-            # el Arduino no atiende comandos); RESET porque RUN se niega si
-            # la CPU quedó detenida en un HLT.
             lineas = ["BORRAR", *lineas, "DUMP", "RESET", "RUN"]
         self.pendientes_de_carga = list(lineas)
         self._escribir(self.log_trafico,
@@ -588,19 +512,10 @@ class Depurador:
         orden = self.pendientes_de_carga.pop(0)
         self._enviar(orden)
         if orden == "DUMP" and self.pendientes_de_carga:
-            # DUMP no cierra con OK/ERR: se manda lo siguiente de una vez.
-            # El Arduino atiende en orden, así que el volcado llega antes
-            # de que empiece lo que venga detrás.
             self._enviar_siguiente_de_la_carga()
             return
-        # Tras un RUN no se pide DUMP aquí: RUN no responde OK y el
-        # «--- HLT ---» ya pide la memoria cuando termina.
         if not self.pendientes_de_carga and orden != "RUN":
             self._pedir_memoria()
-
-    # ══════════════════════════════════════════════════════════════════════
-    # Pruebas rápidas — toda la lógica vive en pruebas_rapidas.py
-    # ══════════════════════════════════════════════════════════════════════
 
     def _alternar_pruebas(self) -> None:
         if self.marco_pruebas.winfo_ismapped():
@@ -613,8 +528,7 @@ class Depurador:
             self.boton_pruebas.config(text="Pruebas rápidas ▾")
 
     def _compactar(self, compacto: bool) -> None:
-        """Encoge (o restaura) memoria y desensamblado para dejar sitio al
-        panel de pruebas sin que la ventana se salga de la pantalla."""
+        """Encoge o restaura memoria y desensamblado."""
         fuente = MONOESPACIADA_COMPACTA if compacto else MONOESPACIADA
         separacion = 0 if compacto else 1
         for eje in self.ejes_memoria:
@@ -637,8 +551,7 @@ class Depurador:
                 return
         self.pasos_prueba.append(pruebas_rapidas.Paso(tipo, valor))
         if not self._refrescar_prueba():
-            # No cabe en 0x00-0xBF: se descarta el paso y se deja el
-            # programa anterior, que sí ensambla.
+            # no cabe en 0x00-0xBF, se descarta el paso
             self.pasos_prueba.pop()
             mensaje = self.etiqueta_prueba.cget("text")
             self._refrescar_prueba()
@@ -727,13 +640,8 @@ class Depurador:
         self._cargar_lineas(pruebas_rapidas.lineas_de_carga(resultado),
                             "prueba rápida", ejecutar=True)
 
-    # ══════════════════════════════════════════════════════════════════════
-    # Recepción — HILO PRINCIPAL, disparado por root.after
-    # ══════════════════════════════════════════════════════════════════════
-
     def _drenar(self) -> None:
-        """Vacía la cola del transporte y pinta. ÚNICO sitio que toca widgets
-        con datos que vienen del hilo lector."""
+        """Vacía la cola del transporte y pinta (hilo principal)."""
         try:
             if self.canal is not None:
                 for linea in self.canal.drenar():
@@ -773,7 +681,6 @@ class Depurador:
             self.corriendo = True
             return
         if linea == "--- HLT ---":
-            # MOV [dir],A pudo cambiar la memoria; hay que volver a leerla.
             self.corriendo = False
             self._pedir_memoria()
             return
@@ -783,25 +690,18 @@ class Depurador:
                 self.corriendo = False
             self._enviar_siguiente_de_la_carga()
 
-    # ── Pintado ────────────────────────────────────────────────────────────
-
     def _actualizar_desde_claves(self, datos: dict) -> None:
         if "paso" in datos:
             self.etiqueta_ciclo.config(text=f"ciclo -   paso {datos['paso']}")
             return
 
-        es_estado = "ciclo" not in datos          # línea de STATE/RESET
+        es_estado = "ciclo" not in datos  # línea de STATE/RESET
 
         if "pc" in datos:
             self.pc = int(datos["pc"])
         if "ir" in datos:
             self.ir = int(datos["ir"])
 
-        # Las líneas #ciclo= del firmware NO siempre traen A y B: nucleo.cpp
-        # reinicia la traza y solo rellena los campos que toca la instrucción
-        # (ver protocolo.registros_significativos). Conservar el último valor
-        # conocido es más honesto que pintar un 0 inventado; STATE los trae
-        # siempre, leídos de los registros físicos a través de la ALU.
         a_valida = b_valida = True
         if not es_estado:
             a_valida, b_valida = protocolo.registros_significativos(
@@ -845,8 +745,6 @@ class Depurador:
         self._pintar_memoria()
         self._pintar_desensamblado()
 
-        # En modo STEP se refresca la memoria al cerrar cada instrucción: así
-        # se ve el efecto de un MOV [dir],A en la celda de destino.
         if "ciclo" in datos and not self.corriendo:
             self._pedir_memoria()
 
@@ -863,8 +761,6 @@ class Depurador:
     def _actualizar_alu(self, bloque: str) -> None:
         control = protocolo.extraer_control_alu(bloque)
         if control is None:
-            # La línea "ALU: ..." sencillamente no está en el bloque cuando la
-            # instrucción no fue de ALU. Se deja el último control visible.
             self.etiqueta_alu_nota.config(
                 text="(la última instrucción no usó la ALU)")
             return
