@@ -13,7 +13,7 @@ void setup() {
     ;  // en placas con USB nativo, esperar a que el puerto abra
   }
 
-  hal::iniciar();       // pines, y CLEAR a los dos 74LS273
+  hal::iniciar();       // pines, y CLEAR
   nucleo.borrarTodo();  // memoria a 0x00
   consola::iniciar(&nucleo);
 }
