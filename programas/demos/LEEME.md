@@ -52,11 +52,7 @@ VEL 400                     ← opcional, según la tabla
 RUN
 ```
 
-Para repetir: `RESET` y `RUN`. Antes de pegar en la placa se puede comprobar en el simulador:
-
-```
-python -m asm programas/demos/06_division.asm --run
-```
+Para repetir: `RESET` y `RUN`.
 
 ## Orden sugerido para la defensa
 

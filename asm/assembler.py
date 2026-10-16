@@ -1,8 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
-from sim.isa import Mode
-from sim.memory import SIZE as MEMORY_SIZE   # 256 bytes
+from .isa import Mode, MEMORY_SIZE   # 256 bytes
 
 from .errors import (
     AssemblerError,

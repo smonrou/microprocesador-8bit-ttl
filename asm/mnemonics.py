@@ -1,6 +1,6 @@
 from typing import Dict, Tuple
 
-from sim.isa import OPCODE_TABLE, InstructionSpec, Mode
+from .isa import OPCODE_TABLE, InstructionSpec, Mode
 
 # Huecos ("slots") del patrón, tal como aparecen (en mayúsculas) en
 # spec.mnemonic. Cualquier otro slot es el nombre literal de un registro.

@@ -46,9 +46,6 @@ python -m pytest -q
 # Ensamblar un programa
 python -m asm programas/referencia.asm
 
-# Ensamblar y ejecutar en el simulador
-python -m asm programas/referencia.asm --run
-
 # Ver el listado sin escribir archivos
 python -m asm programas/referencia.asm --listing-only
 

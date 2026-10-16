@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from typing import List, Optional, Tuple
 
-from sim.isa import InstructionSpec
+from .isa import InstructionSpec
 
 from .errors import (
     AssemblerError,
@@ -201,9 +201,7 @@ def select_form(
 ) -> InstructionSpec:
     """Devuelve el único spec cuyo patrón encaja con los operandos escritos.
 
-    Es lo único que asm/ añade por encima de sim.isa: qué forma de operando
-    llena cada slot del patrón. Los patrones mismos salen de la tabla
-    congelada (asm.mnemonics.operand_pattern).
+    Los patrones salen de la tabla congelada (asm.mnemonics.operand_pattern).
 
     Ej.: base="MOV", operandos (REGISTER A, MEMORY_NUMBER 200) -> recorre las
     5 formas de MOV y solo "MOV A,[dir]" encaja.

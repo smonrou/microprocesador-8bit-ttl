@@ -32,11 +32,6 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="imprime el listado en pantalla sin escribir archivos",
     )
-    parser.add_argument(
-        "--run",
-        action="store_true",
-        help="ensambla y ejecuta el resultado en el simulador (B.1)",
-    )
     return parser
 
 
@@ -77,8 +72,6 @@ def main(argv=None) -> int:
     if args.listing_only:
         print(result.listing)
         _print_warnings(result)
-        if args.run:
-            _run(result)
         return 0
 
     # 3b. Modo normal: escribir .bin, .lst y .load.
@@ -104,9 +97,6 @@ def main(argv=None) -> int:
     print(f"  {lst_path}")
     print(f"  {load_path}")
     _print_warnings(result)
-
-    if args.run:
-        _run(result)
     return 0
 
 
@@ -114,32 +104,6 @@ def _print_warnings(result) -> None:
     """Los avisos van a stderr para no mezclarse con el listado."""
     for warning in result.warnings:
         print(f"aviso: {warning}", file=sys.stderr)
-
-
-def _run(result) -> None:
-    """Ensamblar y luego ejecutar en el simulador de B.1: la demo de punta a
-    punta más simple posible."""
-    # Imports aquí: el simulador solo se carga si se pidió --run.
-    from sim.cpu import CPU
-    from sim.exceptions import CycleLimitExceeded
-    from sim.memory import Memory
-
-    # Cargar la imagen de 256 bytes en una memoria nueva y ejecutar.
-    memory = Memory()
-    memory.load_bytes(result.binary)
-    cpu = CPU(memory)
-    try:
-        cpu.run()
-    except CycleLimitExceeded as error:
-        # Protección contra bucles infinitos (programa sin HLT, por ejemplo).
-        print(f"ejecución abortada: {error}", file=sys.stderr)
-        return
-
-    print(f"\nSalida (OUT): {cpu.output}")
-    print(
-        f"Estado final: A=0x{cpu.a:02X}  B=0x{cpu.b:02X}  "
-        f"PC=0x{cpu.pc:02X}  Z={cpu.z}  C={cpu.c}"
-    )
 
 
 if __name__ == "__main__":

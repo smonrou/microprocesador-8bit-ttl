@@ -8,7 +8,7 @@
 ## 0. Introducción (≈1 min)
 
 - "La carpeta `asm/` es el ensamblador. Toma un archivo `.asm` escrito por una persona y produce la imagen de memoria de 256 bytes que ejecuta el procesador."
-- "No define la ISA. La lee de `sim/isa.py`, de la tabla `OPCODE_TABLE`. Esa tabla es la única fuente de verdad: 16 instrucciones, opcode de 4 bits, largo de 1 o 2 bytes y modo de direccionamiento."
+- "No define la ISA. La lee de `asm/isa.py`, de la tabla `OPCODE_TABLE`, una copia de la ISA (A.5). Esa tabla es la única fuente de verdad del ensamblador: 16 instrucciones, opcode de 4 bits, largo de 1 o 2 bytes y modo de direccionamiento."
 - "Si mañana cambiara la ISA, el ensamblador se adapta solo, porque nada de los nemónicos está escrito a mano."
 - "El ensamblado tiene tres fases: **análisis de líneas → pasada 1 → pasada 2**. Voy a ir de las piezas pequeñas hacia la grande."
 
@@ -17,7 +17,7 @@ Mapa rápido para mostrar en pantalla:
 ```
 errors.py ─┬─> numbers.py ─┐
            │               ├─> parser.py ─> assembler.py ─> __main__.py
-sim/isa.py ─> mnemonics.py ┘                    │
+asm/isa.py ─> mnemonics.py ┘                    │
                                           listing.py
 ```
 
@@ -166,7 +166,6 @@ Orden de las comprobaciones:
 - Opciones:
   - "`-o` cambia la carpeta de salida."
   - "`--listing-only` muestra el listado sin escribir archivos."
-  - "`--run` ejecuta el resultado en el simulador de `sim/` y muestra la salida de `OUT` y el estado final de los registros. Une ensamblador y simulador de punta a punta."
 
 ---
 
@@ -187,7 +186,7 @@ Orden de las comprobaciones:
 
 - "Resumen del recorrido: texto, `parser`, `ParsedLine`, pasada 1 (direcciones y símbolos), pasada 2 (bytes) y luego `.bin`, `.lst` y `.load`."
 - Decisiones de diseño para destacar:
-  1. **La ISA es la única fuente de verdad.** Los nemónicos y patrones se derivan de `sim/isa.py`.
+  1. **La ISA es la única fuente de verdad.** Los nemónicos y patrones se derivan de `asm/isa.py`.
   2. **Los errores se acumulan dentro de cada fase y se aborta entre fases.** Se ven todos los errores útiles y ninguno fantasma.
   3. **La forma de los operandos decide el opcode.** El programador escribe `MOV` y el ensamblador elige entre 5 opcodes.
   4. **Hay dos pasadas** para permitir referencias hacia adelante.
