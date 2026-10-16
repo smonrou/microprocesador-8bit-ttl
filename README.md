@@ -7,7 +7,7 @@ Este repositorio contiene las tres implementaciones del mismo ISA (juego de inst
 - **`sim/`**: simulador de referencia en Python (CPU, ALU, memoria, ciclo fetch-decode-execute).
 - **`asm/`**: ensamblador de dos pasadas que traduce programas fuente `.asm` al binario de 256 bytes que carga la máquina.
 - **`firmware/`**: firmware en C++ para el Arduino Mega, con una capa HAL que separa el núcleo de control (probado en PC) de las implementaciones reales/simuladas de hardware.
-- **`depurador/`**: depurador gráfico (Tkinter) para inspeccionar y depurar la ejecución en el hardware real o contra un servidor serie simulado.
+- **`depurador/`**: depurador gráfico (Tkinter) para inspeccionar y depurar la ejecución en el hardware real por puerto serie. No depende de `sim/` ni de `asm/`.
 - **`montaje/`**: fuente de verdad del montaje físico en 4 protoboards (`netlist.py`), generador de planos SVG y guías por fase, y la bitácora de lo que realmente pasó (`bitacora_montaje.md`).
 - **`compañero/`**: sketch de un compañero, **externo** al diseño de este repositorio y no cubierto por las pruebas.
 - **`programas/`**: programas de ejemplo en ensamblador, incluido el programa de referencia (multiplicación por sumas repetidas) y `diagnostico/` (programas para diagnosticar el cableado).

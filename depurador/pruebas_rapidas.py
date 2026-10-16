@@ -2,9 +2,8 @@
 
 El ingeniero prueba el procesador dictando en vivo ("carga A con 5, niégalo,
 vuelve a negarlo, carga B con 3, niégalo, suma"). Este módulo convierte esa
-lista de pasos en un programa ``.asm`` legible, lo ensambla en memoria con el
-mismo ``asm.assemble`` de siempre y predice con ``sim/`` qué valores deben
-quedar en A y B tras cada paso. La GUI solo pinta lo que sale de aquí.
+lista de pasos en un programa ``.asm`` legible y lo codifica a bytes con la
+tabla de opcodes de ``depurador.isa``. La GUI solo pinta lo que sale de aquí.
 
 Módulo puro: no abre puertos ni toca Tkinter.
 
@@ -20,20 +19,17 @@ directamente (no hay ``MOV [dir],B``), B se copia a A a través de la ALU con
 viven en la zona de datos (0xC0-0xFF, por convención).
 
 La aritmética la sigue haciendo el 74LS181: el PC solo genera instrucciones.
-La predicción corre en el simulador y nunca se mete en el programa.
 """
 
 import io
+import re
 from dataclasses import dataclass
 from typing import List, Optional, Sequence, Tuple
 
-from asm.assembler import AssemblyResult, assemble
-from asm.errors import AssemblerError
-from asm.numbers import MAX_VALUE, parse_number
-from sim.cpu import CPU
-from sim.memory import Memory
-
 from . import cargador
+from .isa import TABLA_DE_OPCODES
+
+MAX_VALUE = 255
 
 TEMP_A = 0xF0   # copia de A mientras una macro usa la ALU
 TEMP_B = 0xF1   # copia de B (o resultado de paso hacia B)
@@ -67,15 +63,6 @@ class Paso:
                 raise ValueError(f"{self.tipo} necesita un valor entre 0 y 255")
         elif self.valor is not None:
             raise ValueError(f"{self.tipo} no lleva valor")
-
-
-@dataclass(frozen=True)
-class Prediccion:
-    """Estado que el simulador espera tras un paso."""
-    a: int
-    b: int
-    z: int
-    c: int
 
 
 def _hex(valor: int) -> str:
@@ -162,54 +149,102 @@ def generar_asm(pasos: Sequence[Paso], out_tras_cada: bool = False) -> str:
     return "\n".join(lineas) + "\n"
 
 
-def ensamblar(pasos: Sequence[Paso], out_tras_cada: bool = False) -> AssemblyResult:
-    """Ensambla en memoria. Propaga ``AssemblyFailed`` si no cabe en 0x00-0xBF."""
-    return assemble(generar_asm(pasos, out_tras_cada))
+class ProgramaDemasiadoGrande(Exception):
+    """El programa no cabe en la zona 0x00-0xBF."""
 
 
-def bytes_usados(resultado: AssemblyResult) -> int:
-    """Bytes de programa (zona 0x00-0xBF), sin contar las temporales."""
-    return sum(fin - inicio + 1 for inicio, fin in resultado.spans
-               if inicio <= FIN_ZONA_PROGRAMA)
+@dataclass(frozen=True)
+class Programa:
+    binario: bytes
 
 
-def lineas_de_carga(resultado: AssemblyResult) -> List[str]:
-    """Los ``LOADB`` a mandar, igual que si vinieran de un ``.load``."""
-    return cargador.lineas_de_texto(resultado.load_script_bloques)
+def _patron_de(mnemonico: str, longitud: int) -> "re.Pattern":
+    patron = re.escape(mnemonico)
+    operando = r"(0[xX][0-9A-Fa-f]{1,2}|[0-9]{1,3})"
+    if "[dir]" in mnemonico:
+        patron = patron.replace(r"\[dir\]", r"\[" + operando + r"\]")
+    elif mnemonico.endswith(",inm"):
+        patron = patron[: -len("inm")] + operando
+    elif longitud == 2:
+        patron += r"\s+" + operando
+    return re.compile(patron)
+
+
+_PATRONES = [(spec, _patron_de(spec.mnemonico, spec.longitud))
+             for spec in TABLA_DE_OPCODES.values()]
+
+
+def codificar(linea: str) -> List[int]:
+    """Una línea de ensamblador (con o sin comentario) -> sus bytes."""
+    texto = linea.split(";", 1)[0].strip()
+    for spec, patron in _PATRONES:
+        coincidencia = patron.fullmatch(texto)
+        if coincidencia:
+            codigo = [spec.opcode << 4]
+            if spec.longitud == 2:
+                codigo.append(int(coincidencia.group(1), 0) & 0xFF)
+            return codigo
+    raise ValueError(f"instrucción desconocida: {texto!r}")
+
+
+def ensamblar(pasos: Sequence[Paso], out_tras_cada: bool = False) -> Programa:
+    """Pasos -> bytes desde 0x00. Lanza ``ProgramaDemasiadoGrande`` si no cabe."""
+    binario: List[int] = []
+    for linea in generar_asm(pasos, out_tras_cada).splitlines():
+        if linea.split(";", 1)[0].strip():
+            binario.extend(codificar(linea))
+    if len(binario) > BYTES_DE_PROGRAMA:
+        raise ProgramaDemasiadoGrande(
+            f"{len(binario)} bytes, el máximo es {BYTES_DE_PROGRAMA}")
+    return Programa(bytes(binario))
+
+
+def bytes_usados(programa: Programa) -> int:
+    return len(programa.binario)
+
+
+def lineas_de_carga(programa: Programa) -> List[str]:
+    """Los ``LOADB`` a mandar, ocho bytes por línea."""
+    lineas = []
+    for inicio in range(0, len(programa.binario), 8):
+        trozo = programa.binario[inicio:inicio + 8]
+        lineas.append(f"LOADB 0x{inicio:02X} "
+                      + " ".join(f"0x{byte:02X}" for byte in trozo))
+    return lineas
 
 
 def guardar(pasos: Sequence[Paso], ruta_asm: str,
             out_tras_cada: bool = False) -> Tuple[str, str]:
     """Escribe ``.asm`` y ``.load`` uno al lado del otro, como ``python -m asm``.
 
-    Ensambla ANTES de escribir nada: si no cabe, no queda un ``.asm`` suelto
+    Ensambla antes de escribir nada: si no cabe, no queda un ``.asm`` suelto
     sin su ``.load``. Devuelve las dos rutas escritas.
     """
-    resultado = ensamblar(pasos, out_tras_cada)
+    programa = ensamblar(pasos, out_tras_cada)
     ruta_load = cargador.ruta_load_de(ruta_asm)
     with io.open(ruta_asm, "w", encoding=cargador.CODIFICACION) as archivo:
         archivo.write(generar_asm(pasos, out_tras_cada))
     with io.open(ruta_load, "w", encoding=cargador.CODIFICACION) as archivo:
-        archivo.write(resultado.load_script_bloques + "\n")
+        archivo.write("\n".join(lineas_de_carga(programa)) + "\n")
     return ruta_asm, ruta_load
 
 
-def _correr(pasos: Sequence[Paso]) -> Prediccion:
-    memoria = Memory()
-    memoria.load_bytes(ensamblar(pasos).binary)
-    cpu = CPU(memoria)
-    cpu.run()
-    return Prediccion(cpu.a, cpu.b, cpu.z, cpu.c)
+_DECIMAL = re.compile(r"^[+-]?[0-9]+$")
+_HEX_0X = re.compile(r"^0[xX][0-9A-Fa-f]+$")
+_HEX_DOLAR = re.compile(r"^\$[0-9A-Fa-f]+$")
+_BINARIO = re.compile(r"^0[bB][01]+$")
 
 
-def predecir(pasos: Sequence[Paso]) -> List[Prediccion]:
-    """Estado esperado tras cada paso, corriendo cada prefijo en ``sim/``.
-
-    Los ``OUT`` no cambian A, B ni las banderas, así que la predicción no
-    depende de ``out_tras_cada``. Correr cada prefijo es cuadrático, pero
-    con programas de este tamaño (máx. 192 bytes) no importa.
-    """
-    return [_correr(pasos[:fin]) for fin in range(1, len(pasos) + 1)]
+def _leer_numero(texto: str) -> int:
+    if _DECIMAL.match(texto):
+        return int(texto, 10)
+    if _HEX_0X.match(texto):
+        return int(texto[2:], 16)
+    if _HEX_DOLAR.match(texto):
+        return int(texto[1:], 16)
+    if _BINARIO.match(texto):
+        return int(texto[2:], 2)
+    raise ValueError(f"literal numérico mal formado: '{texto}'")
 
 
 def valor_de_texto(texto: str) -> int:
@@ -221,10 +256,7 @@ def valor_de_texto(texto: str) -> int:
     limpio = texto.strip()
     if not limpio:
         raise ValueError("escribe un valor")
-    try:
-        valor = parse_number(limpio, 0, limpio)
-    except AssemblerError as error:
-        raise ValueError(error.message) from None
+    valor = _leer_numero(limpio)
     if not -128 <= valor <= MAX_VALUE:
         raise ValueError(f"fuera de rango: {valor} (válido -128 a 255)")
     return valor & 0xFF

@@ -19,8 +19,8 @@ MASCARA = (1 << BITS) - 1
 
 
 def _normalizar(valor: int) -> int:
-    """Un byte, pase lo que pase. La memoria es de 8 bits (``Memory.write``
-    también enmascara), así que mostrar 0x1FF sería mentir sobre el hardware."""
+    """Un byte, pase lo que pase. La memoria es de 8 bits,
+    así que mostrar 0x1FF sería mentir sobre el hardware."""
     return valor & MASCARA
 
 

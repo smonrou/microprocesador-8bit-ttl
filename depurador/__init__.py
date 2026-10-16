@@ -6,10 +6,11 @@ y una única pieza que sí necesita Tkinter:
 - ``protocolo``          formato/parseo del protocolo serial (espejo de
                          ``firmware/unidad_control/formato.cpp`` y ``consola.cpp``)
 - ``formato_numerico``   un byte en binario/hexadecimal/con signo/sin signo
-- ``desensamblador``     bytes de memoria -> mnemónico + operando (vía ``sim.isa``)
+- ``desensamblador``     bytes de memoria -> mnemónico + operando (vía ``isa``)
 - ``cargador``           lectura de un archivo ``.load`` generado por ``python -m asm``
-- ``servidor_falso``     Arduino de mentira: servidor TCP sobre ``sim.cpu.CPU``
-- ``transporte``         Transporte (TCP para el servidor falso, serie real con pyserial)
+- ``isa``                tabla de opcodes del ISA
+- ``pruebas_rapidas``    pasos dictados -> ``.asm`` + bytes
+- ``transporte``         Transporte serie real con pyserial
 - ``gui``                la ventana Tkinter (solo cableado, sin lógica propia)
 
 Importar ``depurador`` no arrastra Tkinter ni pyserial: ``gui`` y
@@ -20,7 +21,8 @@ __all__ = [
     "cargador",
     "desensamblador",
     "formato_numerico",
+    "isa",
     "protocolo",
-    "servidor_falso",
+    "pruebas_rapidas",
     "transporte",
 ]

@@ -4,9 +4,8 @@ Espejo exacto de ``firmware/unidad_control/formato.cpp`` (líneas ``#clave=valor
 y de ``firmware/unidad_control/consola.cpp`` (``leerNumero``, que es un
 ``strtol`` con base 0).
 
-El bloque humano de A.9 NO se genera aquí: ya existe en ``sim.trace.format_cycle``
-y ``tests/test_firmware_formato.py`` demuestra que es byte-idéntico al del
-firmware. Reimplementarlo sería crear una tercera versión que puede divergir.
+El bloque humano de A.9 llega ya formateado por el firmware; aquí solo se
+reensambla (``EnsambladorDeBloques``) y se le extraen los datos.
 
 Módulo puro: sin sockets, sin hilos, sin Tkinter.
 """
@@ -14,8 +13,7 @@ Módulo puro: sin sockets, sin hilos, sin Tkinter.
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
-from sim.isa import OPCODE_TABLE, Category
-from sim.trace import InstructionTrace
+from .isa import TABLA_DE_OPCODES, Categoria
 
 # El bloque humano viaja como UN solo Serial.println con '\n' internos
 # (consola.cpp::imprimirBloqueYClaves). Al leer por líneas hay que reensamblarlo:
@@ -52,17 +50,17 @@ _CLAVES_NUMERICAS = ("ciclo", "pc", "ir", "a", "b", "z", "c", "halted", "salida"
 # los registros físicos a través de la ALU.
 
 _REGISTROS_POR_CATEGORIA = {
-    Category.ALU: (True, True),
-    Category.STORE_DIRECT: (True, False),
-    Category.OUTPUT: (True, False),
-    Category.JUMP_UNCONDITIONAL: (False, False),
-    Category.JUMP_CONDITIONAL: (False, False),
-    Category.CONTROL: (False, False),
+    Categoria.ALU: (True, True),
+    Categoria.GUARDADO_DIRECTO: (True, False),
+    Categoria.SALIDA: (True, False),
+    Categoria.SALTO_INCONDICIONAL: (False, False),
+    Categoria.SALTO_CONDICIONAL: (False, False),
+    Categoria.CONTROL: (False, False),
 }
 
 
 def _significativos(categoria, registro) -> Tuple[bool, bool]:
-    if categoria in (Category.LOAD_DIRECT, Category.LOAD_IMMEDIATE):
+    if categoria in (Categoria.CARGA_DIRECTA, Categoria.CARGA_INMEDIATA):
         return (registro == "A", registro == "B")
     return _REGISTROS_POR_CATEGORIA.get(categoria, (False, False))
 
@@ -73,73 +71,10 @@ def registros_significativos(op: str) -> Tuple[bool, bool]:
     Se decide por el nemónico, que es lo único que la GUI recibe. Devuelve
     ``(False, False)`` para un nemónico desconocido: ante la duda, no creerle.
     """
-    for spec in OPCODE_TABLE.values():
-        if spec.mnemonic == op:
-            return _significativos(spec.category, spec.register)
+    for spec in TABLA_DE_OPCODES.values():
+        if spec.mnemonico == op:
+            return _significativos(spec.categoria, spec.registro)
     return (False, False)
-
-
-def valores_reportados(traza: InstructionTrace) -> Tuple[int, int]:
-    """El par ``(aDespues, bDespues)`` tal como lo dejaría ``nucleo.cpp``.
-
-    ``sim/trace.py`` no rellena estos campos igual (no le hace falta: el bloque
-    humano nunca los imprime), así que aquí se traduce categoría por categoría.
-    """
-    a_valida, b_valida = _significativos(traza.category, traza.register)
-
-    if traza.category == Category.ALU:
-        return (traza.a_after, traza.b_before)      # aDespues = F, bDespues = bAntes
-    if traza.category in (Category.STORE_DIRECT, Category.OUTPUT):
-        return (traza.a_before, 0)                   # MOV [dir],A y OUT no modifican A
-    return (traza.a_after if a_valida else 0,
-            traza.b_after if b_valida else 0)
-
-
-# ── Formato: espejo de formato.cpp ─────────────────────────────────────────
-
-def linea_clave_valor(traza: InstructionTrace, detenido: bool) -> str:
-    """Espeja ``formato::lineaClaveValor``.
-
-    ASCII puro y prefijo ``#``: la GUI filtra estas líneas sin confundirlas con
-    el texto bonito, y ningún acento puede romper el parseo.
-
-    Ojo con el "antes/después": ``pc`` es el valor de DESPUÉS de la instrucción
-    (``pcDespues``), mientras que el bloque humano muestra el de antes en la
-    línea FETCH. ``a``/``b`` salen de ``valores_reportados`` — ver la nota de
-    arriba sobre los ceros del firmware.
-    """
-    a, b = valores_reportados(traza)
-    linea = (
-        f"#ciclo={traza.cycle_number} pc=0x{traza.pc_after:02X} "
-        f"ir=0x{traza.ir:02X} op={traza.mnemonic} "
-        f"a=0x{a:02X} b=0x{b:02X} "
-        f"z={traza.z} c={traza.c} halted={1 if detenido else 0}"
-    )
-    if traza.output_value is not None:
-        linea += f" salida={traza.output_value}"
-    return linea
-
-
-def linea_estado(pc: int, ir: int, a: int, b: int, z: int, c: int,
-                 detenido: bool) -> str:
-    """Espeja ``formato::lineaEstado`` (STATE y RESET, sin instrucción)."""
-    return (
-        f"#pc=0x{pc:02X} ir=0x{ir:02X} a=0x{a:02X} b=0x{b:02X} "
-        f"z={z} c={c} halted={1 if detenido else 0}"
-    )
-
-
-def linea_estado_humana(pc: int, ir: int, a: int, b: int, z: int, c: int,
-                        detenido: bool) -> str:
-    """Espeja el ``Serial.print`` de ``consola.cpp::imprimirEstado``.
-
-    Arduino imprime el hexadecimal en MAYÚSCULAS y rellena a dos dígitos con un
-    '0' explícito; la separación entre campos son DOS espacios.
-    """
-    return (
-        f"PC=0x{pc:02X}  IR=0x{ir:02X}  A=0x{a:02X}  B=0x{b:02X}  "
-        f"Z={z}  C={c}  " + ("DETENIDO" if detenido else "listo")
-    )
 
 
 # ── Parseo de números: espejo de consola.cpp::leerNumero ───────────────────

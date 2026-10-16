@@ -1,12 +1,8 @@
-"""Transporte: el mismo depurador contra el servidor falso o contra el Arduino.
+"""Transporte: el canal de líneas entre el depurador y el Arduino.
 
-Dos implementaciones con la misma interfaz:
-
-- ``TransporteSocket``  TCP contra ``servidor_falso.ServidorFalso``. Solo
-  biblioteca estándar.
-- ``TransporteSerial``  puerto serie real, con **pyserial importado de forma
-  perezosa** (dentro del método, no arriba del archivo). Así todo el resto del
-  depurador — GUI incluida — arranca sin instalar absolutamente nada.
+``TransporteSerial`` usa el puerto serie real con **pyserial importado de
+forma perezosa** (dentro del método, no arriba del archivo): sin pyserial la
+ventana abre igual, solo que la lista de puertos sale vacía.
 
 CONCURRENCIA — la regla que no se puede romper:
 
@@ -23,7 +19,6 @@ el centinela de "se cortó la conexión": es lo último que se recibe.
 
 import abc
 import queue
-import socket
 import threading
 from typing import List, Optional
 
@@ -146,49 +141,6 @@ class Transporte(abc.ABC):
             self.lineas.put(CENTINELA_DESCONEXION)
 
 
-class TransporteSocket(Transporte):
-    """TCP contra el servidor falso. Sin dependencias de terceros."""
-
-    def __init__(self, host: str = "127.0.0.1", puerto: int = 5555,
-                 espera: float = 5.0) -> None:
-        super().__init__()
-        self.host = host
-        self.puerto = puerto
-        self.espera = espera
-        self._socket: Optional[socket.socket] = None
-
-    def _conectar(self) -> None:
-        self._socket = socket.create_connection((self.host, self.puerto),
-                                                timeout=self.espera)
-        self._socket.settimeout(None)     # el lector bloquea a gusto
-
-    def _leer_bytes(self) -> bytes:
-        if self._socket is None:
-            return b""
-        return self._socket.recv(4096)
-
-    def _escribir_bytes(self, datos: bytes) -> None:
-        if self._socket is None:
-            raise RuntimeError("el socket no está abierto")
-        self._socket.sendall(datos)
-
-    def _cerrar_canal(self) -> None:
-        if self._socket is None:
-            return
-        try:
-            self._socket.shutdown(socket.SHUT_RDWR)
-        except OSError:
-            pass
-        try:
-            self._socket.close()
-        except OSError:
-            pass
-        self._socket = None
-
-    def descripcion(self) -> str:
-        return f"TCP {self.host}:{self.puerto}"
-
-
 class TransporteSerial(Transporte):
     """Puerto serie real (Arduino Mega).
 
@@ -257,7 +209,7 @@ def listar_puertos_serie() -> List[str]:
     """Los puertos serie disponibles, o ``[]`` si pyserial no está instalado.
 
     Devolver la lista vacía en vez de reventar es deliberado: el flujo con el
-    servidor falso no necesita pyserial y la GUI tiene que arrancar igual.
+    GUI tiene que arrancar igual sin pyserial.
     """
     try:
         from serial.tools import list_ports     # import perezoso

@@ -9,11 +9,8 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from typing import List, Optional
 
-from asm.errors import AssemblyFailed
-
 from . import (cargador, desensamblador, formato_numerico, protocolo,
                pruebas_rapidas, transporte)
-from .servidor_falso import RETARDO_POR_DEFECTO, ServidorFalso
 
 MONOESPACIADA = ("Consolas", 9)
 MONOESPACIADA_GRANDE = ("Consolas", 11, "bold")
@@ -32,6 +29,7 @@ COLOR_BANDERA = "#f0c674"
 COLOR_ENVIADO = "#569cd6"
 
 MILISEGUNDOS_ENTRE_DRENAJES = 50
+RETARDO_POR_DEFECTO = 200
 FILAS_MEMORIA = 16
 COLUMNAS_MEMORIA = 16
 
@@ -43,7 +41,6 @@ class Depurador:
         self.raiz.configure(bg=COLOR_FONDO)
 
         self.canal: Optional[transporte.Transporte] = None
-        self.servidor: Optional[ServidorFalso] = None
         self.ensamblador = protocolo.EnsambladorDeBloques()
         self.memoria: List[int] = [0] * 256
         self.pendientes_de_carga: List[str] = []
@@ -103,25 +100,16 @@ class Depurador:
         barra = tk.Frame(self.raiz, bg=COLOR_PANEL, pady=4, padx=6)
         barra.pack(fill="x")
 
-        self.usar_servidor_local = tk.BooleanVar(value=False)
-        tk.Checkbutton(
-            barra, text="servidor de prueba local", variable=self.usar_servidor_local,
-            bg=COLOR_PANEL, fg=COLOR_TEXTO, selectcolor=COLOR_FONDO,
-            activebackground=COLOR_PANEL, activeforeground=COLOR_TEXTO,
-            font=MONOESPACIADA, command=self._alternar_origen,
-        ).pack(side="left")
-
-        tk.Label(barra, text="  puerto serie:", bg=COLOR_PANEL, fg=COLOR_TEXTO,
+        tk.Label(barra, text="puerto serie:", bg=COLOR_PANEL, fg=COLOR_TEXTO,
                  font=MONOESPACIADA).pack(side="left")
         self.puerto_elegido = tk.StringVar()
         self.combo_puertos = ttk.Combobox(barra, textvariable=self.puerto_elegido,
-                                          width=14, state="disabled",
+                                          width=14, state="readonly",
                                           font=MONOESPACIADA)
         self.combo_puertos.pack(side="left", padx=4)
 
         self.boton_refrescar = tk.Button(barra, text="↻", font=MONOESPACIADA,
-                                         command=self._refrescar_puertos,
-                                         state="disabled")
+                                         command=self._refrescar_puertos)
         self.boton_refrescar.pack(side="left")
 
         self.boton_conectar = tk.Button(barra, text="Conectar", font=MONOESPACIADA,
@@ -136,8 +124,6 @@ class Depurador:
                                        font=MONOESPACIADA,
                                        command=self._alternar_pruebas)
         self.boton_pruebas.pack(side="right")
-
-        self._alternar_origen()
 
     def _construir_registros(self, padre) -> None:
         marco = self._marco(padre, "Registros (74LS273)")
@@ -319,7 +305,7 @@ class Depurador:
             command=self._alternar_out_tras_cada,
         ).pack(anchor="w", pady=(4, 0))
 
-        self._etiqueta(marco, "pasos  →  valor esperado (simulador)",
+        self._etiqueta(marco, "pasos",
                        COLOR_APAGADO).pack(fill="x", pady=(4, 0))
         self.lista_pasos = tk.Listbox(
             marco, font=MONOESPACIADA, bg=COLOR_FONDO, fg=COLOR_TEXTO, width=38,
@@ -392,12 +378,6 @@ class Depurador:
         caja.delete("1.0", "end")
         caja.config(state="disabled")
 
-    def _alternar_origen(self) -> None:
-        local = self.usar_servidor_local.get()
-        estado = "disabled" if local else "readonly"
-        self.combo_puertos.config(state=estado)
-        self.boton_refrescar.config(state="disabled" if local else "normal")
-
     def _refrescar_puertos(self) -> None:
         puertos = transporte.listar_puertos_serie()
         self.combo_puertos["values"] = puertos
@@ -414,17 +394,11 @@ class Depurador:
 
     def _conectar(self) -> None:
         try:
-            if self.usar_servidor_local.get():
-                self.servidor = ServidorFalso(puerto=0,
-                                              retardo=self.velocidad.get()).iniciar()
-                self.canal = transporte.TransporteSocket("127.0.0.1",
-                                                         self.servidor.puerto)
-            else:
-                puerto = self.puerto_elegido.get()
-                if not puerto or puerto.startswith("("):
-                    messagebox.showwarning("Depurador", "Elige un puerto serie.")
-                    return
-                self.canal = transporte.TransporteSerial(puerto)
+            puerto = self.puerto_elegido.get()
+            if not puerto or puerto.startswith("("):
+                messagebox.showwarning("Depurador", "Elige un puerto serie.")
+                return
+            self.canal = transporte.TransporteSerial(puerto)
             self.canal.abrir()
         except Exception as error:
             self._desconectar()
@@ -445,9 +419,6 @@ class Depurador:
         if self.canal is not None:
             self.canal.cerrar()
             self.canal = None
-        if self.servidor is not None:
-            self.servidor.detener()
-            self.servidor = None
         self.pendientes_de_carga = []
         self.estado_conexion.config(text="desconectado", fg=COLOR_APAGADO)
         self.boton_conectar.config(text="Conectar")
@@ -577,15 +548,13 @@ class Depurador:
         self.etiqueta_prueba.config(text=texto, fg=COLOR_BANDERA)
 
     def _refrescar_prueba(self) -> bool:
-        """Regenera asm, predicción y lista. False si no ensambla."""
+        """Regenera asm y lista de pasos. False si no cabe."""
         out_tras_cada = self.out_tras_cada.get()
         texto_asm = pruebas_rapidas.generar_asm(self.pasos_prueba, out_tras_cada)
         try:
             resultado = pruebas_rapidas.ensamblar(self.pasos_prueba, out_tras_cada)
-            predicciones = pruebas_rapidas.predecir(self.pasos_prueba)
-        except AssemblyFailed as error:
-            primero = error.errors[0].message if error.errors else str(error)
-            self._avisar_prueba(f"no cabe en 0x00-0xBF: {primero}")
+        except pruebas_rapidas.ProgramaDemasiadoGrande as error:
+            self._avisar_prueba(f"no cabe en 0x00-0xBF: {error}")
             return False
 
         self.texto_asm.config(state="normal")
@@ -595,13 +564,9 @@ class Depurador:
         self.texto_asm.config(state="disabled")
 
         self.lista_pasos.delete(0, "end")
-        for numero, (paso, esperado) in enumerate(
-                zip(self.pasos_prueba, predicciones), start=1):
+        for numero, paso in enumerate(self.pasos_prueba, start=1):
             self.lista_pasos.insert(
-                "end",
-                f"{numero:>2}. {pruebas_rapidas.descripcion(paso):<10} "
-                f"A={esperado.a:02X} B={esperado.b:02X} "
-                f"Z={esperado.z} C={esperado.c}")
+                "end", f"{numero:>2}. {pruebas_rapidas.descripcion(paso)}")
         self.lista_pasos.see("end")
 
         usados = pruebas_rapidas.bytes_usados(resultado)
@@ -621,7 +586,7 @@ class Depurador:
         try:
             ruta_asm, ruta_load = pruebas_rapidas.guardar(
                 self.pasos_prueba, ruta, self.out_tras_cada.get())
-        except (OSError, AssemblyFailed) as error:
+        except (OSError, pruebas_rapidas.ProgramaDemasiadoGrande) as error:
             messagebox.showerror("Depurador", f"No se pudo guardar:\n{error}")
             return
         self._avisar_prueba(f"guardado {os.path.basename(ruta_asm)} + "
@@ -634,7 +599,7 @@ class Depurador:
         try:
             resultado = pruebas_rapidas.ensamblar(self.pasos_prueba,
                                                   self.out_tras_cada.get())
-        except AssemblyFailed as error:
+        except pruebas_rapidas.ProgramaDemasiadoGrande as error:
             messagebox.showerror("Depurador", str(error))
             return
         self._cargar_lineas(pruebas_rapidas.lineas_de_carga(resultado),

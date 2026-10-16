@@ -1,8 +1,7 @@
 """Desensamblador: bytes de memoria -> mnemónico + operando.
 
-Lee la tabla de opcodes de ``sim.isa`` en vez de repetirla. Igual que
-``asm/mnemonics.py``, este módulo no contiene ni un solo literal de opcode: si
-la tabla cambiara, el desensamblador la sigue sin tocarse.
+Lee la tabla de opcodes de ``depurador.isa``; este módulo no contiene ni un
+solo literal de opcode.
 
 La sintaxis emitida es la misma que acepta el ensamblador (``MOV A,0x04``,
 ``MOV A,[0xC8]``, ``JNZ 0x0A``), así que lo desensamblado se puede volver a
@@ -14,7 +13,7 @@ Módulo puro: no toca sockets, hilos ni Tkinter.
 from dataclasses import dataclass
 from typing import List, Optional, Sequence
 
-from sim.isa import OPCODE_TABLE
+from .isa import TABLA_DE_OPCODES
 
 TAMANO_MEMORIA = 256
 
@@ -45,30 +44,30 @@ def desensamblar_en(memoria: Sequence[int], direccion: int) -> LineaDesensamblad
     """
     direccion &= 0xFF
     primero = _leer(memoria, direccion)
-    spec = OPCODE_TABLE[primero >> 4]
+    spec = TABLA_DE_OPCODES[primero >> 4]
 
-    if spec.length == 1:
+    if spec.longitud == 1:
         return LineaDesensamblada(
             direccion=direccion,
             bytes_crudos=[primero],
-            mnemonico=spec.mnemonic,
+            mnemonico=spec.mnemonico,
             operando=None,
-            texto=spec.mnemonic,
+            texto=spec.mnemonico,
         )
 
     operando = _leer(memoria, direccion + 1)
     valor = f"0x{operando:02X}"
-    if "[dir]" in spec.mnemonic:          # MOV A,[dir] / MOV [dir],A
-        texto = spec.mnemonic.replace("[dir]", f"[{valor}]")
-    elif spec.mnemonic.endswith(",inm"):  # MOV A,inm
-        texto = spec.mnemonic[: -len("inm")] + valor
+    if "[dir]" in spec.mnemonico:          # MOV A,[dir] / MOV [dir],A
+        texto = spec.mnemonico.replace("[dir]", f"[{valor}]")
+    elif spec.mnemonico.endswith(",inm"):  # MOV A,inm
+        texto = spec.mnemonico[: -len("inm")] + valor
     else:                                 # JMP/JZ/JNZ: dirección pelada
-        texto = f"{spec.mnemonic} {valor}"
+        texto = f"{spec.mnemonico} {valor}"
 
     return LineaDesensamblada(
         direccion=direccion,
         bytes_crudos=[primero, operando],
-        mnemonico=spec.mnemonic,
+        mnemonico=spec.mnemonico,
         operando=operando,
         texto=texto,
     )
@@ -81,7 +80,7 @@ def mnemonico_de(ir: int) -> str:
     operando. El opcode son los 4 bits altos (A.4), así que los 16 valores
     existen y esto nunca falla.
     """
-    return OPCODE_TABLE[(ir >> 4) & 0xF].mnemonic
+    return TABLA_DE_OPCODES[(ir >> 4) & 0xF].mnemonico
 
 
 def desensamblar(memoria: Sequence[int], inicio: int = 0,
