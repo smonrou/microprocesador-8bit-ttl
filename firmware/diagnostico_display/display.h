@@ -37,10 +37,10 @@
 // patrón distinto en dos dígitos a la vez sin alternarlos.
 // ---------------------------------------------------------------------------
 
-#ifndef DISPLAY_H
-#define DISPLAY_H
+// #ifndef DISPLAY_H
+// #define DISPLAY_H
 
-#include <stdint.h>
+// #include <stdint.h>
 
 // ---------------------------------------------------------------------------
 // PENDIENTE Parte C punto 4 — ánodo o cátodo común. Sigue abierto porque los
@@ -69,26 +69,26 @@
 // antes que acelerar el refresco.
 // ---------------------------------------------------------------------------
 
-namespace display {
+// namespace display {
 
-void iniciar();
+// void iniciar();
 
 // Pulsa el reloj del registro de salida: engancha lo que haya EN ESE INSTANTE
 // en el bus F. Se llama desde hal::mostrarByte(), justo después de que el
 // núcleo dejó la ALU en F=A para leer el registro A, así que lo que se
 // engancha es A. No recibe el valor a propósito: el dato no pasa por aquí.
-void enganchar();
+// void enganchar();
 
 // Avanza al siguiente dígito. Hay que llamarla a menudo desde loop(): los
 // cuatro dígitos de cada display comparten las líneas de segmento y es la
 // persistencia de la visión lo que hace que se vean los ocho encendidos.
 // Con 8 dígitos hacen falta ~480 llamadas por segundo para no ver parpadeo.
-void refrescar();
+// void refrescar();
 
 // Apaga los ocho dígitos (deshabilita el 74LS138). No borra el registro de
 // salida: al volver a habilitar se ve el mismo valor.
-void apagar();
+// void apagar();
 
-}  // namespace display
+// }  // namespace display
 
-#endif  // DISPLAY_H
+// #endif  // DISPLAY_H

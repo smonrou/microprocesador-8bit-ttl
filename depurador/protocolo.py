@@ -1,7 +1,7 @@
 """Protocolo serial: formato y parseo de lo que habla el firmware real.
 
-Espejo exacto de ``firmware/microprocesador/formato.cpp`` (líneas ``#clave=valor``)
-y de ``firmware/microprocesador/consola.cpp`` (``leerNumero``, que es un
+Espejo exacto de ``firmware/unidad_control/formato.cpp`` (líneas ``#clave=valor``)
+y de ``firmware/unidad_control/consola.cpp`` (``leerNumero``, que es un
 ``strtol`` con base 0).
 
 El bloque humano de A.9 NO se genera aquí: ya existe en ``sim.trace.format_cycle``
@@ -42,7 +42,7 @@ _CLAVES_NUMERICAS = ("ciclo", "pc", "ir", "a", "b", "z", "c", "halted", "salida"
 # solo rellena los campos que le tocan. Resultado: `aDespues`/`bDespues` —los
 # que imprime `formato::lineaClaveValor` como `a=`/`b=`— salen en 0x00 para las
 # categorías que no los tocan (saltos, NOP, HLT y el registro que NO es destino
-# de un LDA/LDB/LDI). No es que A valga cero: es que el firmware no lo reporta
+# de un MOV de carga). No es que A valga cero: es que el firmware no lo reporta
 # en esa línea.
 #
 # El depurador replica esa conducta (el objetivo es hablar el mismo protocolo
@@ -90,7 +90,7 @@ def valores_reportados(traza: InstructionTrace) -> Tuple[int, int]:
     if traza.category == Category.ALU:
         return (traza.a_after, traza.b_before)      # aDespues = F, bDespues = bAntes
     if traza.category in (Category.STORE_DIRECT, Category.OUTPUT):
-        return (traza.a_before, 0)                   # STA/OUT no modifican A
+        return (traza.a_before, 0)                   # MOV [dir],A y OUT no modifican A
     return (traza.a_after if a_valida else 0,
             traza.b_after if b_valida else 0)
 
@@ -256,8 +256,8 @@ def parsear_linea_clave_valor(linea: str) -> Optional[Dict[str, object]]:
     """Parsea ``#ciclo=...``/``#pc=...``/``#paso=...`` a un diccionario.
 
     Los valores numéricos salen como ``int`` (``0x`` incluido) y el resto como
-    texto. Cuidado: ``op=LDI A`` lleva un espacio DENTRO del valor (el nemónico
-    de los opcodes 0x3/0x4 es "LDI A"/"LDI B"), así que no basta con partir por
+    texto. Cuidado: ``op=MOV A,inm`` lleva un espacio DENTRO del valor (los
+    nemónicos de 0x1-0x5 son "MOV A,[dir]", "MOV A,inm"...), así que no basta con partir por
     espacios: los trozos sin ``=`` pertenecen a la clave anterior.
 
     Devuelve ``None`` si la línea no empieza por ``#``.

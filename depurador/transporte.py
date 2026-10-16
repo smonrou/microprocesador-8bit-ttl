@@ -27,7 +27,7 @@ import socket
 import threading
 from typing import List, Optional
 
-BAUDIOS_POR_DEFECTO = 115200      # microprocesador.ino: Serial.begin(115200)
+BAUDIOS_POR_DEFECTO = 115200      # unidad_control.ino: Serial.begin(115200)
 FIN_DE_LINEA = "\n"               # lo que el firmware espera para ejecutar
 CENTINELA_DESCONEXION = None
 

@@ -1,0 +1,40 @@
+DIR  BYTES        LÍN  FUENTE
+---  -----------  ---  --------------------------------------------
+                    1  ; diag3_bits_B.asm — un bit a la vez por el registro B (A=0, ADD => A=B).
+                    2  ; Esperado: OUT = 1, 2, 4, 8, 16, 32, 64, 128.
+00   40 01          3        MOV B,1
+02   30 00          4        MOV A,0
+04   60             5        ADD
+05   B0             6        OUT
+06   40 02          7        MOV B,2
+08   30 00          8        MOV A,0
+0A   60             9        ADD
+0B   B0            10        OUT
+0C   40 04         11        MOV B,4
+0E   30 00         12        MOV A,0
+10   60            13        ADD
+11   B0            14        OUT
+12   40 08         15        MOV B,8
+14   30 00         16        MOV A,0
+16   60            17        ADD
+17   B0            18        OUT
+18   40 10         19        MOV B,16
+1A   30 00         20        MOV A,0
+1C   60            21        ADD
+1D   B0            22        OUT
+1E   40 20         23        MOV B,32
+20   30 00         24        MOV A,0
+22   60            25        ADD
+23   B0            26        OUT
+24   40 40         27        MOV B,64
+26   30 00         28        MOV A,0
+28   60            29        ADD
+29   B0            30        OUT
+2A   40 80         31        MOV B,128
+2C   30 00         32        MOV A,0
+2E   60            33        ADD
+2F   B0            34        OUT
+30   C0            35        HLT
+
+TABLA DE SÍMBOLOS
+(ninguno)

@@ -69,42 +69,42 @@
 // Total: 32 pines de los 54 del Mega.
 // ---------------------------------------------------------------------------
 
-#ifndef PINES_H
-#define PINES_H
+// #ifndef PINES_H
+// #define PINES_H
 
 // Posiciones dentro de PORTL de las líneas de control de la ALU.
-#define BIT_S0  0
-#define BIT_S1  1
-#define BIT_S2  2
-#define BIT_S3  3
-#define BIT_M   4
-#define BIT_CN  5
+// #define BIT_S0  0
+// #define BIT_S1  1
+// #define BIT_S2  2
+// #define BIT_S3  3
+// #define BIT_M   4
+// #define BIT_CN  5
 
 // Máscara de los bits de PORTL que NO son de la ALU (se preservan).
-#define MASCARA_NO_ALU 0xC0
+// #define MASCARA_NO_ALU 0xC0
 
 // Pines sueltos
-#define PIN_CLOCK_A 41
-#define PIN_CLOCK_B 40
-#define PIN_MUX     39
-#define PIN_CLEAR   38
-#define PIN_CARRY    2
+// #define PIN_CLOCK_A 41
+// #define PIN_CLOCK_B 40
+// #define PIN_MUX     39
+// #define PIN_CLEAR   38
+// #define PIN_CARRY    2
 
 // Salida física (ver el bloque de arriba)
-#define PIN_SEL_0            3
-#define PIN_SEL_1            4
-#define PIN_SEL_2            5
-#define PIN_HABILITA_DISPLAY 6
-#define PIN_CLOCK_SALIDA     7
+// #define PIN_SEL_0            3
+// #define PIN_SEL_1            4
+// #define PIN_SEL_2            5
+// #define PIN_HABILITA_DISPLAY 6
+// #define PIN_CLOCK_SALIDA     7
 
 // Cuántos dígitos tiene la salida: uno por bit del byte.
-#define DIGITOS_SALIDA 8
+// #define DIGITOS_SALIDA 8
 
 // Margen de propagación. El peor caso del datasheet ronda 80 ns entre los dos
 // 181 en cascada; 50 µs son tres órdenes de magnitud de sobra.
-#define MICROS_PROPAGACION 50
+// #define MICROS_PROPAGACION 50
 
 // Ancho del pulso de reloj del 74LS273.
-#define MICROS_PULSO 5
+// #define MICROS_PULSO 5
 
-#endif  // PINES_H
+// #endif  // PINES_H

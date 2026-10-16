@@ -29,7 +29,7 @@ class Category(Enum):
 # Microstep label tuples, per instruction "shape" (session decision, see plan doc):
 # - ALU (1 byte):            5 steps — A.8 worked example (ADD)
 # - CONTROL/OUTPUT (1 byte): 3 steps — no ALU involved, symmetric reduction of ALU shape
-# - IMMEDIATE (2 bytes):     4 steps — A.8 worked example (LDI A)
+# - IMMEDIATE (2 bytes):     4 steps — A.8 worked example (MOV A,inm)
 # - DIRECT/JUMP (2 bytes):   4 steps — same shape as IMMEDIATE (fetch operand, then execute)
 STEPS_ALU: Tuple[str, ...] = ("FETCH", "DECODE", "EXECUTE", "WAIT", "WRITE")
 STEPS_CONTROL: Tuple[str, ...] = ("FETCH", "DECODE", "EXECUTE")
@@ -39,6 +39,10 @@ STEPS_2BYTE: Tuple[str, ...] = ("FETCH", "DECODE", "FETCH2", "EXECUTE")
 @dataclass(frozen=True)
 class InstructionSpec:
     opcode: int
+    # Unique per opcode. Data transfers use x86-style syntax (2026-09-28): the
+    # base word is "MOV" and the operand pattern after it tells the forms
+    # apart — "[dir]" = direct address, "inm" = immediate, "A"/"B" = register.
+    # asm/ derives its grammar from this string, so it must stay parseable.
     mnemonic: str
     length: int              # 1 or 2 bytes
     mode: Mode
@@ -50,11 +54,11 @@ class InstructionSpec:
 
 OPCODE_TABLE = {
     0x0: InstructionSpec(0x0, "NOP", 1, Mode.NONE, False, Category.CONTROL, STEPS_CONTROL),
-    0x1: InstructionSpec(0x1, "LDA", 2, Mode.DIRECT, False, Category.LOAD_DIRECT, STEPS_2BYTE, register="A"),
-    0x2: InstructionSpec(0x2, "LDB", 2, Mode.DIRECT, False, Category.LOAD_DIRECT, STEPS_2BYTE, register="B"),
-    0x3: InstructionSpec(0x3, "LDI A", 2, Mode.IMMEDIATE, False, Category.LOAD_IMMEDIATE, STEPS_2BYTE, register="A"),
-    0x4: InstructionSpec(0x4, "LDI B", 2, Mode.IMMEDIATE, False, Category.LOAD_IMMEDIATE, STEPS_2BYTE, register="B"),
-    0x5: InstructionSpec(0x5, "STA", 2, Mode.DIRECT, False, Category.STORE_DIRECT, STEPS_2BYTE, register="A"),
+    0x1: InstructionSpec(0x1, "MOV A,[dir]", 2, Mode.DIRECT, False, Category.LOAD_DIRECT, STEPS_2BYTE, register="A"),
+    0x2: InstructionSpec(0x2, "MOV B,[dir]", 2, Mode.DIRECT, False, Category.LOAD_DIRECT, STEPS_2BYTE, register="B"),
+    0x3: InstructionSpec(0x3, "MOV A,inm", 2, Mode.IMMEDIATE, False, Category.LOAD_IMMEDIATE, STEPS_2BYTE, register="A"),
+    0x4: InstructionSpec(0x4, "MOV B,inm", 2, Mode.IMMEDIATE, False, Category.LOAD_IMMEDIATE, STEPS_2BYTE, register="B"),
+    0x5: InstructionSpec(0x5, "MOV [dir],A", 2, Mode.DIRECT, False, Category.STORE_DIRECT, STEPS_2BYTE, register="A"),
     0x6: InstructionSpec(0x6, "ADD", 1, Mode.IMPLICIT, True, Category.ALU, STEPS_ALU),
     0x7: InstructionSpec(0x7, "SUB", 1, Mode.IMPLICIT, True, Category.ALU, STEPS_ALU),
     0x8: InstructionSpec(0x8, "AND", 1, Mode.IMPLICIT, True, Category.ALU, STEPS_ALU),

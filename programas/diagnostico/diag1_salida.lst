@@ -1,0 +1,10 @@
+DIR  BYTES        LÍN  FUENTE
+---  -----------  ---  --------------------------------------------
+                    1  ; diag1_salida.asm — prueba la etapa de salida (273 + 244 + LEDs).
+                    2  ; Esperado: OUT = 0x55, LEDs 01010101.
+00   30 55          3        MOV A,0x55
+02   B0             4        OUT
+03   C0             5        HLT
+
+TABLA DE SÍMBOLOS
+(ninguno)

@@ -1,0 +1,13 @@
+DIR  BYTES        LÍN  FUENTE
+---  -----------  ---  --------------------------------------------
+                    1  ; diag4_acarreo.asm — acarreo entre los dos 74LS181 (bit 3 -> bit 4).
+                    2  ; 0x0F + 0x01 = 0x10. Si sale 0x00, el Cn+4 (pin 16) del 181 bajo no llega
+                    3  ; al Cn (pin 7) del 181 alto.
+00   30 0F          4        MOV A,0x0F
+02   40 01          5        MOV B,0x01
+04   60             6        ADD
+05   B0             7        OUT
+06   C0             8        HLT
+
+TABLA DE SÍMBOLOS
+(ninguno)

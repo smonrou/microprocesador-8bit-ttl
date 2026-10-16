@@ -6,9 +6,9 @@
 
 #include "Arduino.h"
 
-volatile uint8_t PORTA = 0, PORTC = 0, PORTL = 0;
-volatile uint8_t DDRA = 0, DDRC = 0, DDRL = 0;
-volatile uint8_t PINA = 0, PINC = 0, PINL = 0;
+volatile uint8_t PORTA = 0, PORTC = 0, PORTK = 0, PORTL = 0;
+volatile uint8_t DDRA = 0, DDRC = 0, DDRK = 0, DDRL = 0;
+volatile uint8_t PINA = 0, PINC = 0, PINK = 0, PINL = 0;
 
 void pinMode(uint8_t, uint8_t) {}
 void digitalWrite(uint8_t, uint8_t) {}

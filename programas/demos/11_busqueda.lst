@@ -1,0 +1,69 @@
+DIR  BYTES        LÍN  FUENTE
+---  -----------  ---  --------------------------------------------
+                    1  ; ─────────────────────────────────────────────────────────────────────────
+                    2  ; 11_busqueda.asm — buscar un valor en un arreglo
+                    3  ;
+                    4  ; Recorre el arreglo con la misma técnica de 10_suma_arreglo.asm (código
+                    5  ; automodificable) y compara cada elemento con el buscado usando XOR: si
+                    6  ; son iguales el resultado es 0 y JZ salta a "encontrado".
+                    7  ;
+                    8  ; Demuestra: búsqueda lineal, comparación con XOR, dos finales posibles,
+                    9  ; código automodificable.
+                   10  ;
+                   11  ; PARA CAMBIAR QUÉ SE BUSCA: LOAD 0xC0 <valor>
+                   12  ; PARA CAMBIAR EL ARREGLO:   LOAD 0xD0..0xD7 <valor>   LONGITUD: LOAD 0xC1 <n>
+                   13  ;
+                   14  ; Salida: la posición (0 = primero) donde está el valor, o 255 (todos los
+                   15  ; LEDs encendidos) si no está.
+                   16  ; Salida esperada (buscar 23 en 15,42,8,99,23,64,7,51): [4]
+                   17  ; ─────────────────────────────────────────────────────────────────────────
+                   18
+00   30 D0         19              MOV A,ARREGLO        ; dirección del primer elemento
+02   50 0B         20              MOV [PTR],A          ; reescribe el operando de LEER
+04   30 00         21              MOV A,0
+06   50 C2         22              MOV [INDICE],A
+                   23
+08   10 C0         24  OTRO:       MOV A,[BUSCADO]
+0A   20            25  LEER:       .DB 0x20             ; MOV B,[...]  ← instrucción que se automodifica
+0B   D0            26  PTR:        .DB ARREGLO          ;   su byte de dirección
+0C   A0            27              XOR                  ; ¿elemento == buscado?
+0D   E0 24         28              JZ ENCONTRADO
+                   29
+0F   10 0B         30              MOV A,[PTR]
+11   40 01         31              MOV B,1
+13   60            32              ADD
+14   50 0B         33              MOV [PTR],A          ; siguiente elemento
+16   10 C2         34              MOV A,[INDICE]
+18   60            35              ADD
+19   50 C2         36              MOV [INDICE],A       ; indice += 1
+1B   20 C1         37              MOV B,[LONGITUD]
+1D   A0            38              XOR                  ; ¿ya se revisaron todos?
+1E   F0 08         39              JNZ OTRO
+                   40
+20   30 FF         41              MOV A,0xFF           ; no está
+22   B0            42              OUT
+23   C0            43              HLT
+                   44
+24   10 C2         45  ENCONTRADO: MOV A,[INDICE]
+26   B0            46              OUT
+27   C0            47              HLT
+                   48
+                   49  ; ── Zona de datos ────────────────────────────────────────────────────────
+                   50  .ORG 0xC0
+C0   17            51  BUSCADO:  .DB 23             ; <<<< valor a buscar (0xC0)
+C1   08            52  LONGITUD: .DB 8              ; <<<< cuántos elementos (0xC1)
+C2   00            53  INDICE:   .DB 0              ; 0xC2
+                   54
+                   55  .ORG 0xD0
+D0   0F 2A 08 63   56  ARREGLO:  .DB 15, 42, 8, 99, 23, 64, 7, 51   ; <<<< 0xD0-0xD7
+D4   17 40 07 33
+
+TABLA DE SÍMBOLOS
+OTRO       = 0x08 (8)
+LEER       = 0x0A (10)
+PTR        = 0x0B (11)
+ENCONTRADO = 0x24 (36)
+BUSCADO    = 0xC0 (192)
+LONGITUD   = 0xC1 (193)
+INDICE     = 0xC2 (194)
+ARREGLO    = 0xD0 (208)

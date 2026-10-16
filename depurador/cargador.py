@@ -4,7 +4,7 @@ El ``.load`` es un guion de comandos seriales (``LOADB 0x00 0x30 0x00 ...``),
 uno por línea. El depurador lo manda línea por línea ESPERANDO la confirmación
 ``OK``/``ERR`` de cada una antes de mandar la siguiente: el buffer de recepción
 del Arduino son 64 bytes y pegar el archivo entero de golpe perdería comandos
-EN SILENCIO (ver el comentario de ``firmware/microprocesador/consola.h``).
+EN SILENCIO (ver el comentario de ``firmware/unidad_control/consola.h``).
 
 Módulo puro: solo lee un archivo y devuelve texto. No abre puertos.
 """

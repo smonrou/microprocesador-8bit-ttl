@@ -23,7 +23,7 @@ DEMO_ALU = "programas/demo_alu.asm"
 DEMO_MULT = "programas/demo_multiplicacion.asm"
 
 # Direcciones de los dos operandos de demo_multiplicacion.asm.
-# El multiplicador es el byte inmediato de la instrucción `LDI A,#3`;
+# El multiplicador es el byte inmediato de la instrucción `MOV A,3`;
 # el multiplicando es la constante declarada con .DB.
 DIR_MULTIPLICADOR = 0x05
 DIR_MULTIPLICANDO = 0xCC
@@ -162,7 +162,7 @@ def paso_6_en_vivo():
 
     print("Los dos operandos viven en direcciones fijas:")
     print(f"  multiplicador  → 0x{DIR_MULTIPLICADOR:02X}  "
-          f"(byte inmediato de 'LDI A,#n')")
+          f"(byte inmediato de 'MOV A,n')")
     print(f"  multiplicando  → 0x{DIR_MULTIPLICANDO:02X}  (constante .DB)")
     print()
     print("Cambiarlos son dos comandos LOAD en el monitor serial. Aquí se")
@@ -200,9 +200,9 @@ def paso_7_errores():
     from asm import AssemblyFailed
 
     fuente = (
-        "      LDI A,#5\n"
+        "      MOV A,5\n"
         "      LDX 3\n"
-        "      LDA 300\n"
+        "      MOV A,[300]\n"
         "      ADD 7\n"
         "      JNZ NOEXISTE\n"
         "      HLT\n"

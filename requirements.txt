@@ -1,14 +1,2 @@
-# Dependencias del proyecto.
-#
-# NADA de esto hace falta para el flujo normal: sim/, asm/, los tests y el
-# depurador contra el servidor de prueba local funcionan solo con la
-# biblioteca estándar de Python (la interfaz usa tkinter, que viene con
-# Python; en Linux puede requerir el paquete del sistema python3-tk).
-#
-# pyserial se necesita ÚNICAMENTE para conectar el depurador al Arduino Mega
-# real por el puerto serie. El import es perezoso (dentro de
-# depurador/transporte.py), así que sin instalarlo todo lo demás arranca igual
-# y `listar_puertos_serie()` devuelve una lista vacía en vez de fallar.
-#
 #   pip install -r requirements.txt
 pyserial>=3.5

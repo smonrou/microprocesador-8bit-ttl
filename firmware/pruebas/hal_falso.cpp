@@ -14,8 +14,8 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "../microprocesador/hal.h"
-#include "../microprocesador/isa.h"
+#include "../unidad_control/hal.h"
+#include "../unidad_control/isa.h"
 
 namespace {
 
@@ -23,7 +23,7 @@ hal_falso::Estado g_estado;
 
 // ── SN74LS181, columna lógica (M = 1) ────────────────────────────────────
 // Las 16 funciones de la tabla 2. Las que usa el diseño (AND=1011, OR=1110,
-// XOR=0110, F=A 1111, F=B 1010, NOT A 0000) están verificadas contra la
+// XOR=0110, F=B 1010, NOT A 0000) están verificadas contra la
 // bitácora; el resto se incluyen porque son triviales y así una S equivocada
 // produce el valor que de verdad daría el chip, no un error inventado.
 uint8_t funcionLogica(uint8_t s, uint8_t a, uint8_t b) {
@@ -162,8 +162,29 @@ void pulsoClockB() {
 }
 
 void limpiarRegistros() {
+  // La línea CLEAR llega a los 273 y al /CLR de los 161.
   g_estado.registroA = 0;
   g_estado.registroB = 0;
+  g_estado.pc = 0;
+}
+
+void incrementarPC() {
+  // 74LS161 con ENP=ENT=1 y /LOAD en alto: cuenta en el flanco. La cascada
+  // RCO -> ENT hace que 0xFF pase a 0x00, igual que el uint8_t.
+  g_estado.pc = static_cast<uint8_t>(g_estado.pc + 1);
+  g_estado.pulsosPC++;
+}
+
+void cargarPC(uint8_t direccion) {
+  // Carga síncrona: con /LOAD en bajo, el flanco engancha P0-P7 = bus D.
+  g_estado.bus = direccion;
+  g_estado.pc = g_estado.bus;
+  g_estado.pulsosPC++;
+  g_estado.cargasPC++;
+}
+
+uint8_t leerPC() {
+  return g_estado.pc;
 }
 
 void mostrarByte(uint8_t valor) {
@@ -190,6 +211,10 @@ const Estado& estado() {
 void forzarRegistros(uint8_t a, uint8_t b) {
   g_estado.registroA = a;
   g_estado.registroB = b;
+}
+
+void forzarPC(uint8_t pc) {
+  g_estado.pc = pc;
 }
 
 }  // namespace hal_falso
